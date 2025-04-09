@@ -1,0 +1,17 @@
+{
+    "appId": "com.realtimes.desktop-app",
+    "files": [
+        "dist-electron",
+        "dist-react"
+    ],
+    "extraResources": [
+        "dist-electron/preload.cjs"
+    ],
+    "icon": "./icon.svg",
+    "win": {
+        "target": [
+            "portable",
+            "msi"
+        ]
+    }
+}
