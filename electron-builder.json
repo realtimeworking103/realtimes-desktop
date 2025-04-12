@@ -7,7 +7,7 @@
     "extraResources": [
         "dist-electron/preload.cjs"
     ],
-    "icon": "./icon.svg",
+    "icon": "./desktopIcon.png",
     "win": {
         "target": [
             "portable",

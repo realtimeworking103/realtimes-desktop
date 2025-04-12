@@ -1,9 +1,9 @@
 import { app, BrowserWindow } from "electron";
-import path from "path";
 import { isDev } from "./utils/is-dev.js";
-import { getPreloadPath } from "./utils/path-resolver.js";
+import { getPreloadPath, getUIPath } from "./utils/path-resolver.js";
 import { getStatisData, pollResources } from "./src/resource-manager.js";
-import { ipcMainHandle } from "./utils/icp-utils.js";
+import { ipcMainHandle } from "./utils/ipc-utils.js";
+
 const createWindow = () => {
   const preloadPath = getPreloadPath();
 
@@ -18,7 +18,7 @@ const createWindow = () => {
   if (isDev()) {
     mainWindow.loadURL("http://localhost:5173");
   } else {
-    mainWindow.loadFile(path.join(app.getAppPath(), "dist-react/index.html"));
+    mainWindow.loadFile(getUIPath());
   }
 
   return mainWindow;
@@ -30,7 +30,14 @@ app.whenReady().then(() => {
   pollResources(mainWindow);
 
   ipcMainHandle("getStaticData", getStatisData);
+  ipcMainHandle("callLdInstance", (payload) => callLdInstance(payload));
 });
+
+const callLdInstance = (id: number) => {
+  console.log(id);
+
+  return id;
+};
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
