@@ -13,6 +13,8 @@ export function ipcMainHandle<T extends IpcEventKey>(
   });
 }
 
+// ipcOn is for frontend to listen to events
+// ipcMainOn is for backend to listen to events
 export function ipcMainOn<T extends IpcEventKey>(
   key: T,
   handler: (payload: IpcEventPayload<T>) => void,

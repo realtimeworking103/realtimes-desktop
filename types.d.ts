@@ -24,6 +24,18 @@ type IpcEventMap = {
     payload: number;
     response: number;
   };
+  functionA: {
+    payload: {
+      name: string;
+    };
+    response: string;
+  };
+  createLdInstance: {
+    payload: {
+      name: string;
+    };
+    response: number;
+  };
 };
 
 // Helper types for type-safe IPC communication

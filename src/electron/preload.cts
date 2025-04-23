@@ -6,6 +6,8 @@ electron.contextBridge.exposeInMainWorld("electron", {
     ipcOn("statistics", callback),
   getStaticData: () => ipcInvoke("getStaticData"),
   callLdInstance: (id: number) => ipcInvoke("callLdInstance", id),
+  functionA: (payload) => ipcInvoke("functionA", payload),
+  createLdInstance: (payload) => ipcInvoke("createLdInstance", payload),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions
