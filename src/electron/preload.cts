@@ -1,28 +1,27 @@
 const electron = require("electron");
 
+// Expose type-safe API to renderer
 electron.contextBridge.exposeInMainWorld("electron", {
-  subscribeStatistics: (callback) =>
-    ipcOn("statistics", (stats) => {
-      callback(stats);
-    }),
+  statistics: (callback: (stats: Statistics) => void) =>
+    ipcOn("statistics", callback),
   getStaticData: () => ipcInvoke("getStaticData"),
   callLdInstance: (id: number) => ipcInvoke("callLdInstance", id),
 } satisfies Window["electron"]);
 
-// Send event to main and get return as promise
-function ipcInvoke<Key extends keyof EventPayloadMapping>(
-  key: Key,
-  payload?: EventPayloadMapping[Key],
-): Promise<EventPayloadMapping[Key]> {
+// Type-safe IPC communication functions
+function ipcInvoke<T extends IpcEventKey>(
+  key: T,
+  payload?: IpcEventPayload<T>,
+): Promise<IpcEventResponse<T>> {
   return electron.ipcRenderer.invoke(key, payload);
 }
 
-// Listen to event from main
-function ipcOn<Key extends keyof EventPayloadMapping>(
-  key: Key,
-  callback: (payload: EventPayloadMapping[Key]) => void,
-) {
-  const cb = (_: Electron.IpcRendererEvent, payload: any) => callback(payload);
+function ipcOn<T extends IpcEventKey>(
+  key: T,
+  callback: (payload: IpcEventPayload<T>) => void,
+): UnsubscribeFunction {
+  const cb = (_: Electron.IpcRendererEvent, payload: IpcEventPayload<T>) =>
+    callback(payload);
   electron.ipcRenderer.on(key, cb);
   return () => electron.ipcRenderer.off(key, cb);
 }

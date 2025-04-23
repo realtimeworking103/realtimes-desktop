@@ -1,8 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import { isDev } from "./utils/is-dev.js";
 import { getPreloadPath, getUIPath } from "./utils/path-resolver.js";
-import { getStatisData, pollResources } from "./src/resource-manager.js";
-import { ipcMainHandle } from "./utils/ipc-utils.js";
+import initMain from "./src/index.js";
 
 const createWindow = () => {
   const preloadPath = getPreloadPath();
@@ -27,17 +26,8 @@ const createWindow = () => {
 app.whenReady().then(() => {
   const mainWindow = createWindow();
 
-  pollResources(mainWindow);
-
-  ipcMainHandle("getStaticData", getStatisData);
-  ipcMainHandle("callLdInstance", (payload) => callLdInstance(payload));
+  initMain(mainWindow);
 });
-
-const callLdInstance = (id: number) => {
-  console.log(id);
-
-  return id;
-};
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

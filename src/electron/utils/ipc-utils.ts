@@ -3,9 +3,9 @@ import { isDev } from "./is-dev.js";
 import { getUIPath } from "./path-resolver.js";
 import { pathToFileURL } from "url";
 
-export function ipcMainHandle<Key extends keyof EventPayloadMapping>(
-  key: Key,
-  handler: (payload: EventPayloadMapping[Key]) => EventPayloadMapping[Key],
+export function ipcMainHandle<T extends IpcEventKey>(
+  key: T,
+  handler: (payload: IpcEventPayload<T>) => IpcEventResponse<T>,
 ) {
   ipcMain.handle(key, (event, payload) => {
     validateEventFrame(event.senderFrame as WebFrameMain);
@@ -13,9 +13,9 @@ export function ipcMainHandle<Key extends keyof EventPayloadMapping>(
   });
 }
 
-export function ipcMainOn<Key extends keyof EventPayloadMapping>(
-  key: Key,
-  handler: (payload: EventPayloadMapping[Key]) => void,
+export function ipcMainOn<T extends IpcEventKey>(
+  key: T,
+  handler: (payload: IpcEventPayload<T>) => void,
 ) {
   ipcMain.on(key, (event, payload) => {
     validateEventFrame(event.senderFrame as WebFrameMain);
@@ -23,10 +23,10 @@ export function ipcMainOn<Key extends keyof EventPayloadMapping>(
   });
 }
 
-export function ipcWebContentsSend<Key extends keyof EventPayloadMapping>(
-  key: Key,
+export function ipcWebContentsSend<T extends IpcEventKey>(
+  key: T,
   webContents: WebContents,
-  payload: EventPayloadMapping[Key],
+  payload: IpcEventPayload<T>,
 ) {
   webContents.send(key, payload);
 }
