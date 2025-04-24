@@ -21,7 +21,7 @@ type IpcEventMap = {
     response: StaticData;
   };
   callLdInstance: {
-    payload: number;
+    payload: string;
     response: number;
   };
   functionA: {
@@ -36,6 +36,10 @@ type IpcEventMap = {
     };
     response: number;
   };
+  getLDPlayersDB: {
+    payload: void;
+    response: { id: string; name: string }[];
+  };
 };
 
 // Helper types for type-safe IPC communication
@@ -49,8 +53,8 @@ type UnsubscribeFunction = () => void;
 // Helper type to convert IpcEventMap to electron window API
 type IpcEventToElectronApi<T extends IpcEventMap> = {
   [K in keyof T]: T[K]["response"] extends void
-    ? (callback: (payload: T[K]["payload"]) => void) => UnsubscribeFunction
-    : (payload: T[K]["payload"]) => Promise<T[K]["response"]>;
+  ? (callback: (payload: T[K]["payload"]) => void) => UnsubscribeFunction
+  : (payload: T[K]["payload"]) => Promise<T[K]["response"]>;
 };
 
 // Type for the electron window object

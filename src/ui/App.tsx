@@ -1,11 +1,13 @@
 import { HashRouter, Route, Routes } from "react-router";
-import Dashboard from "./app/(main)/dashboard/page";
-import LineManagement from "./app/(main)/line-management/page";
-import Login from "./app/login/page";
+
 import RootLayout from "./app/layout";
-import { ProtectedRoute } from "./components/protected-route";
 import Layout from "./app/(main)/layout";
-import { routes } from "./routes";
+
+import { ProtectedRoute } from "./components/protected-route";
+import Login from "./app/login/page";
+import Dashboard from "./app/(main)/dashboard/page";
+import LDPlayer from "./app/(main)/ldplayer/page";
+import CreateLDPlayer from "./app/(main)/create-ldplayer/page";
 
 function App() {
   return (
@@ -25,19 +27,28 @@ function App() {
             />
 
             <Route
-              path={routes.lineManagement}
+              path={"/dashboard"}
               element={
                 <ProtectedRoute>
-                  <LineManagement />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
 
             <Route
-              path={"/ldplayer-management"}
+              path={"/ldplayer"}
               element={
                 <ProtectedRoute>
-                  <LineManagement />
+                  <LDPlayer />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={"/create-ldplayer"}
+              element={
+                <ProtectedRoute>
+                  <CreateLDPlayer />
                 </ProtectedRoute>
               }
             />

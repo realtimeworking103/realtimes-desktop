@@ -14,7 +14,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/ui/components/ui/sidebar";
-import { routes } from "../routes";
+
 import { NavLink } from "react-router";
 
 // This is sample data.
@@ -22,66 +22,20 @@ const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
   navMain: [
     {
-      title: "จัดการไลน์",
+      title: "Getting Started",
       url: "#",
       items: [
         {
-          title: "สมัครไลน์",
-          url: routes.lineManagement,
-        },
-      ],
-    },
-    {
-      title: "LDPlayer",
-      url: "#",
-      items: [
-        {
-          title: "จัดการ LDPlayer",
-          url: "/ldplayer-management",
+          title: "Dashboard",
+          url: "/dashboard",
         },
         {
-          title: "สร้าง LDPlayer",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Manage Flex",
-      url: "#",
-      items: [
-        {
-          title: "เพิ่มบัญชีไลน์",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Setting",
-      url: "#",
-      items: [
-        {
-          title: "ทั่วไป",
-          url: "#",
+          title: "LDPlayer",
+          url: "/ldplayer",
         },
         {
-          title: "ชื่อและรูปภาพ",
-          url: "#",
-        },
-        {
-          title: "Proxy",
-          url: "#",
-        },
-        {
-          title: "Dataเบอร์",
-          url: "#",
-        },
-        {
-          title: "ไลน์ไก่",
-          url: "#",
-        },
-        {
-          title: "กำหนดสถานะ",
-          url: "#",
+          title: "Create",
+          url: "/create-ldplayer",
         },
       ],
     },
