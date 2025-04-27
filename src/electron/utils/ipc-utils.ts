@@ -3,13 +3,25 @@ import { isDev } from "./is-dev.js";
 import { getUIPath } from "./path-resolver.js";
 import { pathToFileURL } from "url";
 
+// export function ipcMainHandle<T extends IpcEventKey>(
+//   key: T,
+//   handler: (payload: IpcEventPayload<T>) => IpcEventResponse<T>,
+// ) {
+//   ipcMain.handle(key, (event, payload) => {
+//     validateEventFrame(event.senderFrame as WebFrameMain);
+//     return handler(payload);
+//   });
+// }
+
 export function ipcMainHandle<T extends IpcEventKey>(
   key: T,
-  handler: (payload: IpcEventPayload<T>) => IpcEventResponse<T>,
+  handler: (
+    payload: IpcEventPayload<T>,
+  ) => Promise<IpcEventResponse<T>> | IpcEventResponse<T>,
 ) {
-  ipcMain.handle(key, (event, payload) => {
+  ipcMain.handle(key, async (event, payload) => {
     validateEventFrame(event.senderFrame as WebFrameMain);
-    return handler(payload);
+    return await handler(payload); // <<== ใส่ await
   });
 }
 

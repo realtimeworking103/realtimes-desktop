@@ -5,10 +5,12 @@ electron.contextBridge.exposeInMainWorld("electron", {
   statistics: (callback: (stats: Statistics) => void) =>
     ipcOn("statistics", callback),
   getStaticData: () => ipcInvoke("getStaticData"),
-  callLdInstance: (name: string) => ipcInvoke("callLdInstance", name),
-  functionA: (payload) => ipcInvoke("functionA", payload),
-  createLdInstance: (payload) => ipcInvoke("createLdInstance", payload),
   getLDPlayersDB: () => ipcInvoke("getLDPlayersDB"),
+  callLdInstance: (name: string) => ipcInvoke("callLdInstance", name),
+  deleteLdInstance: (name: string) => ipcInvoke("deleteLdInstance", name),
+  deleteRowFromLDPlayers: (id: number) =>
+    ipcInvoke("deleteRowFromLDPlayers", id),
+  pullDataBase: (name: string) => ipcInvoke("pullDataBase", name),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions

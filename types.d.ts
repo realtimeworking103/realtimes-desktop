@@ -20,25 +20,31 @@ type IpcEventMap = {
     payload: void;
     response: StaticData;
   };
+  getLDPlayersDB: {
+    payload: void;
+    response: {
+      NoDataGridLD: string;
+      LDPlayerGridLD: string;
+      StatusAccGridLD: string;
+      DataTimeGridLD:string;
+      StatusGridLD: string;
+    }[];
+  };
   callLdInstance: {
     payload: string;
     response: number;
   };
-  functionA: {
-    payload: {
-      name: string;
-    };
-    response: string;
-  };
-  createLdInstance: {
-    payload: {
-      name: string;
-    };
+  deleteLdInstance: {
+    payload: string;
     response: number;
   };
-  getLDPlayersDB: {
-    payload: void;
-    response: { id: string; name: string }[];
+  deleteRowFromLDPlayers: {
+    payload: number;
+    response: number;
+  };
+  pullDataBase: {
+    payload: string;
+    response: number;
   };
 };
 
@@ -53,8 +59,8 @@ type UnsubscribeFunction = () => void;
 // Helper type to convert IpcEventMap to electron window API
 type IpcEventToElectronApi<T extends IpcEventMap> = {
   [K in keyof T]: T[K]["response"] extends void
-  ? (callback: (payload: T[K]["payload"]) => void) => UnsubscribeFunction
-  : (payload: T[K]["payload"]) => Promise<T[K]["response"]>;
+    ? (callback: (payload: T[K]["payload"]) => void) => UnsubscribeFunction
+    : (payload: T[K]["payload"]) => Promise<T[K]["response"]>;
 };
 
 // Type for the electron window object
