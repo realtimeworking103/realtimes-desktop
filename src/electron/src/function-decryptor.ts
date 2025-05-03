@@ -1,0 +1,138 @@
+import Database from "better-sqlite3";
+import crypto from "crypto";
+import { TokenGenerator } from "./TokenGenerator.js";
+
+export interface LineProfile {
+  mid: string;
+  authKey: string;
+  name: string;
+  phone: string;
+  token: string;
+}
+
+export class LineProfileDecryptor {
+  private dbPath: string;
+
+  constructor(path: string) {
+    this.dbPath = path;
+  }
+
+  private getSetting(key: string): string | null {
+    const db = new Database(this.dbPath, { readonly: true });
+    const row = db
+      .prepare("SELECT value FROM setting WHERE key = ?")
+      .get(key) as { value: string } | undefined;
+    return row?.value ?? null;
+  }
+
+  private crazyOperation(key: number, constant: number): Buffer {
+    const byte = (n: number) => n & 0xff;
+    const arr = Buffer.alloc(16);
+    arr[0] = byte(key);
+    arr[1] = byte(key - 71);
+    arr[2] = byte(key - 142);
+
+    for (let i = 3; i < 16; i++) {
+      arr[i] = byte(i ^ (0xffffffb9 ^ (arr[i - 3] ^ arr[i - 2])));
+    }
+
+    if (constant < 2 && constant > -2) {
+      constant = 0xfffffffffffb389d + 0xd2dfaf * constant;
+    }
+
+    let j = 0,
+      k = -7;
+    for (let i = 0; i < arr.length; i++) {
+      const k1 = (j + 1) & (arr.length - 1);
+      const l1 = BigInt(constant) * BigInt(arr[k1]) + BigInt(k);
+      k = Number((l1 >> 32n) & 0xffn);
+      let i2 = l1 + BigInt(k);
+
+      if (i2 < BigInt(k)) {
+        i2++;
+        k++;
+      }
+
+      arr[k1] = byte(Number(-2n - i2));
+      j = k1;
+    }
+
+    return arr;
+  }
+
+  private decryptSetting(value: string, key: number): string | null {
+    try {
+      const ciphertext = Buffer.from(value, "base64");
+      const aesKey = this.crazyOperation(key, 0xec4ba7);
+
+      const decipher = crypto.createDecipheriv("aes-128-ecb", aesKey, null);
+      decipher.setAutoPadding(false);
+      const decrypted = Buffer.concat([
+        decipher.update(ciphertext),
+        decipher.final(),
+      ]);
+      const paddingLength = decrypted[decrypted.length - 1];
+      return decrypted.slice(0, -paddingLength).toString("utf-8");
+    } catch {
+      return null;
+    }
+  }
+
+  private isProfileAuthKey(value: string): boolean {
+    return /^u[a-z0-9]{32}:[a-zA-Z0-9+/=]+$/.test(value);
+  }
+
+  private bruteforceKey(authKeyValue: string): number {
+    for (let key = 0; key <= 0x3ff; key++) {
+      const plaintext = this.decryptSetting(authKeyValue, key);
+      if (plaintext && this.isProfileAuthKey(plaintext)) {
+        return key;
+      }
+    }
+    throw new Error("Couldn't brute force key.");
+  }
+
+  private formatPhone(phone: string): string {
+    return phone.startsWith("+66")
+      ? "0" + phone.slice(3).replace(/\s+/g, "")
+      : phone;
+  }
+
+  public decryptProfile(): LineProfile | null {
+    const encryptedAuthKey = this.getSetting("PROFILE_AUTH_KEY");
+    if (!encryptedAuthKey) {
+      console.error("PROFILE_AUTH_KEY not found");
+      return null;
+    }
+
+    const key = this.bruteforceKey(encryptedAuthKey);
+    const decrypted = this.decryptSetting(encryptedAuthKey, key);
+
+    if (!decrypted || !this.isProfileAuthKey(decrypted)) {
+      console.error("Failed to decrypt valid PROFILE_AUTH_KEY");
+      return null;
+    }
+
+    const [mid, authKey] = decrypted.split(":");
+    const nameEncrypted = this.getSetting("PROFILE_NAME");
+    const phoneEncrypted = this.getSetting("PROFILE_NORMALIZED_PHONE");
+
+    const name = nameEncrypted
+      ? (this.decryptSetting(nameEncrypted, key) ?? "")
+      : "";
+    let phone = phoneEncrypted
+      ? (this.decryptSetting(phoneEncrypted, key) ?? "")
+      : "";
+    phone = this.formatPhone(phone);
+
+    const token = TokenGenerator.createToken(`${mid}:${authKey}`);
+
+    return {
+      mid,
+      authKey: `${mid}:${authKey}`,
+      name,
+      phone,
+      token,
+    };
+  }
+}

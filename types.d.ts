@@ -26,8 +26,13 @@ type IpcEventMap = {
       NoDataGridLD: string;
       LDPlayerGridLD: string;
       StatusAccGridLD: string;
-      DataTimeGridLD:string;
+      DataTimeGridLD: string;
       StatusGridLD: string;
+      NameGridLD: string;
+      FriendGridLD: string;
+      GroupGridLD: string;
+      PhoneGridLD: string;
+      TokenGridLD: string;
     }[];
   };
   callLdInstance: {
@@ -38,13 +43,17 @@ type IpcEventMap = {
     payload: string;
     response: number;
   };
-  deleteRowFromLDPlayers: {
+  deleteRowFromDB: {
     payload: number;
     response: number;
   };
-  pullDataBase: {
+  pullDBLdInstance: {
     payload: string;
     response: number;
+  };
+  fetchLdInstance: {
+    payload: void;
+    response: string[];
   };
 };
 

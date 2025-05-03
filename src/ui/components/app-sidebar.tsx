@@ -37,6 +37,10 @@ const data = {
           title: "Create",
           url: "/create-ldplayer",
         },
+        {
+          title: "Setting",
+          url: "/setting",
+        },
       ],
     },
   ],

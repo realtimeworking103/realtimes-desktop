@@ -8,6 +8,7 @@ import Login from "./app/login/page";
 import Dashboard from "./app/(main)/dashboard/page";
 import LDPlayer from "./app/(main)/ldplayer/page";
 import CreateLDPlayer from "./app/(main)/create-ldplayer/page";
+import Setting from "./app/(main)/setting/page";
 
 function App() {
   return (
@@ -49,6 +50,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreateLDPlayer />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={"/setting"}
+              element={
+                <ProtectedRoute>
+                  <Setting />
                 </ProtectedRoute>
               }
             />
