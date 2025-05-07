@@ -1,12 +1,19 @@
 import { BrowserWindow } from "electron";
 import { ipcMainHandle } from "../utils/ipc-utils.js";
 import { getStatisData, pollResources } from "./resource-manager.js";
-import { getLDPlayersDB, deleteRowFromDB } from "./function-db.js";
+import {
+  getLDPlayersDB,
+  deleteRowFromDB,
+  getDataCreateLDPlayers,
+  moveSelectedLDPlayers,
+} from "./function-db.js";
+
 import {
   callLdInstance,
   deleteLdInstance,
   pullDBLdInstance,
   fetchLdInstance,
+  createLDPlayers,
 } from "./function-ldplayer.js";
 
 export default function initMain(mainWindow: BrowserWindow) {
@@ -18,4 +25,7 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("deleteRowFromDB", deleteRowFromDB);
   ipcMainHandle("pullDBLdInstance", pullDBLdInstance);
   ipcMainHandle("fetchLdInstance", fetchLdInstance);
+  ipcMainHandle("getDataCreateLDPlayers", getDataCreateLDPlayers);
+  ipcMainHandle("createLDPlayers", createLDPlayers);
+  ipcMainHandle("moveSelectedLDPlayers", moveSelectedLDPlayers);
 }

@@ -89,29 +89,29 @@ export default function Page() {
   };
 
   return (
-    <div>
+    <div className="w-full space-y-6 p-4">
       <div>
         <Button onClick={handlefetchLdInstance}>ดึง LDPlayer</Button>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px] text-center">ลำดับ</TableHead>
-            <TableHead className="w-[150px] text-center">LDPlayer</TableHead>
-            <TableHead className="w-[200px] text-center">
+            <TableHead className="w-[300px] text-center">ลำดับ</TableHead>
+            <TableHead className="w-[300px] text-center">LDPlayer</TableHead>
+            <TableHead className="w-[300px] text-center">
               สถานะบัญชีไลน์
             </TableHead>
-            <TableHead className="w-[180px] text-center">
+            <TableHead className="w-[300px] text-center">
               ทำงานครั้งล่าสุด
             </TableHead>
-            <TableHead className="w-[180px] text-center">
+            <TableHead className="w-[300px] text-center">
               สถานะการทำงาน
             </TableHead>
-            <TableHead className="w-[180px] text-center">ชื่อไลน์</TableHead>
-            <TableHead className="w-[100px] text-center">จำนวนเพื่อน</TableHead>
-            <TableHead className="w-[100px] text-center">จำนวนกลุ่ม</TableHead>
-            <TableHead className="w-[100px] text-center">เบอร์ไลน์</TableHead>
-            <TableHead className="w-[200px] text-center">Token</TableHead>
+            <TableHead className="w-[300px] text-center">ชื่อไลน์</TableHead>
+            <TableHead className="w-[300px] text-center">จำนวนเพื่อน</TableHead>
+            <TableHead className="w-[300px] text-center">จำนวนกลุ่ม</TableHead>
+            <TableHead className="w-[300px] text-center">เบอร์ไลน์</TableHead>
+            <TableHead className="w-[300px] text-center">Token</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="text-center">
@@ -128,7 +128,7 @@ export default function Page() {
                   <TableCell>{ld.FriendGridLD}</TableCell>
                   <TableCell>{ld.GroupGridLD}</TableCell>
                   <TableCell>{ld.PhoneGridLD}</TableCell>
-                  <TableCell className="max-w-[300px] truncate">
+                  <TableCell className="max-w-[10px] truncate">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="cursor-pointer">

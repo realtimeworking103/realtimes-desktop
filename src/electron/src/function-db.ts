@@ -46,3 +46,71 @@ export function deleteRowFromDB(id: number) {
     return 0;
   }
 }
+
+export function getDataCreateLDPlayers() {
+  db.prepare(
+    `
+      CREATE TABLE IF NOT EXISTS DataCreateLDPlayer (
+        NoDataGridLD INTEGER PRIMARY KEY AUTOINCREMENT,
+        LDPlayerGridLD TEXT,
+        StatusGridLD TEXT,
+        PrefixGridLD TEXT,
+        DataTimeGridLD TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `,
+  ).run();
+
+  const rows = db
+    .prepare(
+      "SELECT NoDataGridLD, LDPlayerGridLD, DataTimeGridLD, StatusGridLD, PrefixGridLD FROM DataCreateLDPlayer",
+    )
+    .all();
+  return rows as {
+    NoDataGridLD: string;
+    LDPlayerGridLD: string;
+    DataTimeGridLD: string;
+    StatusGridLD: string;
+    PrefixGridLD: string;
+  }[];
+}
+
+type DataCreateLDPlayerRow = {
+  LDPlayerGridLD: string;
+  StatusGridLD: string;
+  DataTimeGridLD: string;
+};
+
+export function moveSelectedLDPlayers(ldNames: string[]): string {
+  const selectFromCreate = db.prepare(`
+    SELECT * FROM DataCreateLDPlayer WHERE LDPlayerGridLD = ?
+  `);
+
+  const checkIfExistsInGrid = db.prepare(`
+    SELECT 1 FROM GridLD WHERE LDPlayerGridLD = ?
+  `);
+
+  const insertToGrid = db.prepare(`
+    INSERT INTO GridLD (
+      LDPlayerGridLD,
+      StatusGridLD,
+      DataTimeGridLD
+    )
+    VALUES (?, ?, ?)
+  `);
+
+  let moved = 0;
+
+  for (const name of ldNames) {
+    const alreadyMoved = checkIfExistsInGrid.get(name);
+    if (alreadyMoved) continue;
+
+    const row = selectFromCreate.get(name) as DataCreateLDPlayerRow;
+    if (!row) continue;
+
+    insertToGrid.run(row.LDPlayerGridLD, row.StatusGridLD, row.DataTimeGridLD);
+
+    moved++;
+  }
+
+  return `Moved ${moved} new LDPlayer(s) to GridLD`;
+}

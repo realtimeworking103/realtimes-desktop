@@ -11,6 +11,11 @@ electron.contextBridge.exposeInMainWorld("electron", {
   deleteRowFromDB: (id: number) => ipcInvoke("deleteRowFromDB", id),
   pullDBLdInstance: (ldName: string) => ipcInvoke("pullDBLdInstance", ldName),
   fetchLdInstance: () => ipcInvoke("fetchLdInstance"),
+  getDataCreateLDPlayers: () => ipcInvoke("getDataCreateLDPlayers"),
+  createLDPlayers: (payload: { prefix: string; count: number }) =>
+    ipcInvoke("createLDPlayers", payload),
+  moveSelectedLDPlayers: (names: string[]) =>
+    ipcInvoke("moveSelectedLDPlayers", names),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions

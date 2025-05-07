@@ -11,7 +11,7 @@ const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const outputFolder = path.resolve(__dirname, "../../pulled_databases");
-const ldconsolePath = `"F:\\YORU\\LDPlayer\\LDPlayer9\\ldconsole.exe"`;
+const ldconsolePath = `"F:\\LDTEST\\LDPlayer\\LDPlayer9\\ldconsole.exe"`;
 
 export function callLdInstance(ldName: string) {
   const cmd = `${ldconsolePath} launch --name "${ldName}"`;
@@ -71,7 +71,10 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
       .get();
 
     if (!tableExists) {
-      console.warn(`⚠️ LDPlayer ${ldName} ไม่มีตาราง setting`);
+      db.prepare(
+        "UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?",
+      ).run("บัญชีไม่ได้สมัคร", ldName);
+      console.warn(`LDPlayer ${ldName} ไม่มีตาราง setting`);
       return;
     }
 
@@ -103,9 +106,10 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
 
     db.prepare(
       `UPDATE GridLD
-       SET StatusGridLD = ?, TokenGridLD = ?, NameGridLD = ?, PhoneGridLD = ?, DataTimeGridLD = ?
+       SET StatusAccGridLD = ?, StatusGridLD = ?, TokenGridLD = ?, NameGridLD = ?, PhoneGridLD = ?, DataTimeGridLD = ?
        WHERE LDPlayerGridLD = ?`,
     ).run(
+      "บัญชีไลน์พร้อมทำงาน",
       "เก็บ Token สำเร็จ",
       profile.token,
       profile.name,
@@ -114,7 +118,6 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
       ldName,
     );
 
-    console.log("ถอดรหัสสำเร็จ");
     console.log(`Token: ${profile.token}`);
     console.log(`ชื่อ: ${profile.name}`);
     console.log(`เบอร์: ${profile.phone}`);
@@ -218,4 +221,60 @@ export function fetchLdInstance(): Promise<string[]> {
     console.error("Error fetching LDPlayers from system:", error);
     return Promise.resolve([]);
   }
+}
+
+export function createLDPlayers({
+  prefix,
+  count,
+}: {
+  prefix: string;
+  count: number;
+}): string {
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS DataCreateLDPlayer (
+      NoDataGridLD INTEGER PRIMARY KEY AUTOINCREMENT,
+      LDPlayerGridLD TEXT,
+      PrefixGridLD TEXT,
+      StatusGridLD TEXT,
+      DataTimeGridLD TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+  ).run();
+
+  const insertStmt = db.prepare(`
+    INSERT INTO DataCreateLDPlayer (LDPlayerGridLD, PrefixGridLD, StatusGridLD)
+    VALUES (?, ?, ?)
+  `);
+
+  const updateStatus = db.prepare(`
+    UPDATE DataCreateLDPlayer SET StatusGridLD = ? WHERE LDPlayerGridLD = ?
+  `);
+
+  let successCount = 0;
+
+  for (let i = 1; i <= count; i++) {
+    const name = `${prefix}_${i.toString().padStart(2, "0")}`;
+
+    // Insert initial record
+    insertStmt.run(name, prefix, "กำลังสร้าง");
+
+    try {
+      const listOutput = execSync(`${ldconsolePath} list2`, {
+        encoding: "utf-8",
+      });
+      if (listOutput.includes(name)) {
+        updateStatus.run("มี LDPlayer อยู่แล้ว", name);
+        continue;
+      }
+
+      // Clone from LDPlayer01
+      const cmd = `${ldconsolePath} copy --name "${name}" --from "LDPlayer01"`;
+      execSync(cmd);
+      updateStatus.run("สร้าง LDPlayer สำเร็จ", name);
+      successCount++;
+    } catch (err) {
+      updateStatus.run("สร้าง LDPlayer สำเร็จ", name);
+    }
+  }
+
+  return `สร้าง LDPlayer สำเร็จ ${successCount}/${count} ตัวด้วย prefix "${prefix}"`;
 }

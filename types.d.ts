@@ -55,6 +55,27 @@ type IpcEventMap = {
     payload: void;
     response: string[];
   };
+  createLDPlayers: {
+    payload: {
+      prefix: string;
+      count: number;
+    };
+    response: string;
+  };
+  getDataCreateLDPlayers: {
+    payload: void;
+    response: {
+      NoDataGridLD: string;
+      LDPlayerGridLD: string;
+      DataTimeGridLD: string;
+      StatusGridLD: string;
+      PrefixGridLD: string;
+    }[];
+  };
+  moveSelectedLDPlayers: {
+    payload: string[];
+    response: string;
+  };
 };
 
 // Helper types for type-safe IPC communication
