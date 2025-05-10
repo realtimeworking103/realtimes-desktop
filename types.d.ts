@@ -10,6 +10,27 @@ type StaticData = {
   totalMemoryGB: number;
 };
 
+type DataLDPlayersDB = {
+  NoDataGridLD: string;
+  LDPlayerGridLD: string;
+  StatusAccGridLD: string;
+  DateTimeGridLD: string;
+  StatusGridLD: string;
+  NameLineGridLD: string;
+  FriendGridLD: string;
+  GroupGridLD: string;
+  PhoneGridLD: string;
+  TokenGridLD: string;
+};
+
+type DataCreateLDPlayersDB = {
+  NoDataGridLD: string;
+  LDPlayerGridLD: string;
+  DateTimeGridLD: string;
+  StatusGridLD: string;
+  PrefixGridLD: string;
+};
+
 // Define the shape of IPC events
 type IpcEventMap = {
   statistics: {
@@ -22,18 +43,7 @@ type IpcEventMap = {
   };
   getLDPlayersDB: {
     payload: void;
-    response: {
-      NoDataGridLD: string;
-      LDPlayerGridLD: string;
-      StatusAccGridLD: string;
-      DataTimeGridLD: string;
-      StatusGridLD: string;
-      NameGridLD: string;
-      FriendGridLD: string;
-      GroupGridLD: string;
-      PhoneGridLD: string;
-      TokenGridLD: string;
-    }[];
+    response: DataLDPlayersDB[];
   };
   callLdInstance: {
     payload: string;
@@ -64,16 +74,18 @@ type IpcEventMap = {
   };
   getDataCreateLDPlayers: {
     payload: void;
-    response: {
-      NoDataGridLD: string;
-      LDPlayerGridLD: string;
-      DataTimeGridLD: string;
-      StatusGridLD: string;
-      PrefixGridLD: string;
-    }[];
+    response: DataCreateLDPlayersDB[];
   };
   moveSelectedLDPlayers: {
     payload: string[];
+    response: string;
+  };
+  setLDPlayerPath: {
+    payload: string;
+    response: number;
+  };
+  getLDPlayerPath: {
+    payload: void;
     response: string;
   };
 };

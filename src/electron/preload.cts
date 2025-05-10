@@ -16,6 +16,8 @@ electron.contextBridge.exposeInMainWorld("electron", {
     ipcInvoke("createLDPlayers", payload),
   moveSelectedLDPlayers: (names: string[]) =>
     ipcInvoke("moveSelectedLDPlayers", names),
+  setLDPlayerPath: (path: string) => ipcInvoke("setLDPlayerPath", path),
+  getLDPlayerPath: () => ipcInvoke("getLDPlayerPath"),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions

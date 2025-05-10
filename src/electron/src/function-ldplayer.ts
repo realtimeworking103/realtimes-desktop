@@ -10,11 +10,23 @@ const db = new Database("database.db");
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const outputFolder = path.resolve(__dirname, "../../pulled_databases");
-const ldconsolePath = `"F:\\LDTEST\\LDPlayer\\LDPlayer9\\ldconsole.exe"`;
+const outputFolder = path.resolve(__dirname, "../../DatabaseLDPlayer");
+
+function getLDConsolePath(): string {
+  const row = db
+    .prepare("SELECT value FROM Setting WHERE key = ?")
+    .get("ldplayer_path") as { value: string } | undefined;
+  return row?.value ?? "";
+}
 
 export function callLdInstance(ldName: string) {
-  const cmd = `${ldconsolePath} launch --name "${ldName}"`;
+  const ldconsolePath = getLDConsolePath();
+  if (!ldconsolePath) {
+    console.error("[LDPlayer] Path not set in database");
+    return 0;
+  }
+
+  const cmd = `"${ldconsolePath}" launch --name "${ldName}"`;
 
   exec(cmd, (error) => {
     if (error) {
@@ -31,7 +43,13 @@ export function callLdInstance(ldName: string) {
 }
 
 export function deleteLdInstance(ldName: string) {
-  const cmd = `${ldconsolePath} remove --name "${ldName}"`;
+  const ldconsolePath = getLDConsolePath();
+  if (!ldconsolePath) {
+    console.error("ไม่พบ path ของ LDPlayer");
+    return 0;
+  }
+
+  const cmd = `"${ldconsolePath}" remove --name "${ldName}"`;
 
   exec(cmd, (error) => {
     if (error) {
@@ -53,11 +71,11 @@ export function deleteLdInstance(ldName: string) {
 export async function decryptAndSaveProfile(ldName: string): Promise<void> {
   const pulledDbPath = path.resolve(
     __dirname,
-    `../../pulled_databases/naver_line_${ldName}.db`,
+    `../../DatabaseLDPlayer/naver_line_${ldName}.db`,
   );
 
   if (!fs.existsSync(pulledDbPath)) {
-    console.error("ไม่พบไฟล์ฐานข้อมูล:", pulledDbPath);
+    console.error(`Database file not found: ${pulledDbPath}`);
     return;
   }
 
@@ -72,9 +90,9 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
 
     if (!tableExists) {
       db.prepare(
-        "UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?",
+        `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
       ).run("บัญชีไม่ได้สมัคร", ldName);
-      console.warn(`LDPlayer ${ldName} ไม่มีตาราง setting`);
+      console.warn(`LDPlayer ${ldName} Not Found Table Setting`);
       return;
     }
 
@@ -83,9 +101,9 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
 
     if (!profile) {
       db.prepare(
-        "UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?",
+        `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
       ).run("บัญชีไม่ได้สมัคร", ldName);
-      console.warn("ถอดรหัสโปรไฟล์ล้มเหลว");
+      console.warn(`ถอดรหัสโปรไฟล์ล้มเหลว: ${ldName}`);
       return;
     }
 
@@ -99,14 +117,11 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
         minute: "2-digit",
       })
       .replace(/\//g, "-")
-      .replace(
-        /^(\d{1,2})-(\d{1,2})-(\d{4})/,
-        (_, d, m, y) => `${d.padStart(2, "0")}-${m.padStart(2, "0")}-${y}`,
-      );
+      .replace(/^(\d{2})-(\d{2})-(\d{4})/, (_, d, m, y) => `${d}-${m}-${y}`);
 
     db.prepare(
       `UPDATE GridLD
-       SET StatusAccGridLD = ?, StatusGridLD = ?, TokenGridLD = ?, NameGridLD = ?, PhoneGridLD = ?, DataTimeGridLD = ?
+       SET StatusAccGridLD = ?, StatusGridLD = ?, TokenGridLD = ?, NameLineGridLD = ?, PhoneGridLD = ?, DateTimeGridLD = ?
        WHERE LDPlayerGridLD = ?`,
     ).run(
       "บัญชีไลน์พร้อมทำงาน",
@@ -118,54 +133,49 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
       ldName,
     );
 
+    console.log(`AuthKey: ${profile.authKey}`);
     console.log(`Token: ${profile.token}`);
-    console.log(`ชื่อ: ${profile.name}`);
-    console.log(`เบอร์: ${profile.phone}`);
+    console.log(`Name: ${profile.name}`);
+    console.log(`Phone: ${profile.phone}`);
+    console.log(`Token saved for ${ldName}`);
   } catch (err: any) {
-    console.error("เกิดข้อผิดพลาด:", err.message);
+    console.error(`Error decrypting ${ldName}:`, err.message);
     db.prepare(
-      "UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?",
+      `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
     ).run("ดึงข้อมูลล้มเหลว", ldName);
   } finally {
     pulledDb.close();
   }
 }
 
-/**
- * เช็กและเปิด LDPlayer ก่อน pull database
- * @param ldName ชื่อ Emulator เช่น "LDPlayer01"
- */
 export async function pullDBLdInstance(ldName: string): Promise<number> {
+  const ldconsolePath = getLDConsolePath();
+  if (!ldconsolePath) {
+    console.error("ไม่พบ path ของ LDPlayer");
+    return 0;
+  }
+
   try {
     if (!fs.existsSync(outputFolder)) {
       fs.mkdirSync(outputFolder, { recursive: true });
       console.log("Created output folder:", outputFolder);
     }
 
-    const launchCommand = `"${ldconsolePath}" launch --name ${ldName}`;
-    console.log(`Launching LDPlayer: ${ldName}`);
-    await execAsync(launchCommand);
-
-    console.log("Waiting 20 seconds for LDPlayer to boot...");
-    await new Promise((resolve) => setTimeout(resolve, 20000));
+    // const launchCommand = `"${ldconsolePath}" launch --name ${ldName}`;
+    // await execAsync(launchCommand);
+    // await new Promise((resolve) => setTimeout(resolve, 20000));
 
     const copyCommand = `"${ldconsolePath}" adb --name ${ldName} --command "shell su -c 'cat /data/data/jp.naver.line.android/databases/naver_line > /sdcard/naver_line_${ldName}.db'"`;
-    console.log(`Copying database to /sdcard: ${copyCommand}`);
     await execAsync(copyCommand);
 
     const pullCommand = `"${ldconsolePath}" adb --name ${ldName} --command "pull /sdcard/naver_line_${ldName}.db ${outputFolder}"`;
-    console.log(`Pulling database to project folder: ${pullCommand}`);
     await execAsync(pullCommand);
-
-    console.log("Pulled database successfully into:", outputFolder);
 
     await decryptAndSaveProfile(ldName);
 
     const quitCommand = `"${ldconsolePath}" quit --name ${ldName}`;
-    console.log(`Closing LDPlayer: ${ldName}`);
     await execAsync(quitCommand);
 
-    console.log("LDPlayer closed successfully.");
     return 1;
   } catch (error) {
     console.error("Failed to pull database:", error);
@@ -174,8 +184,14 @@ export async function pullDBLdInstance(ldName: string): Promise<number> {
 }
 
 export function fetchLdInstance(): Promise<string[]> {
+  const ldconsolePath = getLDConsolePath();
+  if (!ldconsolePath) {
+    console.error("ไม่พบ path ของ LDPlayer");
+    return Promise.resolve([]);
+  }
+
   try {
-    const output = execSync(`${ldconsolePath} list2`).toString();
+    const output = execSync(`"${ldconsolePath}" list2`).toString();
 
     const filteredOut: string[] = [];
 
@@ -198,8 +214,6 @@ export function fetchLdInstance(): Promise<string[]> {
         return isValid;
       });
 
-    console.log("Emulator names filtered out:", filteredOut);
-
     const existing = db.prepare("SELECT LDPlayerGridLD FROM GridLD").all() as {
       LDPlayerGridLD: string;
     }[];
@@ -208,7 +222,7 @@ export function fetchLdInstance(): Promise<string[]> {
     const newNames = rawNames.filter((name) => !existingNames.includes(name));
 
     const stmt = db.prepare(`
-      INSERT INTO GridLD (LDPlayerGridLD, StatusAccGridLD, DataTimeGridLD, StatusGridLD)
+      INSERT INTO GridLD (LDPlayerGridLD, StatusAccGridLD, DateTimeGridLD, StatusGridLD)
       VALUES (?, 'บัญชีรอการสมัคร', '', '')
     `);
 
@@ -230,13 +244,19 @@ export function createLDPlayers({
   prefix: string;
   count: number;
 }): string {
+  const ldconsolePath = getLDConsolePath();
+  if (!ldconsolePath) {
+    console.error("ไม่พบ path ของ LDPlayer");
+    return "ไม่พบ path ของ LDPlayer";
+  }
+
   db.prepare(
     `CREATE TABLE IF NOT EXISTS DataCreateLDPlayer (
       NoDataGridLD INTEGER PRIMARY KEY AUTOINCREMENT,
       LDPlayerGridLD TEXT,
       PrefixGridLD TEXT,
       StatusGridLD TEXT,
-      DataTimeGridLD TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      DateTimeGridLD TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
   ).run();
 
@@ -252,13 +272,19 @@ export function createLDPlayers({
   let successCount = 0;
 
   for (let i = 1; i <= count; i++) {
-    const name = `${prefix}_${i.toString().padStart(2, "0")}`;
+    const now = new Date();
+    const dateStr = `${now.getDate().toString().padStart(2, "0")}${(
+      now.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}${now.getFullYear()}`;
 
-    // Insert initial record
+    const name = `${prefix}_${i.toString().padStart(2, "0")}${dateStr}`;
+
     insertStmt.run(name, prefix, "กำลังสร้าง");
 
     try {
-      const listOutput = execSync(`${ldconsolePath} list2`, {
+      const listOutput = execSync(`"${ldconsolePath}" list2`, {
         encoding: "utf-8",
       });
       if (listOutput.includes(name)) {
@@ -266,8 +292,7 @@ export function createLDPlayers({
         continue;
       }
 
-      // Clone from LDPlayer01
-      const cmd = `${ldconsolePath} copy --name "${name}" --from "LDPlayer01"`;
+      const cmd = `"${ldconsolePath}" copy --name "${name}" --from "LDPlayer01"`;
       execSync(cmd);
       updateStatus.run("สร้าง LDPlayer สำเร็จ", name);
       successCount++;

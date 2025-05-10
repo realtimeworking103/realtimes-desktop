@@ -1,3 +1,3 @@
-export function functionA(payload: { name: string }) {
-  return window.electron.functionA(payload);
+export function callLdInstance(name:string) {
+  return window.electron.callLdInstance(name);
 }

@@ -6,6 +6,8 @@ import {
   deleteRowFromDB,
   getDataCreateLDPlayers,
   moveSelectedLDPlayers,
+  setLDPlayerPath,
+  getLDPlayerPath,
 } from "./function-db.js";
 
 import {
@@ -23,9 +25,11 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("callLdInstance", callLdInstance);
   ipcMainHandle("deleteLdInstance", deleteLdInstance);
   ipcMainHandle("deleteRowFromDB", deleteRowFromDB);
-  ipcMainHandle("pullDBLdInstance", pullDBLdInstance);
   ipcMainHandle("fetchLdInstance", fetchLdInstance);
+  ipcMainHandle("pullDBLdInstance", pullDBLdInstance);
   ipcMainHandle("getDataCreateLDPlayers", getDataCreateLDPlayers);
   ipcMainHandle("createLDPlayers", createLDPlayers);
   ipcMainHandle("moveSelectedLDPlayers", moveSelectedLDPlayers);
+  ipcMainHandle("setLDPlayerPath", setLDPlayerPath);
+  ipcMainHandle("getLDPlayerPath", getLDPlayerPath);
 }

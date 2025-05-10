@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import { DataCreateLDPlayerRow } from "../types/types.js";
 const db = new Database("database.db");
 
 export function getLDPlayersDB() {
@@ -9,19 +10,19 @@ export function getLDPlayersDB() {
         LDPlayerGridLD TEXT,
         StatusAccGridLD TEXT,
         StatusGridLD TEXT,
-        NameGridLD TEXT,
+        NameLineGridLD TEXT,
         FriendGridLD TEXT,
         GroupGridLD TEXT,
         PhoneGridLD TEXT,
         TokenGridLD TEXT,
-        DataTimeGridLD TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        DateTimeGridLD TIMESTAMP DEFAULT (datetime('now', 'localtime'))
       )
     `,
   ).run();
 
   const rows = db
     .prepare(
-      "SELECT NoDataGridLD, LDPlayerGridLD, StatusAccGridLD, StatusGridLD, NameGridLD, FriendGridLD, GroupGridLD, PhoneGridLD, TokenGridLD, DataTimeGridLD FROM GridLD",
+      "SELECT NoDataGridLD, LDPlayerGridLD, StatusAccGridLD, StatusGridLD, NameLineGridLD, FriendGridLD, GroupGridLD, PhoneGridLD, TokenGridLD, DateTimeGridLD FROM GridLD",
     )
     .all();
   return rows as {
@@ -29,12 +30,12 @@ export function getLDPlayersDB() {
     LDPlayerGridLD: string;
     StatusAccGridLD: string;
     StatusGridLD: string;
-    NameGridLD: string;
+    NameLineGridLD: string;
     FriendGridLD: string;
     GroupGridLD: string;
     PhoneGridLD: string;
     TokenGridLD: string;
-    DataTimeGridLD: string;
+    DateTimeGridLD: string;
   }[];
 }
 
@@ -55,30 +56,24 @@ export function getDataCreateLDPlayers() {
         LDPlayerGridLD TEXT,
         StatusGridLD TEXT,
         PrefixGridLD TEXT,
-        DataTimeGridLD TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        DateTimeGridLD TIMESTAMP DEFAULT (datetime('now', 'localtime'))
       )
     `,
   ).run();
 
   const rows = db
     .prepare(
-      "SELECT NoDataGridLD, LDPlayerGridLD, DataTimeGridLD, StatusGridLD, PrefixGridLD FROM DataCreateLDPlayer",
+      "SELECT NoDataGridLD, LDPlayerGridLD, DateTimeGridLD, StatusGridLD, PrefixGridLD FROM DataCreateLDPlayer",
     )
     .all();
   return rows as {
     NoDataGridLD: string;
     LDPlayerGridLD: string;
-    DataTimeGridLD: string;
+    DateTimeGridLD: string;
     StatusGridLD: string;
     PrefixGridLD: string;
   }[];
 }
-
-type DataCreateLDPlayerRow = {
-  LDPlayerGridLD: string;
-  StatusGridLD: string;
-  DataTimeGridLD: string;
-};
 
 export function moveSelectedLDPlayers(ldNames: string[]): string {
   const selectFromCreate = db.prepare(`
@@ -92,10 +87,13 @@ export function moveSelectedLDPlayers(ldNames: string[]): string {
   const insertToGrid = db.prepare(`
     INSERT INTO GridLD (
       LDPlayerGridLD,
-      StatusGridLD,
-      DataTimeGridLD
+      StatusGridLD
     )
-    VALUES (?, ?, ?)
+    VALUES (?, ?)
+  `);
+
+  const deleteFromCreate = db.prepare(`
+    DELETE FROM DataCreateLDPlayer WHERE LDPlayerGridLD = ?
   `);
 
   let moved = 0;
@@ -107,10 +105,38 @@ export function moveSelectedLDPlayers(ldNames: string[]): string {
     const row = selectFromCreate.get(name) as DataCreateLDPlayerRow;
     if (!row) continue;
 
-    insertToGrid.run(row.LDPlayerGridLD, row.StatusGridLD, row.DataTimeGridLD);
+    insertToGrid.run(row.LDPlayerGridLD, row.StatusGridLD);
+    deleteFromCreate.run(name);
 
     moved++;
   }
 
   return `Moved ${moved} new LDPlayer(s) to GridLD`;
+}
+
+export function setLDPlayerPath(path: string) {
+  db.prepare(
+    `
+    INSERT INTO Setting (key, value)
+    VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+  `,
+  ).run("ldplayer_path", path);
+
+  return 0;
+}
+
+export function getLDPlayerPath(): string {
+  db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS Setting (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    )
+  `,
+  ).run();
+  const row = db
+    .prepare("SELECT value FROM Setting WHERE key = ?")
+    .get("ldplayer_path") as { value: string } | undefined;
+  return row?.value ?? "";
 }

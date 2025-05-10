@@ -13,19 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/components/ui/table";
-
-type CreatedLDPlayer = {
-  NoDataGridLD: string;
-  LDPlayerGridLD: string;
-  DataTimeGridLD: string;
-  StatusGridLD: string;
-};
+import { callLdInstance } from "@/ui/api";
+import { CreatedLDPlayerType } from "@/ui/types/types";
 
 export default function Page() {
   const [prefix, setPrefix] = useState("");
   const [count, setCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [ldData, setLdData] = useState<CreatedLDPlayer[]>([]);
+  const [ldData, setLdData] = useState<CreatedLDPlayerType[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   const toggleRow = (id: string) => {
@@ -61,7 +56,7 @@ export default function Page() {
 
   const handleOpenLDPlayer = async (name: string) => {
     try {
-      await window.electron.callLdInstance(name);
+      await callLdInstance(name);
       console.log(`Opened LDPlayer: ${name}`);
     } catch (error) {
       console.error(`Failed to open LDPlayer ${name}:`, error);
@@ -70,7 +65,7 @@ export default function Page() {
 
   const handleMoveSelected = async () => {
     if (selectedRows.size === 0) {
-      console.log("⚠️ No rows selected.");
+      console.log("No rows selected.");
       return;
     }
 
