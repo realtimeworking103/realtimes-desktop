@@ -1,5 +1,82 @@
-import Database from "better-sqlite3";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import path from "path";
 import crypto from "crypto";
+
+import db from "./config-db.js";
+
+import Database from "better-sqlite3";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export async function decryptAndSaveProfile(ldName: string): Promise<void> {
+  const pulledDbPath = path.resolve(
+    __dirname,
+    `../../databaseldplayer/naver_line_${ldName}.db`,
+  );
+
+  if (!fs.existsSync(pulledDbPath)) {
+    console.error(`Database file not found: ${pulledDbPath}`);
+    return;
+  }
+
+  const pulledDb = new Database(pulledDbPath, { readonly: true });
+
+  try {
+    const tableExists = pulledDb
+      .prepare(
+        `SELECT name FROM sqlite_master WHERE type='table' AND name='setting'`,
+      )
+      .get();
+
+    if (!tableExists) {
+      db.prepare(
+        `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+      ).run("บัญชีไม่ได้สมัคร", ldName);
+      console.warn(`LDPlayer ${ldName} Not Found Table Setting`);
+      return;
+    }
+
+    const decryptor = new LineProfileDecryptor(pulledDbPath);
+    const profile = decryptor.decryptProfile();
+
+    if (!profile) {
+      db.prepare(
+        `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+      ).run("บัญชีไม่ได้สมัคร", ldName);
+      console.warn(`ถอดรหัสโปรไฟล์ล้มเหลว: ${ldName}`);
+      return;
+    }
+
+    db.prepare(
+      `UPDATE GridLD
+       SET StatusAccGridLD = ?, StatusGridLD = ?, TokenGridLD = ?, NameLineGridLD = ?, PhoneGridLD = ?, DateTimeGridLD = datetime('now', 'localtime'), CreateAt = datetime('now', 'localtime')
+       WHERE LDPlayerGridLD = ?`,
+    ).run(
+      "บัญชีไลน์พร้อมทำงาน",
+      "เก็บ Token สำเร็จ",
+      profile.token,
+      profile.name,
+      profile.phone,
+      ldName,
+    );
+
+    console.log(`AuthKey: ${profile.authKey}`);
+    console.log(`Token: ${profile.token}`);
+    console.log(`Name: ${profile.name}`);
+    console.log(`Phone: ${profile.phone}`);
+    console.log(`Token saved for ${ldName}`);
+  } catch (err: any) {
+    db.prepare(
+      `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+    ).run("เก็บ Token ไม่สำเร็จ", ldName);
+
+    console.error(`Error decrypting ${ldName}:`, err.message);
+  } finally {
+    pulledDb.close();
+  }
+}
 
 export interface LineProfile {
   mid: string;
@@ -187,7 +264,7 @@ export class TokenGenerator {
     const [mid, base64Key] = authKey.split(":");
     const key = Buffer.from(base64Key, "base64");
 
-    const iat = this.getIssuedAt(); // ends with "."
+    const iat = this.getIssuedAt();
     const digest = this.getDigest(key, iat);
 
     return `${mid}:${iat}.${digest}`;

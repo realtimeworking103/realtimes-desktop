@@ -21,9 +21,9 @@ export default function Page() {
   const [count, setCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [ldData, setLdData] = useState<CreatedLDPlayerType[]>([]);
-  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
 
-  const toggleRow = (id: string) => {
+  const toggleRow = (id: number) => {
     setSelectedRows((prev) => {
       const newSet = new Set(prev);
       newSet.has(id) ? newSet.delete(id) : newSet.add(id);
@@ -80,7 +80,6 @@ export default function Page() {
         await window.electron.moveSelectedLDPlayers(selectedLDNames);
       console.log("Move result:", result);
 
-      // รีโหลดข้อมูลใหม่ (ถ้ามีการอัปเดตฐานข้อมูล)
       const updated = await window.electron.getDataCreateLDPlayers();
       setLdData(updated);
       console.log("Refreshed data after move.");
@@ -164,7 +163,7 @@ export default function Page() {
                 </TableCell>
                 <TableCell>{item.NoDataGridLD}</TableCell>
                 <TableCell>{item.LDPlayerGridLD}</TableCell>
-                <TableCell>{item.DataTimeGridLD}</TableCell>
+                <TableCell>{item.DateTimeGridLD}</TableCell>
                 <TableCell>{item.StatusGridLD}</TableCell>
                 <TableCell className="space-x-2">
                   <Button

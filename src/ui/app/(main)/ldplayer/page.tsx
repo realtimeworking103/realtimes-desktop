@@ -1,6 +1,5 @@
-"use client";
-
 import { useEffect, useState } from "react";
+
 import {
   Table,
   TableBody,
@@ -12,14 +11,13 @@ import {
 
 import {
   ContextMenu,
-  ContextMenuTrigger,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSub,
-  ContextMenuSubTrigger,
   ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
 } from "@/ui/components/ui/context-menu";
-import { Button } from "@/ui/components/ui/button";
 
 import {
   Tooltip,
@@ -27,291 +25,271 @@ import {
   TooltipContent,
 } from "@/ui/components/ui/tooltip";
 
-import { Checkbox } from "@/ui/components/ui/checkbox";
-
 import { LDPlayerType } from "@/ui/types/types";
+import { Button } from "@/ui/components/ui/button";
 
 export default function Page() {
   const [ldplayers, setLDPlayers] = useState<LDPlayerType[]>([]);
-  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
-  const allIds = ldplayers.map((ld) => Number(ld.NoDataGridLD));
-  const areAllSelected = selectedRows.size === allIds.length;
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
-  const [dragSelectMode, setDragSelectMode] = useState<
-    "select" | "deselect" | null
-  >(null);
-
-  const selectRow = (id: number) => {
-    setSelectedRows((prev) => new Set(prev).add(id));
-  };
-
-  const deselectRow = (id: number) => {
-    setSelectedRows((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(id);
-      return newSet;
-    });
-  };
-
-  const toggleRow = (id: number) => {
-    setSelectedRows((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (areAllSelected) {
-      setSelectedRows(new Set());
-    } else {
-      setSelectedRows(new Set(allIds));
-    }
-  };
-
-  const isRowSelected = (id: number) => selectedRows.has(id);
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [startIndex, setStartIndex] = useState<number | null>(null);
+  const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
 
   const fetchLDPlayers = async () => {
     const data = await window.electron.getLDPlayersDB();
-    setLDPlayers(data);
+
+    setLDPlayers((prev) => {
+      const oldJson = JSON.stringify(prev);
+      const newJson = JSON.stringify(data);
+      return oldJson === newJson ? prev : data;
+    });
+  };
+
+  const handleOpenLDPlayer = async () => {
+    const namesToOpen = Array.from(selectedRows);
+
+    try {
+      await Promise.all(
+        namesToOpen.map((ldName) => window.electron.callLdInstance(ldName)),
+      );
+    } catch (err) {
+      console.error("Open LDPlayer Fail:", err);
+    }
+  };
+
+  const handleGetToken = async () => {
+    const namesToOpen = Array.from(selectedRows);
+
+    try {
+      await Promise.all(
+        namesToOpen.map((ldName) => window.electron.pullDBLdInstance(ldName)),
+      );
+    } catch (err) {
+      console.error("Get Token Fail:", err);
+    }
+  };
+
+  const handleGetToken2 = async () => {
+    const namesToOpen = Array.from(selectedRows);
+
+    try {
+      await Promise.all(
+        namesToOpen.map((ldName) => window.electron.pullDBLdInstance2(ldName)),
+      );
+    } catch (err) {
+      console.error("Get Token Fail:", err);
+    }
+  };
+
+  const handleDeleteLDPlayer = async () => {
+    const namesToOpen = Array.from(selectedRows);
+
+    try {
+      await Promise.all(
+        namesToOpen.map((ldName) => window.electron.deleteLdInstance(ldName)),
+      );
+    } catch (err) {
+      console.error("Delete LDPlayer Fail:", err);
+    }
+  };
+
+  const handleDeleteRow = async () => {
+    const namesToOpen = Array.from(selectedRows);
+
+    try {
+      await Promise.all(
+        namesToOpen.map((ldName) => window.electron.deleteRowFromDB(ldName)),
+      );
+
+      await fetchLDPlayers();
+
+      setSelectedRows((prev) => {
+        const updated = new Set(prev);
+        namesToOpen.forEach((name) => updated.delete(name));
+        return updated;
+      });
+    } catch (err) {
+      console.error("Delete Row Database Fail:", err);
+    }
   };
 
   useEffect(() => {
     fetchLDPlayers();
   }, []);
 
-  useEffect(() => {
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      setDragStartIndex(null);
-      setDragSelectMode(null);
-    };
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []);
-
-  const handleOpenLDPlayer = async (ldName: string) => {
-    try {
-      await window.electron.callLdInstance(ldName);
-    } catch (err) {
-      console.error("เปิดไม่สำเร็จ:", err);
-    }
-  };
-
-  const handleDeleteLDPlayer = async (ldName: string) => {
-    await window.electron.deleteLdInstance(ldName);
-  };
-
-  const handleDeleteRow = async (id: number) => {
-    await window.electron.deleteRowFromDB(id);
-  };
-
-  const handleGetToken = async (ldName: string) => {
-    try {
-      await window.electron.pullDBLdInstance(ldName);
-    } catch (err) {
-      console.error("Pull ไม่สำเร็จ:", err);
-    }
-  };
-
   const handlefetchLdInstance = async () => {
     try {
       const result = await window.electron.fetchLdInstance();
-      console.log("LDPlayer ที่ดึงมา:", result);
-      // fetchLDPlayers();
+      console.log("LDPlayer :", result);
     } catch (err) {
-      console.error("ดึง LDPlayer จากเครื่องไม่สำเร็จ:", err);
-    }
-  };
-
-  const handleMultiGetToken = async () => {
-    for (const id of selectedRows) {
-      const row = ldplayers.find((r) => Number(r.NoDataGridLD) === id);
-      if (row) await handleGetToken(row.LDPlayerGridLD);
-    }
-  };
-
-  const handleMultiOpenLDPlayer = async () => {
-    for (const id of selectedRows) {
-      const row = ldplayers.find((r) => Number(r.NoDataGridLD) === id);
-      if (row) await handleOpenLDPlayer(row.LDPlayerGridLD);
-    }
-  };
-
-  const handleMultiDeleteRow = async () => {
-    for (const id of selectedRows) {
-      await handleDeleteRow(id);
-    }
-  };
-
-  const handleMultiDeleteLDPlayer = async () => {
-    for (const id of selectedRows) {
-      const row = ldplayers.find((r) => Number(r.NoDataGridLD) === id);
-      if (row) await handleDeleteLDPlayer(row.LDPlayerGridLD);
+      console.error("Put LDPlayer Fail:", err);
     }
   };
 
   return (
-    <div className="w-full space-y-6 p-4">
+    <div>
       <div>
         <Button onClick={handlefetchLdInstance}>ดึง LDPlayer</Button>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[50px] text-center">
-              <Checkbox
-                checked={areAllSelected}
-                onCheckedChange={toggleSelectAll}
-                aria-label="เลือกทั้งหมด"
-              />
-            </TableHead>
-            <TableHead className="w-[300px] text-center">ลำดับ</TableHead>
-            <TableHead className="w-[300px] text-center">LDPlayer</TableHead>
-            <TableHead className="w-[300px] text-center">
-              สถานะบัญชีไลน์
-            </TableHead>
-            <TableHead className="w-[300px] text-center">
-              ทำงานครั้งล่าสุด
-            </TableHead>
-            <TableHead className="w-[300px] text-center">
-              สถานะการทำงาน
-            </TableHead>
-            <TableHead className="w-[300px] text-center">ชื่อไลน์</TableHead>
-            <TableHead className="w-[300px] text-center">จำนวนเพื่อน</TableHead>
-            <TableHead className="w-[300px] text-center">จำนวนกลุ่ม</TableHead>
-            <TableHead className="w-[300px] text-center">เบอร์ไลน์</TableHead>
-            <TableHead className="w-[300px] text-center">Token</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="text-center">
-          {ldplayers.map((ld, index) => {
-            const id = Number(ld.NoDataGridLD);
-            const isMultipleSelected =
-              selectedRows.size > 1 && isRowSelected(id);
-            return (
-              <ContextMenu key={ld.NoDataGridLD}>
+      <div onMouseLeave={() => setIsSelecting(false)} className="select-none">
+        <Table className="[&_*]:text-center [&_*]:align-middle">
+          <TableHeader>
+            <TableRow>
+              <TableHead>ลำดับ</TableHead>
+              <TableHead>LDPlayer</TableHead>
+              <TableHead>สถานะบัญชีไลน์</TableHead>
+              <TableHead>ทำงานครั้งล่าสุด</TableHead>
+              <TableHead>สถานะการทำงาน</TableHead>
+              <TableHead>ชื่อไลน์</TableHead>
+              <TableHead>จำนวนเพื่อน</TableHead>
+              <TableHead>จำนวนกลุ่ม</TableHead>
+              <TableHead>เบอร์ไลน์</TableHead>
+              <TableHead>Token</TableHead>
+              <TableHead>วันที่สมัครไลน์</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {ldplayers.map((item, index) => (
+              <ContextMenu key={item.LDPlayerGridLD}>
                 <ContextMenuTrigger asChild>
                   <TableRow
-                    className="select-none"
-                    onMouseDown={(event) => {
-                      if (event.button !== 0) return;
+                    key={item.LDPlayerGridLD}
+                    onMouseDown={(e) => {
+                      if (e.button !== 0) return;
 
-                      const selected = isRowSelected(id);
-                      setIsDragging(true);
-                      setDragStartIndex(index);
-                      setDragSelectMode(selected ? "deselect" : "select");
-                      toggleRow(id);
-                    }}
-                    onMouseEnter={() => {
-                      if (isDragging && dragSelectMode !== null) {
-                        const shouldBeSelected = dragSelectMode === "select";
-                        const currentlySelected = isRowSelected(id);
-                        if (shouldBeSelected && !currentlySelected) {
-                          selectRow(id);
-                        } else if (!shouldBeSelected && currentlySelected) {
-                          deselectRow(id);
+                      setIsSelecting(true);
+                      setStartIndex(index);
+
+                      if (e.shiftKey && lastClickedIndex !== null) {
+                        const min = Math.min(lastClickedIndex, index);
+                        const max = Math.max(lastClickedIndex, index);
+                        const newSet = new Set(selectedRows);
+                        for (let i = min; i <= max; i++) {
+                          newSet.add(ldplayers[i].LDPlayerGridLD);
                         }
+                        setSelectedRows(newSet);
+                      } else if (e.ctrlKey) {
+                        setSelectedRows((prev) => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(item.LDPlayerGridLD)) {
+                            newSet.delete(item.LDPlayerGridLD);
+                          } else {
+                            newSet.add(item.LDPlayerGridLD);
+                          }
+                          return newSet;
+                        });
+                        setLastClickedIndex(index);
+                      } else {
+                        setSelectedRows(new Set([item.LDPlayerGridLD]));
+                        setLastClickedIndex(index);
                       }
                     }}
+                    onMouseEnter={(e) => {
+                      if (!isSelecting || startIndex === null) return;
+
+                      const min = Math.min(startIndex, index);
+                      const max = Math.max(startIndex, index);
+
+                      const newSet = new Set(selectedRows);
+
+                      if (!e.ctrlKey) {
+                        newSet.clear();
+                      }
+
+                      for (let i = min; i <= max; i++) {
+                        newSet.add(ldplayers[i].LDPlayerGridLD);
+                      }
+
+                      setSelectedRows(newSet);
+                    }}
+                    onMouseUp={() => {
+                      setIsSelecting(false);
+                      setStartIndex(null);
+                    }}
+                    className={`select-none ${
+                      selectedRows.has(item.LDPlayerGridLD)
+                        ? "bg-blue-100 dark:bg-blue-900"
+                        : ""
+                    }`}
                   >
+                    <TableCell>{item.NoDataGridLD}</TableCell>
+                    <TableCell>{item.LDPlayerGridLD}</TableCell>
+                    <TableCell>{item.StatusAccGridLD}</TableCell>
+                    <TableCell>{item.DateTimeGridLD}</TableCell>
+                    <TableCell>{item.StatusGridLD}</TableCell>
+                    <TableCell>{item.NameLineGridLD}</TableCell>
+                    <TableCell>{item.FriendGridLD}</TableCell>
+                    <TableCell>{item.GroupGridLD}</TableCell>
+                    <TableCell>{item.PhoneGridLD}</TableCell>
                     <TableCell>
-                      <Checkbox
-                        checked={isRowSelected(id)}
-                        onCheckedChange={() => toggleRow(id)}
-                      />
-                    </TableCell>
-                    <TableCell>{ld.NoDataGridLD}</TableCell>
-                    <TableCell>{ld.LDPlayerGridLD}</TableCell>
-                    <TableCell>{ld.StatusAccGridLD}</TableCell>
-                    <TableCell>{ld.DateTimeGridLD}</TableCell>
-                    <TableCell>{ld.StatusGridLD}</TableCell>
-                    <TableCell>{ld.NameLineGridLD}</TableCell>
-                    <TableCell>{ld.FriendGridLD}</TableCell>
-                    <TableCell>{ld.GroupGridLD}</TableCell>
-                    <TableCell>{ld.PhoneGridLD}</TableCell>
-                    <TableCell className="max-w-[100px] truncate">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="cursor-pointer">
-                            {ld.TokenGridLD
-                              ? `${ld.TokenGridLD.slice(0, 20)}...${ld.TokenGridLD.slice(-8)}`
+                          <span>
+                            {item.TokenGridLD
+                              ? `${item.TokenGridLD.slice(0, 33)}`
                               : ""}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="max-w-[300px] break-all whitespace-pre-wrap">
-                            {ld.TokenGridLD ?? "ไม่มีข้อมูล"}
+                          <p className="max-w-full break-all whitespace-pre-wrap">
+                            {item.TokenGridLD}
                           </p>
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>
+                    <TableCell>{item.CreateAt}</TableCell>
                   </TableRow>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
                   <ContextMenuSub>
-                    <ContextMenuSubTrigger inset>ฟังชั่น</ContextMenuSubTrigger>
+                    <ContextMenuSubTrigger>ฟังชั่น</ContextMenuSubTrigger>
                     <ContextMenuSubContent>
-                      <ContextMenuItem
-                        onClick={() =>
-                          isMultipleSelected
-                            ? handleMultiGetToken()
-                            : handleGetToken(ld.LDPlayerGridLD)
-                        }
-                      >
-                        เก็บ Token
+                      <ContextMenuItem inset>ตรวจสอบบัญชีไลน์</ContextMenuItem>
+                      <ContextMenuItem inset onClick={handleGetToken}>
+                        เช็คเบอร์เก็บ Token Auto
                       </ContextMenuItem>
+                      <ContextMenuItem inset onClick={handleGetToken2}>
+                        เช็คเบอร์เก็บ Token ด่วน
+                      </ContextMenuItem>
+                      <ContextMenuItem inset>ส่งข้อควา่ม</ContextMenuItem>
+                      <ContextMenuItem inset>เพิ่มเพื่อน</ContextMenuItem>
+                      <ContextMenuItem inset>สร้างกลุ่ม</ContextMenuItem>
+                      <ContextMenuItem inset>เปลี่ยนไฟล์ Data</ContextMenuItem>
                     </ContextMenuSubContent>
                   </ContextMenuSub>
                   <ContextMenuSub>
-                    <ContextMenuSubTrigger inset>
-                      LDPlayer
-                    </ContextMenuSubTrigger>
+                    <ContextMenuSubTrigger>เปลี่ยนสถานะ</ContextMenuSubTrigger>
                     <ContextMenuSubContent>
-                      <ContextMenuItem
-                        onClick={() =>
-                          isMultipleSelected
-                            ? handleMultiOpenLDPlayer()
-                            : handleOpenLDPlayer(ld.LDPlayerGridLD)
-                        }
-                      >
+                      <ContextMenuItem inset>ส่งข้อควา่ม</ContextMenuItem>
+                      <ContextMenuItem inset>เพิ่มเพื่อน</ContextMenuItem>
+                      <ContextMenuItem inset>สร้างกลุ่ม</ContextMenuItem>
+                    </ContextMenuSubContent>
+                  </ContextMenuSub>
+                  <ContextMenuSub>
+                    <ContextMenuSubTrigger>LDPlayer Mode</ContextMenuSubTrigger>
+                    <ContextMenuSubContent>
+                      <ContextMenuItem onClick={handleOpenLDPlayer}>
                         เปิด LDPlayer
                       </ContextMenuItem>
                     </ContextMenuSubContent>
                   </ContextMenuSub>
                   <ContextMenuSub>
-                    <ContextMenuSubTrigger inset>Delete</ContextMenuSubTrigger>
+                    <ContextMenuSubTrigger>Delete Mode</ContextMenuSubTrigger>
                     <ContextMenuSubContent>
-                      <ContextMenuItem
-                        onClick={() =>
-                          isMultipleSelected
-                            ? handleMultiDeleteLDPlayer()
-                            : handleDeleteLDPlayer(ld.LDPlayerGridLD)
-                        }
-                      >
+                      <ContextMenuItem onClick={handleDeleteLDPlayer}>
                         ลบ LDPlayer
                       </ContextMenuItem>
-                      <ContextMenuItem
-                        onClick={() =>
-                          isMultipleSelected
-                            ? handleMultiDeleteRow()
-                            : handleDeleteRow(Number(ld.NoDataGridLD))
-                        }
-                      >
+                      <ContextMenuItem onClick={handleDeleteRow}>
                         ลบแถว
                       </ContextMenuItem>
                     </ContextMenuSubContent>
                   </ContextMenuSub>
                 </ContextMenuContent>
               </ContextMenu>
-            );
-          })}
-        </TableBody>
-      </Table>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

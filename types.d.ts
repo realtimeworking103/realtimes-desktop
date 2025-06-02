@@ -11,7 +11,7 @@ type StaticData = {
 };
 
 type DataLDPlayersDB = {
-  NoDataGridLD: string;
+  NoDataGridLD: number;
   LDPlayerGridLD: string;
   StatusAccGridLD: string;
   DateTimeGridLD: string;
@@ -21,10 +21,11 @@ type DataLDPlayersDB = {
   GroupGridLD: string;
   PhoneGridLD: string;
   TokenGridLD: string;
+  CreateAt: string;
 };
 
 type DataCreateLDPlayersDB = {
-  NoDataGridLD: string;
+  NoDataGridLD: number;
   LDPlayerGridLD: string;
   DateTimeGridLD: string;
   StatusGridLD: string;
@@ -47,19 +48,23 @@ type IpcEventMap = {
   };
   callLdInstance: {
     payload: string;
-    response: number;
+    response: boolean;
   };
   deleteLdInstance: {
     payload: string;
-    response: number;
+    response: boolean;
   };
   deleteRowFromDB: {
-    payload: number;
+    payload: string;
     response: number;
   };
   pullDBLdInstance: {
     payload: string;
-    response: number;
+    response: boolean;
+  };
+  pullDBLdInstance2: {
+    payload: string;
+    response: boolean;
   };
   fetchLdInstance: {
     payload: void;
@@ -82,7 +87,7 @@ type IpcEventMap = {
   };
   setLDPlayerPath: {
     payload: string;
-    response: number;
+    response: boolean;
   };
   getLDPlayerPath: {
     payload: void;

@@ -1,5 +1,5 @@
 export type LDPlayerType = {
-  NoDataGridLD: string;
+  NoDataGridLD: number;
   LDPlayerGridLD: string;
   StatusAccGridLD: string;
   DateTimeGridLD: string;
@@ -9,10 +9,11 @@ export type LDPlayerType = {
   GroupGridLD: string;
   PhoneGridLD: string;
   TokenGridLD: string;
+  CreateAt: string;
 };
 
 export type CreatedLDPlayerType = {
-  NoDataGridLD: string;
+  NoDataGridLD: number;
   LDPlayerGridLD: string;
   DateTimeGridLD: string;
   StatusGridLD: string;
