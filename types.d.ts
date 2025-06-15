@@ -58,11 +58,11 @@ type IpcEventMap = {
     payload: string;
     response: number;
   };
-  pullDBLdInstance: {
+  pullDBLdInstanceAuto: {
     payload: string;
     response: boolean;
   };
-  pullDBLdInstance2: {
+  pullDBLdInstanceManual: {
     payload: string;
     response: boolean;
   };
@@ -92,6 +92,14 @@ type IpcEventMap = {
   getLDPlayerPath: {
     payload: void;
     response: string;
+  };
+  createGroup: {
+    payload: { ldName: string; accessToken: string };
+    response: { success: true } | { success: false; message: string };
+  };
+  checkBanLdInstance: {
+    payload: { ldName: string; accessToken: string };
+    response: { success: true } | { success: false; message: string };
   };
 };
 

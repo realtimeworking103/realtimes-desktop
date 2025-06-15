@@ -26,6 +26,7 @@ import {
 } from "@/ui/components/ui/tooltip";
 
 import { LDPlayerType } from "@/ui/types/types";
+import { useLDPlayerActions } from "@/ui/hooks/use-LDPlayerActions";
 import { Button } from "@/ui/components/ui/button";
 
 export default function Page() {
@@ -45,77 +46,20 @@ export default function Page() {
     });
   };
 
-  const handleOpenLDPlayer = async () => {
-    const namesToOpen = Array.from(selectedRows);
-
-    try {
-      await Promise.all(
-        namesToOpen.map((ldName) => window.electron.callLdInstance(ldName)),
-      );
-    } catch (err) {
-      console.error("Open LDPlayer Fail:", err);
-    }
-  };
-
-  const handleGetToken = async () => {
-    const namesToOpen = Array.from(selectedRows);
-
-    try {
-      await Promise.all(
-        namesToOpen.map((ldName) => window.electron.pullDBLdInstance(ldName)),
-      );
-    } catch (err) {
-      console.error("Get Token Fail:", err);
-    }
-  };
-
-  const handleGetToken2 = async () => {
-    const namesToOpen = Array.from(selectedRows);
-
-    try {
-      await Promise.all(
-        namesToOpen.map((ldName) => window.electron.pullDBLdInstance2(ldName)),
-      );
-    } catch (err) {
-      console.error("Get Token Fail:", err);
-    }
-  };
-
-  const handleDeleteLDPlayer = async () => {
-    const namesToOpen = Array.from(selectedRows);
-
-    try {
-      await Promise.all(
-        namesToOpen.map((ldName) => window.electron.deleteLdInstance(ldName)),
-      );
-    } catch (err) {
-      console.error("Delete LDPlayer Fail:", err);
-    }
-  };
-
-  const handleDeleteRow = async () => {
-    const namesToOpen = Array.from(selectedRows);
-
-    try {
-      await Promise.all(
-        namesToOpen.map((ldName) => window.electron.deleteRowFromDB(ldName)),
-      );
-
-      await fetchLDPlayers();
-
-      setSelectedRows((prev) => {
-        const updated = new Set(prev);
-        namesToOpen.forEach((name) => updated.delete(name));
-        return updated;
-      });
-    } catch (err) {
-      console.error("Delete Row Database Fail:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchLDPlayers();
-  }, []);
+  const {
+    handleOpenLDPlayer,
+    handleDeleteLDPlayer,
+    handleDeleteRow,
+    handleGetTokenAuto,
+    // handleGetTokenManual,
+    handleCreateGroup,
+    handleCheckban,
+  } = useLDPlayerActions(
+    selectedRows,
+    ldplayers,
+    fetchLDPlayers,
+    setSelectedRows,
+  );
 
   const handlefetchLdInstance = async () => {
     try {
@@ -125,6 +69,10 @@ export default function Page() {
       console.error("Put LDPlayer Fail:", err);
     }
   };
+
+  useEffect(() => {
+    fetchLDPlayers();
+  }, []);
 
   return (
     <div>
@@ -244,46 +192,36 @@ export default function Page() {
                   <ContextMenuSub>
                     <ContextMenuSubTrigger>ฟังชั่น</ContextMenuSubTrigger>
                     <ContextMenuSubContent>
-                      <ContextMenuItem inset>ตรวจสอบบัญชีไลน์</ContextMenuItem>
-                      <ContextMenuItem inset onClick={handleGetToken}>
-                        เช็คเบอร์เก็บ Token Auto
+                      <ContextMenuItem inset onClick={handleCheckban}>
+                        ตรวจสอบบัญชีไลน์
                       </ContextMenuItem>
-                      <ContextMenuItem inset onClick={handleGetToken2}>
-                        เช็คเบอร์เก็บ Token ด่วน
-                      </ContextMenuItem>
+                      {/* <ContextMenuItem inset onClick={handleGetTokenManual}>
+                        เก็บ Token หลังสมัคร
+                      </ContextMenuItem> */}
                       <ContextMenuItem inset>ส่งข้อควา่ม</ContextMenuItem>
                       <ContextMenuItem inset>เพิ่มเพื่อน</ContextMenuItem>
-                      <ContextMenuItem inset>สร้างกลุ่ม</ContextMenuItem>
-                      <ContextMenuItem inset>เปลี่ยนไฟล์ Data</ContextMenuItem>
+                      <ContextMenuItem inset onClick={handleCreateGroup}>
+                        สร้างกลุ่ม
+                      </ContextMenuItem>
                     </ContextMenuSubContent>
                   </ContextMenuSub>
                   <ContextMenuSub>
-                    <ContextMenuSubTrigger>เปลี่ยนสถานะ</ContextMenuSubTrigger>
+                    <ContextMenuSubTrigger>LDPlayer</ContextMenuSubTrigger>
                     <ContextMenuSubContent>
-                      <ContextMenuItem inset>ส่งข้อควา่ม</ContextMenuItem>
-                      <ContextMenuItem inset>เพิ่มเพื่อน</ContextMenuItem>
-                      <ContextMenuItem inset>สร้างกลุ่ม</ContextMenuItem>
-                    </ContextMenuSubContent>
-                  </ContextMenuSub>
-                  <ContextMenuSub>
-                    <ContextMenuSubTrigger>LDPlayer Mode</ContextMenuSubTrigger>
-                    <ContextMenuSubContent>
-                      <ContextMenuItem onClick={handleOpenLDPlayer}>
+                      <ContextMenuItem inset onClick={handleGetTokenAuto}>
+                        เก็บ Token
+                      </ContextMenuItem>
+                      <ContextMenuItem inset onClick={handleOpenLDPlayer}>
                         เปิด LDPlayer
                       </ContextMenuItem>
-                    </ContextMenuSubContent>
-                  </ContextMenuSub>
-                  <ContextMenuSub>
-                    <ContextMenuSubTrigger>Delete Mode</ContextMenuSubTrigger>
-                    <ContextMenuSubContent>
-                      <ContextMenuItem onClick={handleDeleteLDPlayer}>
+                      <ContextMenuItem inset onClick={handleDeleteLDPlayer}>
                         ลบ LDPlayer
                       </ContextMenuItem>
-                      <ContextMenuItem onClick={handleDeleteRow}>
-                        ลบแถว
-                      </ContextMenuItem>
                     </ContextMenuSubContent>
                   </ContextMenuSub>
+                  <ContextMenuItem onClick={handleDeleteRow}>
+                    ลบแถว
+                  </ContextMenuItem>
                 </ContextMenuContent>
               </ContextMenu>
             ))}

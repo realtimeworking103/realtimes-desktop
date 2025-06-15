@@ -1,6 +1,8 @@
 import { exec, execSync } from "child_process";
 import db from "./config-db.js";
 import { getLDConsolePath } from "./db-pathLd.js";
+import { promisify } from "util";
+const execAsync = promisify(exec);
 
 export function callLdInstance(ldName: string) {
   const ldconsolePath = getLDConsolePath();
@@ -90,8 +92,8 @@ export function fetchLdInstance(): Promise<string[]> {
     const newNames = rawNames.filter((name) => !existingNames.includes(name));
 
     const stmt = db.prepare(`
-      INSERT INTO GridLD (LDPlayerGridLD, StatusAccGridLD, DateTimeGridLD, StatusGridLD)
-      VALUES (?, 'บัญชีรอการสมัคร', datetime('now', 'localtime'), '')
+      INSERT INTO GridLD (LDPlayerGridLD, StatusAccGridLD, DateTimeGridLD, StatusGridLD, CreateAt)
+      VALUES (?, 'บัญชีรอการสมัคร', datetime('now', 'localtime'), '', '')
     `);
 
     for (const name of newNames) {
@@ -105,13 +107,15 @@ export function fetchLdInstance(): Promise<string[]> {
   }
 }
 
-export function createLDPlayers({
+export async function createLDPlayers({
   prefix,
   count,
+  delay = 3000,
 }: {
   prefix: string;
   count: number;
-}): string {
+  delay?: number;
+}): Promise<string> {
   const ldconsolePath = getLDConsolePath();
   if (!ldconsolePath) {
     console.error("[LDPlayer] Path not set in database");
@@ -119,27 +123,33 @@ export function createLDPlayers({
   }
 
   db.prepare(
-    `CREATE TABLE IF NOT EXISTS DataCreateLDPlayer (
+    `
+    CREATE TABLE IF NOT EXISTS DataCreateLDPlayer (
       NoDataGridLD INTEGER PRIMARY KEY AUTOINCREMENT,
       LDPlayerGridLD TEXT,
       PrefixGridLD TEXT,
       StatusGridLD TEXT,
       DateTimeGridLD TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`,
+    )
+  `,
   ).run();
 
   const insertStmt = db.prepare(`
-    INSERT INTO DataCreateLDPlayer (LDPlayerGridLD, PrefixGridLD, StatusGridLD)
+    INSERT INTO DataCreateLDPlayer
+      (LDPlayerGridLD, PrefixGridLD, StatusGridLD)
     VALUES (?, ?, ?)
   `);
 
   const updateStatus = db.prepare(`
-    UPDATE DataCreateLDPlayer SET StatusGridLD = ? WHERE LDPlayerGridLD = ?
+    UPDATE DataCreateLDPlayer
+      SET StatusGridLD = ?
+      WHERE LDPlayerGridLD = ?
   `);
 
   let successCount = 0;
 
   for (let i = 1; i <= count; i++) {
+    // สร้างชื่อ instance ตามวันที่
     const now = new Date();
     const dateStr = `${now.getDate().toString().padStart(2, "0")}${(
       now.getMonth() + 1
@@ -148,26 +158,31 @@ export function createLDPlayers({
       .padStart(2, "0")}${now.getFullYear()}`;
 
     const name = `${prefix}_${i.toString().padStart(2, "0")}${dateStr}`;
-
     insertStmt.run(name, prefix, "กำลังสร้าง");
 
     try {
-      const listOutput = execSync(`"${ldconsolePath}" list2`, {
-        encoding: "utf-8",
-      });
+      // เช็คก่อนว่ามีชื่อซ้ำไหม
+      const { stdout: listOutput } = await execAsync(
+        `"${ldconsolePath}" list2`,
+      );
       if (listOutput.includes(name)) {
         updateStatus.run("มี LDPlayer อยู่แล้ว", name);
         continue;
       }
 
-      const cmd = `"${ldconsolePath}" copy --name "${name}" --from "LDPlayer01"`;
-      execSync(cmd);
+      // คัดลอก instance แบบ async
+      await execAsync(
+        `"${ldconsolePath}" copy --name "${name}" --from "LDPlayer01"`,
+      );
       updateStatus.run("สร้าง LDPlayer สำเร็จ", name);
       successCount++;
-    } catch (err) {
-      updateStatus.run("สร้าง LDPlayer สำเร็จ", name);
+    } catch (err: any) {
+      console.error(`Error creating ${name}:`, err);
+      updateStatus.run("สร้าง LDPlayer ล้มเหลว", name);
     }
+
+    await new Promise(resolve => setTimeout(resolve, delay));
   }
 
-  return `Create LDPlayer Sucess ${successCount}/${count} Prefix "${prefix}"`;
+  return `Create LDPlayer Success ${successCount}/${count} Prefix "${prefix}"`;
 }
