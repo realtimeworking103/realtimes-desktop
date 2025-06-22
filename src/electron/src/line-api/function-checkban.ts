@@ -49,8 +49,13 @@ export function checkBanLdInstance(params: {
 
   req.on("end", () => {
     console.log("Request finished");
+    client.close();
 
-    if (body.toLowerCase().includes("forbidden")) {
+    const bodyText = body.toLowerCase();
+    if (
+      bodyText.includes("forbidden") ||
+      bodyText.includes("failed to retrieve access token")
+    ) {
       db.prepare(
         `UPDATE GridLD SET StatusAccGridLD = ?, StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
       ).run(`บัญชีโดนแบน`, `ตรวจสอบข้อมูลเสร็จ`, ldName);
@@ -59,8 +64,6 @@ export function checkBanLdInstance(params: {
         `UPDATE GridLD SET StatusAccGridLD = ?, StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
       ).run(`บัญชีพร้อมใช้งาน`, `ตรวจสอบข้อมูลเสร็จ`, ldName);
     }
-
-    client.close();
   });
 
   req.write(payload);

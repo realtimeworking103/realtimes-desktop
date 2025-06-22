@@ -5,15 +5,42 @@ import { Button } from "@/ui/components/ui/button";
 import { Input } from "@/ui/components/ui/input";
 import {
   Card,
+  CardAction,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/ui/components/ui/card";
 import { toast } from "sonner";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/ui/components/ui/table";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/ui/components/ui/dialog";
+import { Label } from "@radix-ui/react-label";
+
+type LineAccount = {
+  ID: number;
+  lineId: string;
+};
+
 export default function Page() {
   const [ldplayerPath, setLdplayerPath] = useState("");
   const [showDialog, setShowDialog] = useState(false);
+  const [accounts, setAccounts] = useState<LineAccount[]>([]);
 
   useEffect(() => {
     window.electron.getLDPlayerPath().then((path) => {
@@ -23,6 +50,10 @@ export default function Page() {
         setLdplayerPath(path);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    window.electron.getAccountLineId().then(setAccounts);
   }, []);
 
   const handleSave = async () => {
@@ -40,7 +71,7 @@ export default function Page() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Setting</CardTitle>
+          <CardTitle>ตั้งค่า</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex w-full space-x-3">
@@ -53,7 +84,52 @@ export default function Page() {
             <Button onClick={handleSave}>บันทึก</Button>
           </div>
         </CardContent>
+        <CardFooter></CardFooter>
       </Card>
+
+      <Dialog>
+        <Card>
+          <CardHeader>
+            <CardTitle>ไลน์ไก่</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardAction>
+              <DialogTrigger asChild>
+                <Button>เพิ่มรายการ</Button>
+              </DialogTrigger>
+            </CardAction>
+            <div className="flex w-full space-x-3">
+              <Table className="mt-4 [&_*]:text-center [&_*]:align-middle">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ลำดับ</TableHead>
+                    <TableHead>ไอดีไลน์</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {accounts.map((acc, index) => (
+                    <TableRow key={acc.ID}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{acc.lineId}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+          <CardFooter></CardFooter>
+        </Card>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>เพิ่มรายการ</DialogTitle>
+            <Label>ไอดีไลน์</Label>
+            <Input></Input>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="submit">Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {showDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

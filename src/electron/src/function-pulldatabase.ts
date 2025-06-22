@@ -7,17 +7,21 @@ import { exec } from "child_process";
 import db from "./config-db.js";
 import { getLDConsolePath } from "./db-pathLd.js";
 import { decryptAndSaveProfile } from "./function-decryptor.js";
+import {
+  updateSettingsAttributes1,
+  updateSettingsAttributes2,
+} from "./line-api/updateSettingsAttributes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const outputFolder = path.resolve(__dirname, "../../databaseldplayer");
 const execAsync = promisify(exec);
 
-export async function pullDBLdInstanceAuto(ldName: string): Promise<boolean> {
+export async function pullDBLdInstanceAuto(ldName: string): Promise<string> {
   const ldconsolePath = getLDConsolePath();
   if (!ldconsolePath) {
     console.error("[LDPlayer] Path Not Setting");
-    return false;
+    return "";
   }
 
   try {
@@ -41,14 +45,19 @@ export async function pullDBLdInstanceAuto(ldName: string): Promise<boolean> {
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    await decryptAndSaveProfile(ldName);
+    const token = await decryptAndSaveProfile(ldName);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    updateSettingsAttributes1(token);
+    updateSettingsAttributes2(token);
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const quitCommand = `"${ldconsolePath}" quit --name ${ldName}`;
     await execAsync(quitCommand);
 
-    return true;
+    return "";
   } catch (error: any) {
     console.error(`[${ldName}] ดึงฐานข้อมูลล้มเหลว:`, error.message);
 
@@ -56,7 +65,7 @@ export async function pullDBLdInstanceAuto(ldName: string): Promise<boolean> {
       `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
     ).run("ดึง DB ไม่สำเร็จ", ldName);
 
-    return false;
+    return "";
   }
 }
 

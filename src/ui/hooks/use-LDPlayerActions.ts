@@ -27,6 +27,7 @@ export function useLDPlayerActions(
           window.electron.deleteLdInstance(ldName),
         ),
       );
+      await fetchLDPlayers();
     } catch (err) {
       console.error("Delete LDPlayer Fail:", err);
     }
@@ -39,12 +40,12 @@ export function useLDPlayerActions(
       await Promise.all(
         names.map((ldName) => window.electron.deleteRowFromDB(ldName)),
       );
-      await fetchLDPlayers();
       setSelectedRows((prev) => {
         const updated = new Set(prev);
         names.forEach((n) => updated.delete(n));
         return updated;
       });
+      await fetchLDPlayers();
     } catch (err) {
       console.error("Delete Row Fail:", err);
     }
@@ -57,6 +58,7 @@ export function useLDPlayerActions(
           window.electron.pullDBLdInstanceAuto(ldName),
         ),
       );
+      await fetchLDPlayers();
     } catch (err) {
       console.error("Get Token Auto Fail:", err);
     }
@@ -119,7 +121,6 @@ export function useLDPlayerActions(
       await fetchLDPlayers();
     } catch (err) {
       console.error("Check Ban Failed:", err);
-      alert("เกิดข้อผิดพลาดในการตรวจสอบบัญชี");
     }
   };
 

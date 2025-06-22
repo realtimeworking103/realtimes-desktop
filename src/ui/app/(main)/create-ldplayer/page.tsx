@@ -97,7 +97,6 @@ export default function Page() {
 
   return (
     <div className="w-full space-y-6 p-4">
-      {/* Input section */}
       <div className="flex w-full max-w-full items-center space-x-2">
         <Input
           type="text"
@@ -124,7 +123,6 @@ export default function Page() {
         <Button onClick={handleMoveSelected}>ย้ายข้อมูลที่เลือก</Button>
       </div>
 
-      {/* Table section */}
       <div className="overflow-auto">
         <Table className="text-center">
           <TableHeader>

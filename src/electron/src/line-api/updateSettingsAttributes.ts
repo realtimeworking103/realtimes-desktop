@@ -1,7 +1,7 @@
 import http2 from "http2";
 
-export function updateSettingsAttributes1(accessToken: string): void {
-  const payload: Buffer = Buffer.from([
+export function updateSettingsAttributes1(acessToken:string) {
+  const payload = Buffer.from([
     0x82, 0x21, 0x01, 0x19, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x53, 0x65,
     0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62,
     0x75, 0x74, 0x65, 0x73, 0x32, 0x15, 0xc2, 0x3e, 0x2c, 0xa2, 0x16, 0x00,
@@ -23,7 +23,7 @@ export function updateSettingsAttributes1(accessToken: string): void {
     ":method": "POST",
     ":path": "/S4",
     "User-Agent": "Line/15.2.1",
-    "X-Line-Access": accessToken,
+    "X-Line-Access": acessToken,
     "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
     "X-Lal": "th_TH",
     "X-Lpv": "1",
@@ -31,15 +31,16 @@ export function updateSettingsAttributes1(accessToken: string): void {
     "Accept-Encoding": "gzip, deflate, br",
   });
 
-  req.on("response", (headers: http2.IncomingHttpHeaders) => {
+  req.on("response", (headers) => {
     console.log("Response Headers:");
     for (const name in headers) {
       console.log(`${name}: ${headers[name]}`);
     }
   });
 
-  req.on("data", (chunk: Buffer) => {
-    console.log("Response Body:", chunk.toString("utf8"));
+  req.on("data", (chunk) => {
+    const utf8 = chunk.toString("utf8");
+    console.log("Response Body:", utf8);
   });
 
   req.on("end", () => {
@@ -48,11 +49,12 @@ export function updateSettingsAttributes1(accessToken: string): void {
   });
 
   req.write(payload);
+
   req.end();
 }
 
-export function updateSettingsAttributes2(accessToken: string): void {
-  const payload: Buffer = Buffer.from([
+export function updateSettingsAttributes2(acessToken:string) {
+  const payload = Buffer.from([
     0x82, 0x21, 0x01, 0x19, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x53, 0x65,
     0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62,
     0x75, 0x74, 0x65, 0x73, 0x32, 0x15, 0xc4, 0x3e, 0x2c, 0xa2, 0x16, 0x00,
@@ -74,7 +76,7 @@ export function updateSettingsAttributes2(accessToken: string): void {
     ":method": "POST",
     ":path": "/S4",
     "User-Agent": "Line/15.2.1",
-    "X-Line-Access": accessToken,
+    "X-Line-Access": acessToken,
     "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
     "X-Lal": "th_TH",
     "X-Lpv": "1",
@@ -82,15 +84,16 @@ export function updateSettingsAttributes2(accessToken: string): void {
     "Accept-Encoding": "gzip, deflate, br",
   });
 
-  req.on("response", (headers: http2.IncomingHttpHeaders) => {
+  req.on("response", (headers) => {
     console.log("Response Headers:");
     for (const name in headers) {
       console.log(`${name}: ${headers[name]}`);
     }
   });
 
-  req.on("data", (chunk: Buffer) => {
-    console.log("Response Body:", chunk.toString("utf8"));
+  req.on("data", (chunk) => {
+    const utf8 = chunk.toString("utf8");
+    console.log("Response Body:", utf8);
   });
 
   req.on("end", () => {
@@ -99,5 +102,6 @@ export function updateSettingsAttributes2(accessToken: string): void {
   });
 
   req.write(payload);
+
   req.end();
 }

@@ -24,15 +24,14 @@ export function acquireEncryptedAccessToken(
       "Accept-Encoding": "gzip, deflate, br",
     });
 
-    let body = "";
-    req.on("data", (chunk: Buffer) => {
-      body += chunk.toString();
-    });
+    const chunks: Buffer[] = [];
+
+    req.on("data", (chunk: Buffer) => chunks.push(chunk));
 
     req.on("end", () => {
       client.close();
-      const tokenImg: string = body.slice(42, 1430);
-      resolve(tokenImg);
+      const acquireToken = chunks.toString().slice(42, chunks.length - 2);
+      resolve(acquireToken);
     });
 
     req.on("error", (err: Error) => {

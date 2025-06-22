@@ -1,0 +1,86 @@
+import fs from "fs";
+import path from "path";
+import { syncContacts } from "./function-synccontact.js";
+import db from "../config-db.js";
+
+function writePhonesToFile(phones: string[], filePath: string): void {
+  fs.writeFileSync(filePath, phones.join("\n"), "utf-8");
+}
+
+export const addFriends = async (payload: {
+  ldName: string;
+  accessToken: string;
+  target: number;
+  phoneFile: string;
+}): Promise<{ success: boolean; added: number; remaining: number }> => {
+  const { ldName, accessToken, target, phoneFile } = payload;
+
+  const txtFolderPath = path.join(process.cwd(), "contact");
+  const filePath = path.join(txtFolderPath, phoneFile);
+  const raw = fs.readFileSync(filePath, "utf-8");
+  const phones = raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  let friendCounter = 0;
+  let batchTracking = 0;
+  let syncCount = 0;
+  let zeroAddCount = 0;
+  const usedPhones: string[] = [];
+
+  while (
+    friendCounter < target &&
+    batchTracking < phones.length &&
+    syncCount < 10 &&
+    zeroAddCount < 3
+  ) {
+    const batchSize = Math.min(49, target - friendCounter);
+    const slice = phones.slice(batchTracking, batchTracking + batchSize);
+    batchTracking += batchSize;
+
+    const response = await syncContacts(slice, accessToken);
+
+    if (response === 0) {
+      zeroAddCount++;
+      console.warn(`ไม่ได้เพิ่มเลยในรอบนี้ (${syncCount})`);
+      continue;
+    } else {
+      zeroAddCount = 0;
+    }
+
+    friendCounter += response;
+    usedPhones.push(...slice);
+    console.log(`Add Friend: ${friendCounter}/${target}`);
+  }
+
+  const remainingPhones = phones.filter((p) => !usedPhones.includes(p));
+  writePhonesToFile(remainingPhones, filePath);
+
+  const getStmt = db.prepare(
+    `SELECT FriendGridLD FROM GridLD WHERE LDPlayerGridLD = ?`,
+  );
+
+  const row = getStmt.get(ldName) as { FriendGridLD: number | null };
+
+  const existingFriends = row?.FriendGridLD ?? 0;
+
+  const totalFriends = existingFriends + friendCounter;
+
+  const stmt = db.prepare(
+    `UPDATE GridLD SET StatusAccGridLD = ?, FriendGridLD = ?, DateTimeGridLD = datetime('now', 'localtime'), StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+  );
+
+  stmt.run(
+    `เพิ่มเพื่อนสำเร็จ`,
+    `${totalFriends}`,
+    `เพิ่มเพื่อนได้ ${totalFriends}/${target} คน`,
+    ldName,
+  );
+
+  return {
+    success: true,
+    added: friendCounter,
+    remaining: remainingPhones.length,
+  };
+};

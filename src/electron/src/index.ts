@@ -9,16 +9,26 @@ import {
   createLDPlayers,
 } from "./function-ldplayer.js";
 
-import { getLDPlayersDB, getCreateLDPlayersDB } from "./db-getLdplayer.js";
+import { getLDPlayersDB, getCreateLDPlayersDB, getAccountLineId } from "./db-getLdplayer.js";
 import { setLDPlayerPath, getLDPlayerPath } from "./db-pathLd.js";
-import { deleteRowFromDB, moveSelectedLDPlayers } from "./function-db.js";
+import {
+  deleteRowFromDB,
+  moveSelectedLDPlayers,
+  updatePhoneFile,
+} from "./function-db.js";
 import {
   pullDBLdInstanceAuto,
   pullDBLdInstanceManual,
 } from "./function-pulldatabase.js";
-import { createGroup } from "./line-api/function-creategroup.js";
 import { getContact } from "./line-api/function-getcontact.js";
 import { checkBanLdInstance } from "./line-api/function-checkban.js";
+import { mainCreateGroup } from "./line-api/function-createchat.js";
+import {
+  getTxtFiles,
+  saveTxtFile,
+  deleteTxtFile,
+} from "./function-filemanager.js";
+import { addFriends } from "./line-api/function-addfriends.js";
 
 export default function initMain(mainWindow: BrowserWindow) {
   pollResources(mainWindow);
@@ -35,15 +45,18 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("moveSelectedLDPlayers", moveSelectedLDPlayers);
   ipcMainHandle("setLDPlayerPath", setLDPlayerPath);
   ipcMainHandle("getLDPlayerPath", getLDPlayerPath);
+  ipcMainHandle("getTxtFiles", getTxtFiles);
+  ipcMainHandle("saveTxtFile", saveTxtFile);
+  ipcMainHandle("deleteTxtFile", deleteTxtFile);
+  ipcMainHandle("updatePhoneFile", updatePhoneFile);
+  ipcMainHandle("getAccountLineId", getAccountLineId);
+  ipcMainHandle("addFriends", addFriends);
 
   ipcMainHandle("createGroup", async ({ ldName, accessToken }) => {
     const nameGroup = ``;
-    const sleep = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
     try {
-      await getContact(accessToken);
-      await sleep(1000);
-      await createGroup({ accessToken, nameGroup, ldName });
+
+      await mainCreateGroup({ accessToken, nameGroup, ldName });
       return { success: true };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);

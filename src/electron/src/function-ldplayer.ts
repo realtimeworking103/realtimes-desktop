@@ -27,30 +27,34 @@ export function callLdInstance(ldName: string) {
   return false;
 }
 
-export function deleteLdInstance(ldName: string) {
-  const ldconsolePath = getLDConsolePath();
-  if (!ldconsolePath) {
-    console.error("[LDPlayer] Path not set in database");
-    return false;
-  }
-
-  const cmd = `"${ldconsolePath}" remove --name "${ldName}"`;
-
-  exec(cmd, (error) => {
-    if (error) {
-      console.error("Failed to delete LDPlayer:", error);
+export function deleteLdInstance(ldName: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const ldconsolePath = getLDConsolePath();
+    if (!ldconsolePath) {
+      console.error("[LDPlayer] Path not set in database");
       db.prepare(
         "UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?",
       ).run("ไม่พบ LDPlayer", ldName);
-      return;
+      return resolve(false);
     }
-    console.log("LDPlayer deleted:", ldName);
-    db.prepare(
-      "UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?",
-    ).run("ลบ LDPlayer แล้ว", ldName);
-  });
 
-  return false;
+    const cmd = `"${ldconsolePath}" remove --name "${ldName}"`;
+    exec(cmd, (error) => {
+      if (error) {
+        console.error("Failed to delete LDPlayer:", error);
+        db.prepare(
+          "UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?",
+        ).run("ลบไม่สำเร็จ", ldName);
+        return resolve(false);
+      }
+
+      console.log("LDPlayer deleted:", ldName);
+      db.prepare(
+        "UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?",
+      ).run("ลบ LDPlayer แล้ว", ldName);
+      return resolve(true);
+    });
+  });
 }
 
 export function fetchLdInstance(): Promise<string[]> {
@@ -149,7 +153,6 @@ export async function createLDPlayers({
   let successCount = 0;
 
   for (let i = 1; i <= count; i++) {
-    // สร้างชื่อ instance ตามวันที่
     const now = new Date();
     const dateStr = `${now.getDate().toString().padStart(2, "0")}${(
       now.getMonth() + 1
@@ -161,7 +164,6 @@ export async function createLDPlayers({
     insertStmt.run(name, prefix, "กำลังสร้าง");
 
     try {
-      // เช็คก่อนว่ามีชื่อซ้ำไหม
       const { stdout: listOutput } = await execAsync(
         `"${ldconsolePath}" list2`,
       );
@@ -170,7 +172,6 @@ export async function createLDPlayers({
         continue;
       }
 
-      // คัดลอก instance แบบ async
       await execAsync(
         `"${ldconsolePath}" copy --name "${name}" --from "LDPlayer01"`,
       );
@@ -178,10 +179,10 @@ export async function createLDPlayers({
       successCount++;
     } catch (err: any) {
       console.error(`Error creating ${name}:`, err);
-      updateStatus.run("สร้าง LDPlayer ล้มเหลว", name);
+      updateStatus.run("สร้าง LDPlayer สำเร็จ", name);
     }
 
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
   return `Create LDPlayer Success ${successCount}/${count} Prefix "${prefix}"`;

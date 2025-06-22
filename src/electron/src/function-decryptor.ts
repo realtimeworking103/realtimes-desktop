@@ -10,7 +10,7 @@ import Database from "better-sqlite3";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function decryptAndSaveProfile(ldName: string): Promise<void> {
+export async function decryptAndSaveProfile(ldName: string): Promise<string> {
   const pulledDbPath = path.resolve(
     __dirname,
     `../../databaseldplayer/naver_line_${ldName}.db`,
@@ -18,7 +18,7 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
 
   if (!fs.existsSync(pulledDbPath)) {
     console.error(`Database file not found: ${pulledDbPath}`);
-    return;
+    return "";
   }
 
   const pulledDb = new Database(pulledDbPath, { readonly: true });
@@ -35,7 +35,7 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
         `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
       ).run("บัญชีไม่ได้สมัคร", ldName);
       console.warn(`LDPlayer ${ldName} Not Found Table Setting`);
-      return;
+      return "";
     }
 
     const decryptor = new LineProfileDecryptor(pulledDbPath);
@@ -46,7 +46,7 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
         `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
       ).run("บัญชีไม่ได้สมัคร", ldName);
       console.warn(`ถอดรหัสโปรไฟล์ล้มเหลว: ${ldName}`);
-      return;
+      return "";
     }
 
     db.prepare(
@@ -67,12 +67,15 @@ export async function decryptAndSaveProfile(ldName: string): Promise<void> {
     console.log(`Name: ${profile.name}`);
     console.log(`Phone: ${profile.phone}`);
     console.log(`Token saved for ${ldName}`);
+
+    return profile.token;
   } catch (err: any) {
     db.prepare(
       `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
     ).run("เก็บ Token ไม่สำเร็จ", ldName);
 
     console.error(`Error decrypting ${ldName}:`, err.message);
+    return "";
   } finally {
     pulledDb.close();
   }

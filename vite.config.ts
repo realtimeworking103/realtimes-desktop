@@ -15,4 +15,9 @@ export default defineConfig({
   build: {
     outDir: "dist-react",
   },
+  server: {
+    watch: {
+      ignored: ["**/*.db",],
+    },
+  },
 });

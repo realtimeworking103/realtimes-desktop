@@ -2,22 +2,41 @@ const electron = require("electron");
 
 // Expose type-safe API to renderer
 electron.contextBridge.exposeInMainWorld("electron", {
-  statistics: (callback: (stats: Statistics) => void) => ipcOn("statistics", callback),
+  statistics: (callback: (stats: Statistics) => void) =>
+    ipcOn("statistics", callback),
   getStaticData: () => ipcInvoke("getStaticData"),
   getLDPlayersDB: () => ipcInvoke("getLDPlayersDB"),
   callLdInstance: (payload) => ipcInvoke("callLdInstance", payload),
   deleteLdInstance: (payload) => ipcInvoke("deleteLdInstance", payload),
   deleteRowFromDB: (payload) => ipcInvoke("deleteRowFromDB", payload),
   pullDBLdInstanceAuto: (payload) => ipcInvoke("pullDBLdInstanceAuto", payload),
-  pullDBLdInstanceManual: (payload) => ipcInvoke("pullDBLdInstanceManual", payload),
+  pullDBLdInstanceManual: (payload) =>
+    ipcInvoke("pullDBLdInstanceManual", payload),
   fetchLdInstance: () => ipcInvoke("fetchLdInstance"),
   getDataCreateLDPlayers: () => ipcInvoke("getDataCreateLDPlayers"),
-  createLDPlayers: (payload: { prefix: string; count: number }) => ipcInvoke("createLDPlayers", payload),
-  moveSelectedLDPlayers: (payload) => ipcInvoke("moveSelectedLDPlayers", payload),
+  createLDPlayers: (payload: { prefix: string; count: number }) =>
+    ipcInvoke("createLDPlayers", payload),
+  moveSelectedLDPlayers: (payload) =>
+    ipcInvoke("moveSelectedLDPlayers", payload),
   setLDPlayerPath: (payload) => ipcInvoke("setLDPlayerPath", payload),
   getLDPlayerPath: () => ipcInvoke("getLDPlayerPath"),
-  createGroup: (payload: { ldName: string; accessToken: string }) => ipcInvoke("createGroup", payload),
-  checkBanLdInstance: (payload: { ldName: string; accessToken: string }) => ipcInvoke("checkBanLdInstance", payload),
+  createGroup: (payload: { ldName: string; accessToken: string }) =>
+    ipcInvoke("createGroup", payload),
+  checkBanLdInstance: (payload: { ldName: string; accessToken: string }) =>
+    ipcInvoke("checkBanLdInstance", payload),
+  getTxtFiles: () => ipcInvoke("getTxtFiles"),
+  saveTxtFile: (payload: { name: string; data: Uint8Array }) =>
+    ipcInvoke("saveTxtFile", payload),
+  deleteTxtFile: (fileName: string) => ipcInvoke("deleteTxtFile", fileName),
+  updatePhoneFile: (payload: { ldName: string; fileName: string }) =>
+    ipcInvoke("updatePhoneFile", payload),
+  getAccountLineId: () => ipcInvoke("getAccountLineId"),
+  addFriends: (payload: {
+    ldName: string;
+    accessToken: string;
+    target: number;
+    phoneFile: string;
+  }) => ipcInvoke("addFriends", payload),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions

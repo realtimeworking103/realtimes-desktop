@@ -9,6 +9,7 @@ export type LDPlayerType = {
   GroupGridLD: string;
   PhoneGridLD: string;
   TokenGridLD: string;
+  PhoneFileGridLD: string;
   CreateAt: string;
 };
 

@@ -21,6 +21,7 @@ type DataLDPlayersDB = {
   GroupGridLD: string;
   PhoneGridLD: string;
   TokenGridLD: string;
+  PhoneFileGridLD: string;
   CreateAt: string;
 };
 
@@ -30,6 +31,12 @@ type DataCreateLDPlayersDB = {
   DateTimeGridLD: string;
   StatusGridLD: string;
   PrefixGridLD: string;
+};
+
+type LineAccount = {
+  ID: number;
+  type: string;
+  lineId: string;
 };
 
 // Define the shape of IPC events
@@ -60,7 +67,7 @@ type IpcEventMap = {
   };
   pullDBLdInstanceAuto: {
     payload: string;
-    response: boolean;
+    response: string;
   };
   pullDBLdInstanceManual: {
     payload: string;
@@ -100,6 +107,40 @@ type IpcEventMap = {
   checkBanLdInstance: {
     payload: { ldName: string; accessToken: string };
     response: { success: true } | { success: false; message: string };
+  };
+  getTxtFiles: {
+    payload: void;
+    response: { name: string; count: number }[];
+  };
+  saveTxtFile: {
+    payload: { name: string; data: Uint8Array };
+    response: boolean;
+  };
+  deleteTxtFile: {
+    payload: string;
+    response: boolean;
+  };
+  updatePhoneFile: {
+    payload: { ldName: string; fileName: string };
+    response: string;
+  };
+  getAccountLineId: {
+    payload: void;
+    response: LineAccount[];
+  };
+  addFriends: {
+    payload: {
+      ldName: string;
+      accessToken: string;
+      target: number;
+      phoneFile: string;
+    };
+    response: {
+      success: boolean;
+      added: number;
+      remaining: number;
+      message?: string;
+    };
   };
 };
 

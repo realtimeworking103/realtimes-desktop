@@ -26,5 +26,6 @@ dist-electron
 *.sw?
 
 # database pull-ldplayer
-pulled_databases
+contact
+databaseldplayer
 *.db

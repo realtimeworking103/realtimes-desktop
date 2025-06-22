@@ -1,43 +1,57 @@
-// import { functionA } from "@/ui/api";
-// import { Button } from "@/ui/components/ui/button";
-// import { Input } from "@/ui/components/ui/input";
-// import { useEffect, useState } from "react";
+import { Button } from "@/ui/components/ui/button";
 
-// export default function Page() {
-//   useEffect(() => {
-//     // const unsub = window.electron.statistics((stats) => {
-//     //   console.log(stats);
-//     // });
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/ui/components/ui/dialog";
 
-//     const init = async () => {
-//       const resp = await functionA({ name: "John" });
-//       console.log(resp);
-//     };
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/components/ui/select";
+import { Label } from "@radix-ui/react-label";
 
-//     init();
-
-//     // return () => unsub();
-//   }, []);
-
-//   const [name, setName] = useState("");
-
-//   return (
-//     <div>
-//       Dashboard
-//       <Input
-//         type="text"
-//         placeholder="Enter name"
-//         onChange={(e) => setName(e.target.value)}
-//       />
-//       <Button onClick={() => window.electron.createLdInstance({ name })}>
-//         Create LD Instance
-//       </Button>
-//     </div>
-//   );
-// }
-
-export default function Page () {
+export default function Page() {
   return (
-    <div></div>
-  )
+    <Dialog>
+      <DialogTrigger>Open</DialogTrigger>
+      <DialogHeader>
+        <DialogContent>
+          <DialogTitle>สร้างกลุ่ม</DialogTitle>
+          <div className="space-y-6">
+            <Label>ชื่อกลุ่ม</Label>
+            <Select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="system">System</SelectItem>
+              </SelectContent>
+            </Select>
+            <Label>ไลน์ไก่</Label>
+            <Select>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="system">System</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button>สร้างกลุ่ม</Button>
+        </DialogContent>
+      </DialogHeader>
+    </Dialog>
+  );
 }

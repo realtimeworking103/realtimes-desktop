@@ -13,6 +13,7 @@ export function getLDPlayersDB() {
         GroupGridLD TEXT,
         PhoneGridLD TEXT,
         TokenGridLD TEXT,
+        PhoneFileGridLD,
         DateTimeGridLD TIMESTAMP DEFAULT (datetime('now', 'localtime')),
         CreateAt TIMESTAMP DEFAULT (datetime('now', 'localtime'))
       )
@@ -21,7 +22,7 @@ export function getLDPlayersDB() {
 
   const rows = db
     .prepare(
-      "SELECT NoDataGridLD, LDPlayerGridLD, StatusAccGridLD, StatusGridLD, NameLineGridLD, FriendGridLD, GroupGridLD, PhoneGridLD, TokenGridLD, DateTimeGridLD, CreateAt FROM GridLD",
+      "SELECT NoDataGridLD, LDPlayerGridLD, StatusAccGridLD, StatusGridLD, NameLineGridLD, FriendGridLD, GroupGridLD, PhoneGridLD, TokenGridLD, PhoneFileGridLD, DateTimeGridLD, CreateAt FROM GridLD",
     )
     .all();
   return rows as {
@@ -34,6 +35,7 @@ export function getLDPlayersDB() {
     GroupGridLD: string;
     PhoneGridLD: string;
     TokenGridLD: string;
+    PhoneFileGridLD: string;
     DateTimeGridLD: string;
     CreateAt: string;
   }[];
@@ -63,5 +65,24 @@ export function getCreateLDPlayersDB() {
     DateTimeGridLD: string;
     StatusGridLD: string;
     PrefixGridLD: string;
+  }[];
+}
+
+export function getAccountLineId() {
+  db.prepare(
+    `
+      CREATE TABLE IF NOT EXISTS LineAccounts (
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT,
+        lineId TEXT
+      )
+    `,
+  ).run();
+
+  const rows = db.prepare("SELECT ID, type, lineId FROM LineAccounts").all();
+  return rows as {
+    ID: number;
+    type: string;
+    lineId: string;
   }[];
 }

@@ -1,14 +1,15 @@
 import http2 from "http2";
-import { encodeGroupName, encodeMid, getMidCountBytes } from "./function.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import db from "../config-db.js";
-import { acquireEncryptedAccessToken } from "./acquireEncryptedAccessToken.js";
-import { createGroupImg } from "./createGroupImg.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+import { encodeGroupName, encodeMid, getMidCountBytes } from "./function.js";
+import db from "../config-db.js";
+import { acquireEncryptedAccessToken } from "./function-acquireEncryptedAccessToken.js";
+import { uploadImageToGroup } from "./function-uploadimagegroup.js";
 
 const MAX_PER_GROUP = 99;
 const chunkArray = (arr: string[], size: number) =>
@@ -35,60 +36,62 @@ export async function createGroup(params: {
 
   const contactDir = path.join(__dirname, contactFolder);
   if (!fs.existsSync(contactDir)) {
-    console.warn(`[createGroup] Create contact New: ${contactDir}`);
     fs.mkdirSync(contactDir, { recursive: true });
   }
 
-  const sourcePath = path.join(__dirname, contactFolder, `${token}.txt`);
+  const sourcePath = path.join(contactDir, `${token}.txt`);
   if (!fs.existsSync(sourcePath)) {
-    console.warn(`[createGroup] not found contact: ${sourcePath}`);
     fs.writeFileSync(sourcePath, "", "utf8");
   }
+
+  const adminFilePath = path.join(__dirname, "admin.txt");
+  const adminMids = fs.existsSync(adminFilePath)
+    ? fs
+        .readFileSync(adminFilePath, "utf-8")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+    : [];
 
   const allMids = fs
     .readFileSync(sourcePath, "utf-8")
     .split("\n")
     .map((l) => l.trim())
-    .filter((l) => l);
+    .filter(Boolean);
 
   const usedPath = path.join(__dirname, usedFolder, `${token}.txt`);
-  let usedMids: string[] = [];
-  if (fs.existsSync(usedPath)) {
-    usedMids = fs
-      .readFileSync(usedPath, "utf-8")
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l);
-  }
+  let usedMids: string[] = fs.existsSync(usedPath)
+    ? fs
+        .readFileSync(usedPath, "utf-8")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+    : [];
 
   const newMids = allMids.filter((m) => !usedMids.includes(m));
-  if (newMids.length === 0) {
+  if (newMids.length < 10) {
     db.prepare(
       `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
-    ).run(`จำนวนเพื่อนไม่พอ ${newMids.length}`, ldName);
+    ).run(`จำนวนเพื่อนไม่พอ`, ldName);
     return;
   }
 
-  const groups = chunkArray(newMids, MAX_PER_GROUP);
+  const groups = chunkArray(newMids, MAX_PER_GROUP - adminMids.length);
 
   for (let i = 0; i < groups.length; i++) {
-    const midsInGroup = groups[i];
-    const groupName = `${nameGroup}`;
-
-    const header = Buffer.from([
-      0x82, 0x21, 0x01, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x68,
-      0x61, 0x74, 0x1c, 0x15, 0x92, 0x4e,
-    ]);
-    const groupNameBuf = encodeGroupName(groupName);
+    const midsInGroup = [...adminMids, ...groups[i]];
+    const groupNameBuf = encodeGroupName(nameGroup);
     const countBuf = getMidCountBytes(midsInGroup.length);
     const midsBuf = Buffer.concat(midsInGroup.map(encodeMid));
-    const footer = Buffer.from([0x18, 0x00, 0x00, 0x00]);
     const payload = Buffer.concat([
-      header,
+      Buffer.from([
+        0x82, 0x21, 0x01, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x68,
+        0x61, 0x74, 0x1c, 0x15, 0x92, 0x4e,
+      ]),
       groupNameBuf,
       countBuf,
       midsBuf,
-      footer,
+      Buffer.from([0x18, 0x00, 0x00, 0x00]),
     ]);
 
     await new Promise<void>((resolve, reject) => {
@@ -106,52 +109,53 @@ export async function createGroup(params: {
         "Accept-Encoding": "gzip, deflate, br",
       });
 
-      req.on("response", (headers) => {
-        console.log(`Group ${i + 1} response headers:`, headers);
-      });
-
       let body = "";
       req.on("data", (chunk) => {
+        console.log(chunk.toString());
         body += chunk.toString();
       });
 
       req.on("end", async () => {
         try {
-          const groupId = body.slice(21, 54);
-
           client.close();
 
-          const tokenImg = await acquireEncryptedAccessToken(accessToken);
-          await createGroupImg(groupId, tokenImg);
+          const groupId = body.slice(21, 54);
 
-          if (!fs.existsSync(path.join(__dirname, usedFolder))) {
-            fs.mkdirSync(path.join(__dirname, usedFolder), { recursive: true });
+          if (body.toLowerCase().includes("request blocked")) {
+            db.prepare(
+              `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+            ).run(`สร้างกลุ่มไม่สำเร็จ request blocked`, ldName);
+          } else {
+            const acquireToken = await acquireEncryptedAccessToken(accessToken);
+            await uploadImageToGroup(groupId, acquireToken);
+
+            usedMids.push(...midsInGroup);
+            fs.writeFileSync(usedPath, usedMids.join("\n") + "\n");
+
+            const row = db
+              .prepare(
+                `SELECT GroupGridLD FROM GridLD WHERE LDPlayerGridLD = ?`,
+              )
+              .get(ldName) as { GroupGridLD: string };
+
+            const currentCount = parseInt(row?.GroupGridLD || "0", 10);
+            const newCount = currentCount + 1;
+
+            db.prepare(
+              `UPDATE GridLD SET StatusAccGridLD = ?, StatusGridLD = ?, GroupGridLD = ? WHERE LDPlayerGridLD = ?`,
+            ).run(
+              `สร้างกลุ่มสำเร็จ`,`สร้างกลุ่มสำเร็จ${newCount}/${groups.length}กลุ่ม`,
+              newCount.toString(),
+              ldName,
+            );
           }
-
-          usedMids.push(...midsInGroup);
-          fs.writeFileSync(usedPath, usedMids.join("\n") + "\n");
-
-          db.prepare(
-            `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
-          ).run(
-            `สร้างกลุ่มสำเร็จ${groups.length}/${groups.length}กลุ่ม`,
-            ldName,
-          );
-
           resolve();
         } catch (err) {
           reject(err);
         }
       });
 
-      req.on("error", (err) => {
-        console.error(`Group ${i + 1} error:`, err);
-        client.close();
-        reject(err);
-      });
-
       req.write(payload);
-
       req.end();
     });
   }
