@@ -250,9 +250,7 @@ export default function Page() {
                         </ContextMenuItem>
                         <ContextMenuItem inset>ส่งข้อควา่ม</ContextMenuItem>
                         <DialogTrigger asChild>
-                          <button className="w-full text-left">
-                            <ContextMenuItem inset>เพิ่มเพื่อน</ContextMenuItem>
-                          </button>
+                          <ContextMenuItem inset>เพิ่มเพื่อน</ContextMenuItem>
                         </DialogTrigger>
                         <ContextMenuItem inset onClick={handleCreateGroup}>
                           สร้างกลุ่ม
