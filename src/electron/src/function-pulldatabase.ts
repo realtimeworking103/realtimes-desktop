@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 const outputFolder = path.resolve(__dirname, "../../databaseldplayer");
 const execAsync = promisify(exec);
 
-export async function pullDBLdInstanceAuto(ldName: string): Promise<string> {
+export async function getTokenLdInstance(ldName: string): Promise<string> {
   const ldconsolePath = getLDConsolePath();
   if (!ldconsolePath) {
     console.error("[LDPlayer] Path Not Setting");
@@ -48,11 +48,12 @@ export async function pullDBLdInstanceAuto(ldName: string): Promise<string> {
     const token = await decryptAndSaveProfile(ldName);
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    updateSettingsAttributes1(token);
-    updateSettingsAttributes2(token);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await updateSettingsAttributes1(token);
+
+    await updateSettingsAttributes2(token);
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const quitCommand = `"${ldconsolePath}" quit --name ${ldName}`;
     await execAsync(quitCommand);
@@ -66,42 +67,5 @@ export async function pullDBLdInstanceAuto(ldName: string): Promise<string> {
     ).run("ดึง DB ไม่สำเร็จ", ldName);
 
     return "";
-  }
-}
-
-export async function pullDBLdInstanceManual(ldName: string): Promise<boolean> {
-  const ldconsolePath = getLDConsolePath();
-  if (!ldconsolePath) {
-    console.error("[LDPlayer] Path Not Setting");
-    return false;
-  }
-
-  try {
-    if (!fs.existsSync(outputFolder)) {
-      fs.mkdirSync(outputFolder, { recursive: true });
-      console.log("Create output:", outputFolder);
-    }
-
-    const copyCommand = `"${ldconsolePath}" adb --name ${ldName} --command "shell su -c 'cat /data/data/jp.naver.line.android/databases/naver_line > /sdcard/naver_line_${ldName}.db'"`;
-    await execAsync(copyCommand);
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    const pullCommand = `"${ldconsolePath}" adb --name ${ldName} --command "pull /sdcard/naver_line_${ldName}.db ${outputFolder}"`;
-    await execAsync(pullCommand);
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    await decryptAndSaveProfile(ldName);
-
-    return true;
-  } catch (error: any) {
-    console.error(`[${ldName}] ดึงฐานข้อมูลล้มเหลว:`, error.message);
-
-    db.prepare(
-      `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
-    ).run("ดึง DB ไม่สำเร็จ", ldName);
-
-    return false;
   }
 }

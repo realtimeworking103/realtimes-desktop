@@ -25,7 +25,7 @@ type DataLDPlayersDB = {
   CreateAt: string;
 };
 
-type DataCreateLDPlayersDB = {
+type CreateLDPlayersDB = {
   NoDataGridLD: number;
   LDPlayerGridLD: string;
   DateTimeGridLD: string;
@@ -63,21 +63,17 @@ type IpcEventMap = {
   };
   deleteRowFromDB: {
     payload: string;
-    response: number;
+    response: boolean;
   };
-  pullDBLdInstanceAuto: {
+  getTokenLdInstance: {
     payload: string;
     response: string;
-  };
-  pullDBLdInstanceManual: {
-    payload: string;
-    response: boolean;
   };
   fetchLdInstance: {
     payload: void;
     response: string[];
   };
-  createLDPlayers: {
+  createLdInstance: {
     payload: {
       prefix: string;
       count: number;
@@ -86,11 +82,11 @@ type IpcEventMap = {
   };
   getDataCreateLDPlayers: {
     payload: void;
-    response: DataCreateLDPlayersDB[];
+    response: CreateLDPlayersDB[];
   };
   moveSelectedLDPlayers: {
     payload: string[];
-    response: string;
+    response: boolean;
   };
   setLDPlayerPath: {
     payload: string;
@@ -100,13 +96,19 @@ type IpcEventMap = {
     payload: void;
     response: string;
   };
-  createGroup: {
-    payload: { ldName: string; accessToken: string };
-    response: { success: true } | { success: false; message: string };
+  mainCreateGroup: {
+    payload: {
+      accessToken: string;
+      ldName: string;
+      nameGroup: string;
+      oaId: string;
+      privateId: string;
+    };
+    response: boolean;
   };
   checkBanLdInstance: {
     payload: { ldName: string; accessToken: string };
-    response: { success: true } | { success: false; message: string };
+    response: boolean;
   };
   getTxtFiles: {
     payload: void;
@@ -122,6 +124,14 @@ type IpcEventMap = {
   };
   updatePhoneFile: {
     payload: { ldName: string; fileName: string };
+    response: string;
+  };
+  addAccountLineId: {
+    payload: { lineId: string; type: string };
+    response: string;
+  };
+  deleteAccountLineId: {
+    payload: number;
     response: string;
   };
   getAccountLineId: {

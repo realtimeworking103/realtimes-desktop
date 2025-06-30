@@ -2,9 +2,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 import crypto from "crypto";
-
 import db from "./config-db.js";
-
 import Database from "better-sqlite3";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -51,11 +49,13 @@ export async function decryptAndSaveProfile(ldName: string): Promise<string> {
 
     db.prepare(
       `UPDATE GridLD
-       SET StatusAccGridLD = ?, StatusGridLD = ?, TokenGridLD = ?, NameLineGridLD = ?, PhoneGridLD = ?, DateTimeGridLD = datetime('now', 'localtime'), CreateAt = datetime('now', 'localtime')
+       SET StatusAccGridLD = ?, StatusGridLD = ?, FriendGridLD = ?, GroupGridLD = ?, TokenGridLD = ?,  NameLineGridLD = ?, PhoneGridLD = ?, DateTimeGridLD = datetime('now', 'localtime'), CreateAt = datetime('now', 'localtime')
        WHERE LDPlayerGridLD = ?`,
     ).run(
       "บัญชีไลน์พร้อมทำงาน",
       "เก็บ Token สำเร็จ",
+      "0",
+      "0",
       profile.token,
       profile.name,
       profile.phone,

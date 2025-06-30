@@ -55,49 +55,12 @@ export function useLDPlayerActions(
     try {
       await Promise.all(
         getSelectedNames().map((ldName) =>
-          window.electron.pullDBLdInstanceAuto(ldName),
+          window.electron.getTokenLdInstance(ldName),
         ),
       );
       await fetchLDPlayers();
     } catch (err) {
       console.error("Get Token Auto Fail:", err);
-    }
-  };
-
-  const handleGetTokenManual = async () => {
-    try {
-      await Promise.all(
-        getSelectedNames().map((ldName) =>
-          window.electron.pullDBLdInstanceManual(ldName),
-        ),
-      );
-    } catch (err) {
-      console.error("Get Token Manual Fail:", err);
-    }
-  };
-
-  const handleCreateGroup = async () => {
-    const toCreate = ldplayers
-      .filter((p) => selectedRows.has(p.LDPlayerGridLD))
-      .map((p) => ({
-        name: p.LDPlayerGridLD,
-        token: p.TokenGridLD,
-      }));
-
-    if (toCreate.length === 0) {
-      console.warn("ยังไม่ได้เลือก LDPlayer สำหรับสร้างกลุ่ม");
-      return;
-    }
-
-    try {
-      await Promise.all(
-        toCreate.map(({ name, token }) =>
-          window.electron.createGroup({ ldName: name, accessToken: token }),
-        ),
-      );
-      await fetchLDPlayers();
-    } catch (err) {
-      console.error("Create Group Fail:", err);
     }
   };
 
@@ -124,13 +87,21 @@ export function useLDPlayerActions(
     }
   };
 
+  const handleSelectFile = async (ldNames: string[], fileName: string) => {
+    await Promise.all(
+      ldNames.map((ldName) =>
+        window.electron.updatePhoneFile({ ldName, fileName }),
+      ),
+    );
+    await fetchLDPlayers();
+  };
+
   return {
     handleOpenLDPlayer,
     handleDeleteLDPlayer,
     handleDeleteRow,
     handleGetTokenAuto,
-    handleGetTokenManual,
-    handleCreateGroup,
     handleCheckban,
+    handleSelectFile,
   };
 }

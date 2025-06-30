@@ -33,24 +33,25 @@ export default function Page() {
 
   const handleCreate = async () => {
     if (!prefix || !count) return;
-
     setLoading(true);
 
     try {
-      const result = await window.electron.createLDPlayers({ prefix, count });
+      for (let i = 1; i <= count; i++) {
+        const result = await window.electron.createLdInstance({
+          prefix,
+          count: i,
+        });
 
-      console.log("LDPlayer creation result:", result);
+        console.log(`สร้าง LDPlayer ${i}:`, result);
 
-      if (result.startsWith("")) {
         const data = await window.electron.getDataCreateLDPlayers();
         setLdData(data);
-        console.log("Refreshed LDPlayer data:", data);
       }
     } catch (error) {
-      console.error("Error during LDPlayer creation:", error);
+      console.error("เกิดข้อผิดพลาดระหว่างสร้าง LDPlayer:", error);
     } finally {
       setLoading(false);
-      console.log("Done processing LDPlayer creation.");
+      console.log("สร้าง LDPlayer เสร็จสิ้นทั้งหมด");
     }
   };
 
@@ -163,7 +164,7 @@ export default function Page() {
                 <TableCell>{item.LDPlayerGridLD}</TableCell>
                 <TableCell>{item.DateTimeGridLD}</TableCell>
                 <TableCell>{item.StatusGridLD}</TableCell>
-                <TableCell className="space-x-2">
+                <TableCell>
                   <Button
                     onClick={() => handleOpenLDPlayer(item.LDPlayerGridLD)}
                   >

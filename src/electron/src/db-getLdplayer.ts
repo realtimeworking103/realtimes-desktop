@@ -44,7 +44,7 @@ export function getLDPlayersDB() {
 export function getCreateLDPlayersDB() {
   db.prepare(
     `
-      CREATE TABLE IF NOT EXISTS DataCreateLDPlayer (
+      CREATE TABLE IF NOT EXISTS CreateLDPlayer (
         NoDataGridLD INTEGER PRIMARY KEY AUTOINCREMENT,
         LDPlayerGridLD TEXT,
         StatusGridLD TEXT,
@@ -56,7 +56,7 @@ export function getCreateLDPlayersDB() {
 
   const rows = db
     .prepare(
-      "SELECT NoDataGridLD, LDPlayerGridLD, DateTimeGridLD, StatusGridLD, PrefixGridLD FROM DataCreateLDPlayer",
+      "SELECT NoDataGridLD, LDPlayerGridLD, DateTimeGridLD, StatusGridLD, PrefixGridLD FROM CreateLDPlayer",
     )
     .all();
   return rows as {
@@ -65,24 +65,5 @@ export function getCreateLDPlayersDB() {
     DateTimeGridLD: string;
     StatusGridLD: string;
     PrefixGridLD: string;
-  }[];
-}
-
-export function getAccountLineId() {
-  db.prepare(
-    `
-      CREATE TABLE IF NOT EXISTS LineAccounts (
-        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-        type TEXT,
-        lineId TEXT
-      )
-    `,
-  ).run();
-
-  const rows = db.prepare("SELECT ID, type, lineId FROM LineAccounts").all();
-  return rows as {
-    ID: number;
-    type: string;
-    lineId: string;
   }[];
 }

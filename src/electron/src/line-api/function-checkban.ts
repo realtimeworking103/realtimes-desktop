@@ -4,7 +4,7 @@ import db from "../config-db.js";
 export function checkBanLdInstance(params: {
   ldName: string;
   accessToken: string;
-}) {
+}): Promise<boolean> {
   const { accessToken, ldName } = params;
 
   const payload = Buffer.from([
@@ -18,55 +18,59 @@ export function checkBanLdInstance(params: {
     0x11, 0x00, 0x00, 0x22, 0x00, 0x00,
   ]);
 
-  const client = http2.connect("https://legy-backup.line-apps.com");
+  return new Promise((resolve, reject) => {
+    try {
+      const client = http2.connect("https://legy-backup.line-apps.com");
 
-  const req = client.request({
-    ":method": "POST",
-    ":path": "/LIFF1?X-Line-Liff-Id=1359301715-JKd7Y7j1",
-    "x-line-liff-id": "1359301715-JKd7Y7j1",
-    "User-Agent": "Line/15.2.1",
-    Accept: "application/x-thrift",
-    "X-Line-Access": accessToken,
-    "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
-    "X-Lal": "th_TH",
-    "X-Lpv": "1",
-    "Content-Type": "application/x-thrift",
-    "Accept-Encoding": "gzip, deflate, br",
-  });
+      const req = client.request({
+        ":method": "POST",
+        ":path": "/LIFF1?X-Line-Liff-Id=1359301715-JKd7Y7j1",
+        "x-line-liff-id": "1359301715-JKd7Y7j1",
+        "User-Agent": "Line/15.2.1",
+        Accept: "application/x-thrift",
+        "X-Line-Access": accessToken,
+        "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
+        "X-Lal": "th_TH",
+        "X-Lpv": "1",
+        "Content-Type": "application/x-thrift",
+        "Accept-Encoding": "gzip, deflate, br",
+      });
 
-  req.on("response", (headers) => {
-    console.log("Response Headers:");
-    for (const name in headers) {
-      console.log(`${name}: ${headers[name]}`);
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk.toString();
+        console.log(`Response Body CheckBan :`,chunk.toString());
+      });
+
+      req.on("end", () => {
+        client.close();
+
+        const bodyText = body.toLowerCase();
+        const isBanned =
+          bodyText.includes("forbidden") ||
+          bodyText.includes("failed to retrieve access token");
+
+        const stmt = db.prepare(
+          `UPDATE GridLD SET StatusAccGridLD = ?, StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+        );
+        stmt.run(
+          isBanned ? "บัญชีโดนแบน" : "บัญชีพร้อมใช้งาน",
+          "ตรวจสอบข้อมูลเสร็จ",
+          ldName,
+        );
+
+        resolve(true);
+      });
+
+      req.on("error", (err) => {
+        client.close();
+        reject(err);
+      });
+
+      req.write(payload);
+      req.end();
+    } catch (err) {
+      reject(err);
     }
   });
-
-  let body = "";
-  req.on("data", (chunk) => {
-    console.log("Response body:", chunk.toString());
-    body += chunk.toString();
-  });
-
-  req.on("end", () => {
-    console.log("Request finished");
-    client.close();
-
-    const bodyText = body.toLowerCase();
-    if (
-      bodyText.includes("forbidden") ||
-      bodyText.includes("failed to retrieve access token")
-    ) {
-      db.prepare(
-        `UPDATE GridLD SET StatusAccGridLD = ?, StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
-      ).run(`บัญชีโดนแบน`, `ตรวจสอบข้อมูลเสร็จ`, ldName);
-    } else {
-      db.prepare(
-        `UPDATE GridLD SET StatusAccGridLD = ?, StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
-      ).run(`บัญชีพร้อมใช้งาน`, `ตรวจสอบข้อมูลเสร็จ`, ldName);
-    }
-  });
-
-  req.write(payload);
-
-  req.end();
 }

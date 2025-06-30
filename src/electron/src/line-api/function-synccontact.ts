@@ -61,8 +61,8 @@ export async function syncContacts(
     });
 
     const chunks: Buffer[] = [];
-
     req.on("data", (chunk) => chunks.push(chunk));
+
     req.on("end", () => {
       client.close();
       const resBuffer = Buffer.concat(chunks);

@@ -1,7 +1,7 @@
 import http2 from "http2";
 
 function getRandomOid(): string {
-  const randomNum = Math.floor(Math.random() * 21) + 1;
+  const randomNum = Math.floor(Math.random() * 8) + 1;
   const padded = randomNum.toString().padStart(2, "0");
   return `p00000000000000000000000000000${padded}`;
 }
@@ -49,12 +49,12 @@ export function uploadImageToGroup(
       "Accept-Encoding": "gzip, deflate, br",
     });
 
-    req.on("response", (headers) => {
-      console.log("RESPONSE HEADERS:", headers);
-    });
+    // req.on("response", (headers) => {
+    //   console.log("RESPONSE HEADERS:", headers);
+    // });
 
     req.on("data", (chunk) => {
-      console.log("RESPONSE BODY:", chunk);
+      console.log(`Response Body UploadImageGroup :`,chunk.toString());
     });
 
     req.on("end", () => {

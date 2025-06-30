@@ -6,21 +6,20 @@ import {
   callLdInstance,
   deleteLdInstance,
   fetchLdInstance,
-  createLDPlayers,
+  createLdInstance,
 } from "./function-ldplayer.js";
 
-import { getLDPlayersDB, getCreateLDPlayersDB, getAccountLineId } from "./db-getLdplayer.js";
+import { getLDPlayersDB, getCreateLDPlayersDB } from "./db-getLdplayer.js";
 import { setLDPlayerPath, getLDPlayerPath } from "./db-pathLd.js";
 import {
+  addAccountLineId,
+  deleteAccountLineId,
   deleteRowFromDB,
+  getAccountLineId,
   moveSelectedLDPlayers,
   updatePhoneFile,
 } from "./function-db.js";
-import {
-  pullDBLdInstanceAuto,
-  pullDBLdInstanceManual,
-} from "./function-pulldatabase.js";
-import { getContact } from "./line-api/function-getcontact.js";
+import { getTokenLdInstance } from "./function-pulldatabase.js";
 import { checkBanLdInstance } from "./line-api/function-checkban.js";
 import { mainCreateGroup } from "./line-api/function-createchat.js";
 import {
@@ -33,46 +32,32 @@ import { addFriends } from "./line-api/function-addfriends.js";
 export default function initMain(mainWindow: BrowserWindow) {
   pollResources(mainWindow);
   ipcMainHandle("getStaticData", getStatisData);
+
+  ipcMainHandle("setLDPlayerPath", setLDPlayerPath);
+  ipcMainHandle("getLDPlayerPath", getLDPlayerPath);
+
+  ipcMainHandle("getDataCreateLDPlayers", getCreateLDPlayersDB);
+  ipcMainHandle("createLdInstance", createLdInstance);
+  ipcMainHandle("moveSelectedLDPlayers", moveSelectedLDPlayers);
+
   ipcMainHandle("getLDPlayersDB", getLDPlayersDB);
   ipcMainHandle("callLdInstance", callLdInstance);
   ipcMainHandle("deleteLdInstance", deleteLdInstance);
   ipcMainHandle("deleteRowFromDB", deleteRowFromDB);
   ipcMainHandle("fetchLdInstance", fetchLdInstance);
-  ipcMainHandle("pullDBLdInstanceAuto", pullDBLdInstanceAuto);
-  ipcMainHandle("pullDBLdInstanceManual", pullDBLdInstanceManual);
-  ipcMainHandle("getDataCreateLDPlayers", getCreateLDPlayersDB);
-  ipcMainHandle("createLDPlayers", createLDPlayers);
-  ipcMainHandle("moveSelectedLDPlayers", moveSelectedLDPlayers);
-  ipcMainHandle("setLDPlayerPath", setLDPlayerPath);
-  ipcMainHandle("getLDPlayerPath", getLDPlayerPath);
+
+  ipcMainHandle("getTokenLdInstance", getTokenLdInstance);
+
   ipcMainHandle("getTxtFiles", getTxtFiles);
   ipcMainHandle("saveTxtFile", saveTxtFile);
   ipcMainHandle("deleteTxtFile", deleteTxtFile);
   ipcMainHandle("updatePhoneFile", updatePhoneFile);
+
+  ipcMainHandle("addAccountLineId", addAccountLineId);
   ipcMainHandle("getAccountLineId", getAccountLineId);
+  ipcMainHandle("deleteAccountLineId", deleteAccountLineId);
+
   ipcMainHandle("addFriends", addFriends);
-
-  ipcMainHandle("createGroup", async ({ ldName, accessToken }) => {
-    const nameGroup = ``;
-    try {
-
-      await mainCreateGroup({ accessToken, nameGroup, ldName });
-      return { success: true };
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error("CreateGroup error:", msg);
-      return { success: false, message: msg };
-    }
-  });
-
-  ipcMainHandle("checkBanLdInstance", async ({ ldName, accessToken }) => {
-    try {
-      checkBanLdInstance({ accessToken, ldName });
-      return { success: true };
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error("Checkban error:", msg);
-      return { success: false, message: msg };
-    }
-  });
+  ipcMainHandle("mainCreateGroup", mainCreateGroup);
+  ipcMainHandle("checkBanLdInstance", checkBanLdInstance);
 }

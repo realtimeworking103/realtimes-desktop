@@ -11,11 +11,11 @@ const __dirname = path.dirname(__filename);
  * @param accessToken X-Line-Access token เต็มรูปแบบ
  * @param contactFolder โฟลเดอร์ที่จะเก็บไฟล์ MID (default: "ContactMids")
  * @returns อาร์เรย์ของ MID ที่อ่านเจอ
-*/
+ */
 
 export async function getContact(
   accessToken: string,
-  contactFolder = "ContactMids"
+  contactFolder = "ContactMids",
 ): Promise<string[]> {
   const token = accessToken.split(":")[0];
   const contactDir = path.join(__dirname, contactFolder);
@@ -25,16 +25,12 @@ export async function getContact(
   const filePath = path.join(contactDir, `${token}.txt`);
 
   const payload = Buffer.from([
-    0x82, 0x21, 0x01, 0x10,
-    0x67, 0x65, 0x74, 0x41,
-    0x6c, 0x6c, 0x43, 0x6f,
-    0x6e, 0x74, 0x61, 0x63,
-    0x74, 0x49, 0x64, 0x73,
-    0x15, 0x02, 0x00,
+    0x82, 0x21, 0x01, 0x10, 0x67, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x43, 0x6f,
+    0x6e, 0x74, 0x61, 0x63, 0x74, 0x49, 0x64, 0x73, 0x15, 0x02, 0x00,
   ]);
 
   const client = http2.connect("https://legy-backup.line-apps.com");
-  
+
   const req = client.request({
     ":method": "POST",
     ":path": "/S4",
@@ -47,23 +43,26 @@ export async function getContact(
     "Accept-Encoding": "gzip, deflate, br",
   });
 
-  let responseData = "";
+  let body = "";
   return new Promise<string[]>((resolve, reject) => {
     req.on("data", (chunk) => {
-      responseData += chunk.toString("utf8");
+      // console.log(`Response Body GetContact :`,chunk.toString());
+      body += chunk.toString();
     });
+
     req.on("end", () => {
       client.close();
 
-      const mids = responseData.match(/u[a-f0-9]{32}/gi) || [];
+      const mids = body.match(/u[a-f0-9]{32}/gi) || [];
       if (mids.length) {
         fs.writeFileSync(filePath, mids.join("\n") + "\n", "utf8");
-        console.log(`บันทึก MID ${mids.length} รายการ ลงไฟล์ ${filePath}`);
+        console.log(`save ${mids.length} to File ${filePath}`);
       } else {
-        console.log("ไม่พบ MID ใน response");
+        console.log("not found response");
       }
       resolve(mids);
     });
+
     req.on("error", (err) => {
       client.close();
       reject(err);

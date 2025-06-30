@@ -1,25 +1,35 @@
 import { syncContactsKai } from "./function-addFriendKai.js";
 import { addKaiOa } from "./function-addFriendOa.js";
 import { createGroup } from "./function-creategroup.js";
+import { findMidsByPhone } from "./function-findMidByPhone.js";
 import { getContact } from "./function-getcontact.js";
 import { findMidsById } from "./functon-findcontacts.js";
 
-export async function mainCreateGroup(params: {
+export async function mainCreateGroup({
+  accessToken,
+  nameGroup,
+  ldName,
+  oaId,
+  privateId,
+}: {
   accessToken: string;
   nameGroup: string;
   ldName: string;
-  // phones: string[];
-  // oaId: string;
-}) {
-  const { accessToken, nameGroup, ldName } = params;
+  oaId: string;
+  privateId: string;
+}): Promise<boolean> {
+  try {
+    await syncContactsKai(accessToken, [privateId]);
+    await addKaiOa(accessToken, oaId);
 
-  // for (const phone of phones) {
-  //   await syncContactsKai(accessToken, [phone]);
-  // }
-  // const idsToFind = [...phones, oaId];
+    await findMidsById(accessToken, [oaId]);
+    await findMidsByPhone(accessToken, [privateId]);
 
-  await addKaiOa(accessToken, "@413jtmca");
-  await findMidsById(accessToken, ["@413jtmca", "kaineko2206"]);
-  await getContact(accessToken);
-  await createGroup({ accessToken, nameGroup, ldName });
+    await getContact(accessToken);
+    await createGroup({ accessToken, nameGroup, ldName });
+
+    return true;
+  } catch (err) {
+    return false;
+  }
 }

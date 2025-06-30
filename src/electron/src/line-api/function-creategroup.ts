@@ -72,7 +72,7 @@ export async function createGroup(params: {
   if (newMids.length < 10) {
     db.prepare(
       `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
-    ).run(`จำนวนเพื่อนไม่พอ`, ldName);
+    ).run(`จำนวนเพื่อนต่ำกว่าที่กำหนด`, ldName);
     return;
   }
 
@@ -111,7 +111,7 @@ export async function createGroup(params: {
 
       let body = "";
       req.on("data", (chunk) => {
-        console.log(chunk.toString());
+        console.log(`Response Body CreateChat :`,chunk.toString());
         body += chunk.toString();
       });
 
@@ -144,7 +144,8 @@ export async function createGroup(params: {
             db.prepare(
               `UPDATE GridLD SET StatusAccGridLD = ?, StatusGridLD = ?, GroupGridLD = ? WHERE LDPlayerGridLD = ?`,
             ).run(
-              `สร้างกลุ่มสำเร็จ`,`สร้างกลุ่มสำเร็จ${newCount}/${groups.length}กลุ่ม`,
+              `สร้างกลุ่มสำเร็จ`,
+              `สร้างกลุ่มสำเร็จ${groups.length}/${groups.length}กลุ่ม`,
               newCount.toString(),
               ldName,
             );

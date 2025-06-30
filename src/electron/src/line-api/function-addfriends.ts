@@ -33,9 +33,9 @@ export const addFriends = async (payload: {
     friendCounter < target &&
     batchTracking < phones.length &&
     syncCount < 10 &&
-    zeroAddCount < 3
+    zeroAddCount < 10
   ) {
-    const batchSize = Math.min(49, target - friendCounter);
+    const batchSize = Math.min(10, target - friendCounter);
     const slice = phones.slice(batchTracking, batchTracking + batchSize);
     batchTracking += batchSize;
 
@@ -43,7 +43,8 @@ export const addFriends = async (payload: {
 
     if (response === 0) {
       zeroAddCount++;
-      console.warn(`ไม่ได้เพิ่มเลยในรอบนี้ (${syncCount})`);
+      console.warn(`add friend fail (${syncCount})`);
+
       continue;
     } else {
       zeroAddCount = 0;
@@ -52,6 +53,7 @@ export const addFriends = async (payload: {
     friendCounter += response;
     usedPhones.push(...slice);
     console.log(`Add Friend: ${friendCounter}/${target}`);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   const remainingPhones = phones.filter((p) => !usedPhones.includes(p));
@@ -65,7 +67,7 @@ export const addFriends = async (payload: {
 
   const existingFriends = row?.FriendGridLD ?? 0;
 
-  const totalFriends = existingFriends + friendCounter;
+  const totalFriends = Number(existingFriends) + Number(friendCounter);
 
   const stmt = db.prepare(
     `UPDATE GridLD SET StatusAccGridLD = ?, FriendGridLD = ?, DateTimeGridLD = datetime('now', 'localtime'), StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
@@ -74,7 +76,7 @@ export const addFriends = async (payload: {
   stmt.run(
     `เพิ่มเพื่อนสำเร็จ`,
     `${totalFriends}`,
-    `เพิ่มเพื่อนได้ ${totalFriends}/${target} คน`,
+    `เพิ่มเพื่อนได้ ${friendCounter}/${target} คน`,
     ldName,
   );
 

@@ -3,8 +3,6 @@
 import { cn } from "@/ui/lib/utils"
 import * as React from "react"
 
-
-
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
@@ -58,7 +56,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+        "data-[state=selected]:bg-muted border-b transition-colors",
         className
       )}
       {...props}

@@ -4,15 +4,15 @@ import { DataCreateLDPlayerRow } from "../types/types.js";
 export function deleteRowFromDB(ldName: string) {
   try {
     db.prepare("DELETE FROM GridLD WHERE LDPlayerGridLD = ?").run(ldName);
-    return 1;
+    return true;
   } catch (err) {
-    return 0;
+    return false;
   }
 }
 
-export function moveSelectedLDPlayers(ldNames: string[]): string {
+export function moveSelectedLDPlayers(ldNames: string[]): boolean {
   const selectFromCreate = db.prepare(`
-    SELECT * FROM DataCreateLDPlayer WHERE LDPlayerGridLD = ?
+    SELECT * FROM CreateLDPlayer WHERE LDPlayerGridLD = ?
   `);
 
   const checkIfExistsInGrid = db.prepare(`
@@ -22,13 +22,15 @@ export function moveSelectedLDPlayers(ldNames: string[]): string {
   const insertToGrid = db.prepare(`
     INSERT INTO GridLD (
       LDPlayerGridLD,
-      StatusGridLD
+      StatusAccGridLD,
+      StatusGridLD,
+      CreateAt
     )
-    VALUES (?, ?)
+    VALUES (?, 'บัญชีรอการสมัคร', ?, '')
   `);
 
   const deleteFromCreate = db.prepare(`
-    DELETE FROM DataCreateLDPlayer WHERE LDPlayerGridLD = ?
+    DELETE FROM CreateLDPlayer WHERE LDPlayerGridLD = ?
   `);
 
   let moved = 0;
@@ -46,7 +48,55 @@ export function moveSelectedLDPlayers(ldNames: string[]): string {
     moved++;
   }
 
-  return `Moved ${moved} new LDPlayer(s) to GridLD`;
+  return true;
+}
+
+export function addAccountLineId(payload: {
+  lineId: string;
+  type: string;
+}): Promise<string> {
+  return new Promise((resolve, reject) => {
+    try {
+      const stmt = db.prepare(
+        "INSERT INTO LineAccounts (lineId, type) VALUES (?, ?)",
+      );
+      stmt.run(payload.lineId, payload.type);
+      resolve("เพิ่มไอดีไลน์เรียบร้อยแล้ว");
+    } catch (err) {
+      reject(`เกิดข้อผิดพลาด: ${err}`);
+    }
+  });
+}
+
+export function getAccountLineId() {
+  db.prepare(
+    `
+      CREATE TABLE IF NOT EXISTS LineAccounts (
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT,
+        lineId TEXT
+      )
+    `,
+  ).run();
+
+  const rows = db.prepare("SELECT ID, type, lineId FROM LineAccounts").all();
+  return rows as {
+    ID: number;
+    type: string;
+    lineId: string;
+  }[];
+}
+
+export function deleteAccountLineId(id: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    try {
+      const stmt = db.prepare("DELETE FROM LineAccounts WHERE ID = ?");
+      stmt.run(id);
+      resolve("ลบไอดีไลน์เรียบร้อยแล้ว");
+    } catch (err) {
+      reject(`เกิดข้อผิดพลาด: ${err}`);
+    }
+  });
 }
 
 export function updatePhoneFile({

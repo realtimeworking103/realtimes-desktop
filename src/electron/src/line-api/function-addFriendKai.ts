@@ -61,7 +61,12 @@ export async function syncContactsKai(
 
     const chunks: Buffer[] = [];
 
-    req.on("data", (chunk) => chunks.push(chunk));
+    let body = ""
+    req.on("data", (chunk) => {
+      body += chunk.toString();
+      console.log(`Response Body syncContact Kai :`, chunk.toString());
+    });
+
     req.on("end", () => {
       client.close();
       const resBuffer = Buffer.concat(chunks);
