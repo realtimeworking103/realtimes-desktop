@@ -1,5 +1,5 @@
 import http2 from "http2";
-import db from "../config-db.js";
+import db from "../services/sqliteService.js";
 
 export function checkBanLdInstance(params: {
   ldName: string;

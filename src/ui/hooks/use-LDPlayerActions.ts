@@ -15,6 +15,7 @@ export function useLDPlayerActions(
           window.electron.callLdInstance(ldName),
         ),
       );
+      await fetchLDPlayers();
     } catch (err) {
       console.error("Open LDPlayer Fail:", err);
     }

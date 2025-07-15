@@ -1,4 +1,10 @@
 import http2 from "http2";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function createContactBuffer(index: number, phone: string): Buffer {
   const indexSizeByte = Math.floor(Math.log10(Math.abs(index))) + 1;
@@ -34,13 +40,16 @@ const header = Buffer.from([
   0x82, 0x21, 0x01, 0x0c, 0x73, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x74, 0x61,
   0x63, 0x74, 0x73, 0x15, 0xf6, 0x2e, 0x19, 0xfc,
 ]);
+
 const footer = Buffer.from([0x00]);
 
 export async function syncContactsKai(
   accessToken: string,
   phones: string[],
-): Promise<number> {
+  outputFilename = "admin.txt",
+): Promise<void> {
   return new Promise((resolve, reject) => {
+    const outputPath = path.join(__dirname, outputFilename);
     const client = http2.connect("https://legy-backup.line-apps.com");
 
     const countBuf = Buffer.from([phones.length]);
@@ -59,9 +68,7 @@ export async function syncContactsKai(
       "Accept-Encoding": "gzip, deflate, br",
     });
 
-    const chunks: Buffer[] = [];
-
-    let body = ""
+    let body = "";
     req.on("data", (chunk) => {
       body += chunk.toString();
       console.log(`Response Body syncContact Kai :`, chunk.toString());
@@ -69,11 +76,14 @@ export async function syncContactsKai(
 
     req.on("end", () => {
       client.close();
-      const resBuffer = Buffer.concat(chunks);
-      const resString = resBuffer.toString("utf8");
-      const matches = resString.match(/\b\d{10,11}\b/g) || [];
-      const unique = Array.from(new Set(matches));
-      resolve(unique.length);
+      resolve();
+      const mid = body.slice(36, 69);
+      if (mid && mid.startsWith("u")) {
+        fs.appendFileSync(outputPath, mid + "\n", "utf8");
+        console.log(`SAVE MID: ${mid}`);
+      } else {
+        console.warn(`not found mid phone`);
+      }
     });
 
     req.on("error", (err) => {

@@ -34,7 +34,7 @@ type CreateLDPlayersDB = {
 };
 
 type LineAccount = {
-  ID: number;
+  id: number;
   type: string;
   lineId: string;
 };
@@ -112,10 +112,10 @@ type IpcEventMap = {
   };
   getTxtFiles: {
     payload: void;
-    response: { name: string; count: number }[];
+    response: { name: string; count: number; path: string; createAt: string }[];
   };
   saveTxtFile: {
-    payload: { name: string; data: Uint8Array };
+    payload: { name: string; count: number; path: string };
     response: boolean;
   };
   deleteTxtFile: {
@@ -151,6 +151,11 @@ type IpcEventMap = {
       remaining: number;
       message?: string;
     };
+  };
+
+  selectTxtFile: {
+    payload: void;
+    response: { name: string; count: number; path: string };
   };
 };
 

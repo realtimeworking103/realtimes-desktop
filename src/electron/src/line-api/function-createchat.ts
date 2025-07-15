@@ -22,9 +22,6 @@ export async function mainCreateGroup({
     await syncContactsKai(accessToken, [privateId]);
     await addKaiOa(accessToken, oaId);
 
-    await findMidsById(accessToken, [oaId]);
-    await findMidsByPhone(accessToken, [privateId]);
-
     await getContact(accessToken);
     await createGroup({ accessToken, nameGroup, ldName });
 

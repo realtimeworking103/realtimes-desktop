@@ -7,9 +7,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import { encodeGroupName, encodeMid, getMidCountBytes } from "./function.js";
-import db from "../config-db.js";
 import { acquireEncryptedAccessToken } from "./function-acquireEncryptedAccessToken.js";
 import { uploadImageToGroup } from "./function-uploadimagegroup.js";
+import db from "../services/sqliteService.js";
 
 const MAX_PER_GROUP = 99;
 const chunkArray = (arr: string[], size: number) =>
@@ -111,7 +111,7 @@ export async function createGroup(params: {
 
       let body = "";
       req.on("data", (chunk) => {
-        console.log(`Response Body CreateChat :`,chunk.toString());
+        console.log(`Response Body CreateChat :`, chunk.toString());
         body += chunk.toString();
       });
 

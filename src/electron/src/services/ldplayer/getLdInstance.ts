@@ -1,6 +1,6 @@
-import db from "./config-db.js";
+import db from "../sqliteService.js";
 
-export function getLDPlayersDB() {
+export function createGridLDTable() {
   db.prepare(
     `
       CREATE TABLE IF NOT EXISTS GridLD (
@@ -13,13 +13,15 @@ export function getLDPlayersDB() {
         GroupGridLD TEXT,
         PhoneGridLD TEXT,
         TokenGridLD TEXT,
-        PhoneFileGridLD,
+        PhoneFileGridLD TEXT,
         DateTimeGridLD TIMESTAMP DEFAULT (datetime('now', 'localtime')),
         CreateAt TIMESTAMP DEFAULT (datetime('now', 'localtime'))
       )
     `,
   ).run();
+}
 
+export function getLdInstance() {
   const rows = db
     .prepare(
       "SELECT NoDataGridLD, LDPlayerGridLD, StatusAccGridLD, StatusGridLD, NameLineGridLD, FriendGridLD, GroupGridLD, PhoneGridLD, TokenGridLD, PhoneFileGridLD, DateTimeGridLD, CreateAt FROM GridLD",
@@ -38,32 +40,5 @@ export function getLDPlayersDB() {
     PhoneFileGridLD: string;
     DateTimeGridLD: string;
     CreateAt: string;
-  }[];
-}
-
-export function getCreateLDPlayersDB() {
-  db.prepare(
-    `
-      CREATE TABLE IF NOT EXISTS CreateLDPlayer (
-        NoDataGridLD INTEGER PRIMARY KEY AUTOINCREMENT,
-        LDPlayerGridLD TEXT,
-        StatusGridLD TEXT,
-        PrefixGridLD TEXT,
-        DateTimeGridLD TIMESTAMP DEFAULT (datetime('now', 'localtime'))
-      )
-    `,
-  ).run();
-
-  const rows = db
-    .prepare(
-      "SELECT NoDataGridLD, LDPlayerGridLD, DateTimeGridLD, StatusGridLD, PrefixGridLD FROM CreateLDPlayer",
-    )
-    .all();
-  return rows as {
-    NoDataGridLD: number;
-    LDPlayerGridLD: string;
-    DateTimeGridLD: string;
-    StatusGridLD: string;
-    PrefixGridLD: string;
   }[];
 }

@@ -25,7 +25,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -40,12 +39,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/components/ui/select";
-
-type LineAccount = {
-  ID: number;
-  lineId: string;
-  type: string;
-};
 
 export default function Page() {
   const [ldplayerPath, setLdplayerPath] = useState("");
@@ -145,7 +138,7 @@ export default function Page() {
                 </TableHeader>
                 <TableBody>
                   {accounts.map((acc, index) => (
-                    <TableRow key={acc.ID}>
+                    <TableRow key={acc.id}>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>{acc.type}</TableCell>
                       <TableCell>{acc.lineId}</TableCell>
@@ -153,7 +146,7 @@ export default function Page() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteLineId(acc.ID)}
+                          onClick={() => handleDeleteLineId(acc.id)}
                         >
                           ลบ
                         </Button>

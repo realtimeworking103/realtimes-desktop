@@ -102,6 +102,12 @@ export default function Page() {
   };
 
   const handleAddFriends = async () => {
+    const target = parseInt(friendCount);
+    if (isNaN(target) || target <= 0) {
+      alert("กรุณากรอกจำนวนเพื่อนที่ต้องการเพิ่มให้ถูกต้อง");
+      return;
+    }
+
     const toAdd = ldplayers
       .filter((p) => selectedRows.has(p.LDPlayerGridLD))
       .map((p) => ({
@@ -114,12 +120,12 @@ export default function Page() {
       try {
         await window.electron.addFriends({
           ...row,
-          target: parseInt(friendCount),
+          target,
         });
 
-        await fetchLDPlayers();
+        await fetchLDPlayers(); // อัปเดตสถานะหลังเพิ่มเพื่อน
       } catch (err) {
-        console.error(`เพิ่มเพื่อนให้ ${row.ldName} ล้มเหลว`, err);
+        console.error(`❌ เพิ่มเพื่อนให้ ${row.ldName} ล้มเหลว`, err);
       }
     }
   };
@@ -398,7 +404,7 @@ export default function Page() {
                 </SelectTrigger>
                 <SelectContent>
                   {oaAccounts.map((acc) => (
-                    <SelectItem key={acc.ID} value={acc.lineId}>
+                    <SelectItem key={acc.id} value={acc.lineId}>
                       {acc.lineId}
                     </SelectItem>
                   ))}
@@ -414,7 +420,7 @@ export default function Page() {
                 </SelectTrigger>
                 <SelectContent>
                   {privateAccounts.map((acc) => (
-                    <SelectItem key={acc.ID} value={acc.lineId}>
+                    <SelectItem key={acc.id} value={acc.lineId}>
                       {acc.lineId}
                     </SelectItem>
                   ))}

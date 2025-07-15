@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { syncContacts } from "./function-synccontact.js";
-import db from "../config-db.js";
+import db from "../services/sqliteService.js";
 
 function writePhonesToFile(phones: string[], filePath: string): void {
   fs.writeFileSync(filePath, phones.join("\n"), "utf-8");
@@ -15,9 +15,15 @@ export const addFriends = async (payload: {
 }): Promise<{ success: boolean; added: number; remaining: number }> => {
   const { ldName, accessToken, target, phoneFile } = payload;
 
-  const txtFolderPath = path.join(process.cwd(), "contact");
-  const filePath = path.join(txtFolderPath, phoneFile);
-  const raw = fs.readFileSync(filePath, "utf-8");
+  const getPathStmt = db.prepare(`SELECT path FROM Files WHERE name = ?`);
+  const fileRow = getPathStmt.get(phoneFile) as { path: string };
+
+  if (!fileRow || !fs.existsSync(fileRow.path)) {
+    throw new Error(`ไม่พบไฟล์เบอร์: ${fileRow?.path || "null"}`);
+  }
+
+  const raw = fs.readFileSync(fileRow.path, "utf-8");
+
   const phones = raw
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -35,7 +41,7 @@ export const addFriends = async (payload: {
     syncCount < 10 &&
     zeroAddCount < 10
   ) {
-    const batchSize = Math.min(10, target - friendCounter);
+    const batchSize = Math.min(70, target - friendCounter);
     const slice = phones.slice(batchTracking, batchTracking + batchSize);
     batchTracking += batchSize;
 
@@ -44,7 +50,7 @@ export const addFriends = async (payload: {
     if (response === 0) {
       zeroAddCount++;
       console.warn(`add friend fail (${syncCount})`);
-
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       continue;
     } else {
       zeroAddCount = 0;
@@ -57,7 +63,7 @@ export const addFriends = async (payload: {
   }
 
   const remainingPhones = phones.filter((p) => !usedPhones.includes(p));
-  writePhonesToFile(remainingPhones, filePath);
+  writePhonesToFile(remainingPhones, fileRow.path);
 
   const getStmt = db.prepare(
     `SELECT FriendGridLD FROM GridLD WHERE LDPlayerGridLD = ?`,

@@ -3,26 +3,22 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { promisify } from "util";
 import { exec } from "child_process";
+import { getLdConsolePath } from "./getLdConsolePath.js";
 
-import db from "./config-db.js";
-import { getLDConsolePath } from "./db-pathLd.js";
-import { decryptAndSaveProfile } from "./function-decryptor.js";
 import {
   updateSettingsAttributes1,
   updateSettingsAttributes2,
-} from "./line-api/updateSettingsAttributes.js";
+} from "../../line-api/updateSettingsAttributes.js";
+import db from "../sqliteService.js";
+import { decryptAndSaveProfile } from "../decryptorService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const outputFolder = path.resolve(__dirname, "../../databaseldplayer");
+const outputFolder = path.resolve(__dirname, "../../../../databaseldplayer");
 const execAsync = promisify(exec);
 
 export async function getTokenLdInstance(ldName: string): Promise<string> {
-  const ldconsolePath = getLDConsolePath();
-  if (!ldconsolePath) {
-    console.error("[LDPlayer] Path Not Setting");
-    return "";
-  }
+  const ldconsolePath = getLdConsolePath();
 
   try {
     if (!fs.existsSync(outputFolder)) {

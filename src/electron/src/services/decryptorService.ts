@@ -2,8 +2,9 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 import crypto from "crypto";
-import db from "./config-db.js";
 import Database from "better-sqlite3";
+import db from "./sqliteService.js";
+import { queryTableGetToken } from "./queryService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,7 +12,7 @@ const __dirname = path.dirname(__filename);
 export async function decryptAndSaveProfile(ldName: string): Promise<string> {
   const pulledDbPath = path.resolve(
     __dirname,
-    `../../databaseldplayer/naver_line_${ldName}.db`,
+    `../../../databaseldplayer/naver_line_${ldName}.db`,
   );
 
   if (!fs.existsSync(pulledDbPath)) {
@@ -47,11 +48,7 @@ export async function decryptAndSaveProfile(ldName: string): Promise<string> {
       return "";
     }
 
-    db.prepare(
-      `UPDATE GridLD
-       SET StatusAccGridLD = ?, StatusGridLD = ?, FriendGridLD = ?, GroupGridLD = ?, TokenGridLD = ?,  NameLineGridLD = ?, PhoneGridLD = ?, DateTimeGridLD = datetime('now', 'localtime'), CreateAt = datetime('now', 'localtime')
-       WHERE LDPlayerGridLD = ?`,
-    ).run(
+    queryTableGetToken(
       "บัญชีไลน์พร้อมทำงาน",
       "เก็บ Token สำเร็จ",
       "0",
@@ -61,12 +58,6 @@ export async function decryptAndSaveProfile(ldName: string): Promise<string> {
       profile.phone,
       ldName,
     );
-
-    console.log(`AuthKey: ${profile.authKey}`);
-    console.log(`Token: ${profile.token}`);
-    console.log(`Name: ${profile.name}`);
-    console.log(`Phone: ${profile.phone}`);
-    console.log(`Token saved for ${ldName}`);
 
     return profile.token;
   } catch (err: any) {
