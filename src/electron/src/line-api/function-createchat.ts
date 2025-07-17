@@ -1,9 +1,7 @@
-import { syncContactsKai } from "./function-addFriendKai.js";
-import { addKaiOa } from "./function-addFriendOa.js";
-import { createGroup } from "./function-creategroup.js";
-import { findMidsByPhone } from "./function-findMidByPhone.js";
-import { getContact } from "./function-getcontact.js";
-import { findMidsById } from "./functon-findcontacts.js";
+import { syncContactsKai } from "./syncContactPhoneKai.js";
+import { findContactByUseridOa } from "./function-addFriendOa.js";
+import { createGroup } from "./createChat.js";
+import { getAllContactIds } from "./getAllContactIds.js";
 
 export async function mainCreateGroup({
   accessToken,
@@ -20,9 +18,9 @@ export async function mainCreateGroup({
 }): Promise<boolean> {
   try {
     await syncContactsKai(accessToken, [privateId]);
-    await addKaiOa(accessToken, oaId);
+    await findContactByUseridOa(accessToken, oaId);
 
-    await getContact(accessToken);
+    await getAllContactIds(accessToken);
     await createGroup({ accessToken, nameGroup, ldName });
 
     return true;

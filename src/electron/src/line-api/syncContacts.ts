@@ -1,10 +1,5 @@
 import http2 from "http2";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { lineconfig } from "../config/line-config.js";
 
 function createContactBuffer(index: number, phone: string): Buffer {
   const indexSizeByte = Math.floor(Math.log10(Math.abs(index))) + 1;
@@ -43,14 +38,12 @@ const header = Buffer.from([
 
 const footer = Buffer.from([0x00]);
 
-export async function syncContactsKai(
-  accessToken: string,
+export async function syncContacts(
   phones: string[],
-  outputFilename = "admin.txt",
-): Promise<void> {
+  accessToken: string,
+): Promise<number> {
   return new Promise((resolve, reject) => {
-    const outputPath = path.join(__dirname, outputFilename);
-    const client = http2.connect("https://legy-backup.line-apps.com");
+    const client = http2.connect(lineconfig.URL_LINE);
 
     const countBuf = Buffer.from([phones.length]);
     const contactBuf = createContactBuffers(phones);
@@ -68,22 +61,16 @@ export async function syncContactsKai(
       "Accept-Encoding": "gzip, deflate, br",
     });
 
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk.toString();
-      console.log(`Response Body syncContact Kai :`, chunk.toString());
-    });
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk) => chunks.push(chunk));
 
     req.on("end", () => {
       client.close();
-      resolve();
-      const mid = body.slice(36, 69);
-      if (mid && mid.startsWith("u")) {
-        fs.appendFileSync(outputPath, mid + "\n", "utf8");
-        console.log(`SAVE MID: ${mid}`);
-      } else {
-        console.warn(`not found mid phone`);
-      }
+      const resBuffer = Buffer.concat(chunks);
+      const resString = resBuffer.toString("utf8");
+      const matches = resString.match(/\b\d{10,11}\b/g) || [];
+      const unique = Array.from(new Set(matches));
+      resolve(unique.length);
     });
 
     req.on("error", (err) => {

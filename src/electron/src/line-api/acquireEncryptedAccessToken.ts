@@ -1,4 +1,5 @@
 import http2 from "http2";
+import { lineconfig } from "../config/line-config.js";
 
 export function acquireEncryptedAccessToken(
   accessToken: string,
@@ -10,7 +11,7 @@ export function acquireEncryptedAccessToken(
       0x73, 0x73, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x25, 0x04, 0x00,
     ]);
 
-    const client = http2.connect("https://legy-backup.line-apps.com");
+    const client = http2.connect(lineconfig.URL_LINE);
 
     const req = client.request({
       ":method": "POST",

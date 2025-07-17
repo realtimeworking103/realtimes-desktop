@@ -1,23 +1,21 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { promisify } from "util";
-import { exec } from "child_process";
 import { getLdConsolePath } from "./getLdConsolePath.js";
+import { execAsync } from "../execCommand.js";
 
 import {
   updateSettingsAttributes1,
   updateSettingsAttributes2,
 } from "../../line-api/updateSettingsAttributes.js";
-import db from "../sqliteService.js";
+
 import { decryptAndSaveProfile } from "../decryptorService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const outputFolder = path.resolve(__dirname, "../../../../databaseldplayer");
-const execAsync = promisify(exec);
 
-export async function getTokenLdInstance(ldName: string): Promise<string> {
+export async function getTokenLdInstance(ldName: string): Promise<boolean> {
   const ldconsolePath = getLdConsolePath();
 
   try {
@@ -43,9 +41,11 @@ export async function getTokenLdInstance(ldName: string): Promise<string> {
 
     const token = await decryptAndSaveProfile(ldName);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await updateSettingsAttributes1(token);
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await updateSettingsAttributes2(token);
 
@@ -54,14 +54,9 @@ export async function getTokenLdInstance(ldName: string): Promise<string> {
     const quitCommand = `"${ldconsolePath}" quit --name ${ldName}`;
     await execAsync(quitCommand);
 
-    return "";
-  } catch (error: any) {
-    console.error(`[${ldName}] ดึงฐานข้อมูลล้มเหลว:`, error.message);
-
-    db.prepare(
-      `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
-    ).run("ดึง DB ไม่สำเร็จ", ldName);
-
-    return "";
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
   }
 }

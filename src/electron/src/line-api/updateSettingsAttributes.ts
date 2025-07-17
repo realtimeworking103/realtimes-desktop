@@ -1,4 +1,5 @@
 import http2 from "http2";
+import { lineconfig } from "../config/line-config.js";
 
 export async function updateSettingsAttributes1(acessToken: string) {
   return new Promise<void>((resolve, reject) => {
@@ -18,7 +19,7 @@ export async function updateSettingsAttributes1(acessToken: string) {
       0x00, 0x1a, 0x15, 0x0e, 0x00,
     ]);
 
-    const client = http2.connect("https://legy-backup.line-apps.com");
+    const client = http2.connect(lineconfig.URL_LINE);
 
     const req = client.request({
       ":method": "POST",
@@ -81,7 +82,7 @@ export async function updateSettingsAttributes2(acessToken: string) {
       0x00, 0x1a, 0x15, 0x0c, 0x00,
     ]);
 
-    const client = http2.connect("https://legy-backup.line-apps.com");
+    const client = http2.connect(lineconfig.URL_LINE);
 
     const req = client.request({
       ":method": "POST",

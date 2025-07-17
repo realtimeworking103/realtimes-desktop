@@ -4,7 +4,6 @@ import { getStatisData, pollResources } from "./resource-manager.js";
 
 import { setLDPlayerPath } from "./services/ldplayer/setLdInstancePath.js";
 import { getLDPlayerPath } from "./services/ldplayer/getLdInstancePath.js";
-
 import { createLdInstance } from "./services/ldplayer/createLdInstace.js";
 import { moveLdInstace } from "./services/ldplayer/moveLdInstace.js";
 import { callLdInstance } from "./services/ldplayer/callLdInstance.js";
@@ -14,7 +13,6 @@ import { fetchLdInstance } from "./services/ldplayer/fetchLdInstance.js";
 import { getTokenLdInstance } from "./services/ldplayer/getTokenLdInstance.js";
 import { getTableCreateLdInstance } from "./services/ldplayer/getTableCreateLdInstance.js";
 import { getLdInstance } from "./services/ldplayer/getLdInstance.js";
-
 import { addFriends } from "./line-api/function-addfriends.js";
 import { checkBanLdInstance } from "./line-api/function-checkban.js";
 import { mainCreateGroup } from "./line-api/function-createchat.js";
@@ -29,9 +27,11 @@ import {
   deleteTxtFile,
   getTxtFiles,
   saveTxtFile,
+  selectTextFile,
 } from "./services/fileService.js";
 
 import { updatePhoneFile } from "./function-db.js";
+import { getImageProfile } from "./services/profileService.js";
 
 export default function initMain(mainWindow: BrowserWindow) {
   pollResources(mainWindow);
@@ -67,4 +67,8 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("saveTxtFile", saveTxtFile);
   ipcMainHandle("deleteTxtFile", deleteTxtFile);
   ipcMainHandle("updatePhoneFile", updatePhoneFile);
+  ipcMainHandle("selectTextFile", selectTextFile);
+
+  //ImageProfile
+  ipcMainHandle("getImageProfile", getImageProfile);
 }

@@ -67,7 +67,7 @@ type IpcEventMap = {
   };
   getTokenLdInstance: {
     payload: string;
-    response: string;
+    response: boolean;
   };
   fetchLdInstance: {
     payload: void;
@@ -153,9 +153,23 @@ type IpcEventMap = {
     };
   };
 
-  selectTxtFile: {
+  selectTextFile: {
     payload: void;
-    response: { name: string; count: number; path: string };
+    response: {
+      name: string;
+      path: string;
+      count: number;
+    };
+  };
+
+  getImageProfile: {
+    payload: void;
+    response: {
+      id: number;
+      image: string;
+      path: string;
+      createAt: string;
+    }[];
   };
 };
 

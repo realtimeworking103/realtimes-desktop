@@ -9,6 +9,7 @@ import Dashboard from "./app/(main)/dashboard/page";
 import LDPlayer from "./app/(main)/ldplayer/page";
 import CreateLDPlayer from "./app/(main)/create-ldplayer/page";
 import FileManager from "./app/(main)/file-manager/page";
+import ProFile from "./app/(main)/profile/page";
 import Setting from "./app/(main)/setting/page";
 
 function App() {
@@ -60,6 +61,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <FileManager />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={"/profile"}
+              element={
+                <ProtectedRoute>
+                  <ProFile />
                 </ProtectedRoute>
               }
             />

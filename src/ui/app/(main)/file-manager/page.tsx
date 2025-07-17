@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/components/ui/card";
-
 import {
   Table,
   TableBody,
@@ -18,7 +17,7 @@ import {
   TableRow,
 } from "@/ui/components/ui/table";
 import { Button } from "@/ui/components/ui/button";
-import { Input } from "@/ui/components/ui/input";
+import { FileText, Trash2 } from "lucide-react";
 
 type TxtFile = { name: string; count: number; path: string; createAt: string };
 
@@ -31,15 +30,21 @@ export default function Page() {
   };
 
   const handleSelectFile = async () => {
-    const result = await window.electron.selectTxtFile();
-    if (!result) return;
+    const result = await window.electron.selectTextFile();
+
+    if (!result || !result.path) {
+      console.log("ยกเลิกหรือไม่มีไฟล์");
+      return;
+    }
 
     const { name, path, count } = result;
-    console.log("📁 Path จริง:", path);
 
     const success = await window.electron.saveTxtFile({ name, count, path });
     if (success) {
+      console.log("บันทึกสำเร็จ");
       fetchFiles();
+    } else {
+      console.log("บันทึกล้มเหลว");
     }
   };
 
@@ -48,7 +53,7 @@ export default function Page() {
     if (success) {
       fetchFiles();
     } else {
-      alert("ลบไฟล์ไม่สำเร็จ");
+      console.log("ลบไฟล์ไม่สำเร็จ");
     }
   };
 
@@ -62,7 +67,11 @@ export default function Page() {
         <CardTitle>ไฟล์รายชื่อ</CardTitle>
       </CardHeader>
       <CardContent>
-        <Input type="file" accept=".txt" onChange={handleSelectFile} />
+        <Button onClick={handleSelectFile} className="mb-4" variant="outline">
+          <FileText className="mr-2 h-4 w-4" />
+          เลือกไฟล์ .txt
+        </Button>
+
         <Table className="mt-4 [&_*]:text-center [&_*]:align-middle">
           <TableCaption>รายการไฟล์ทั้งหมด</TableCaption>
           <TableHeader>
@@ -82,7 +91,13 @@ export default function Page() {
                 <TableCell>{file.name}</TableCell>
                 <TableCell>{file.count}</TableCell>
                 <TableCell>
-                  <Button onClick={() => handleDelete(file.name)}>ลบ</Button>
+                  <Button
+                    onClick={() => handleDelete(file.name)}
+                    variant="destructive"
+                    size="sm"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

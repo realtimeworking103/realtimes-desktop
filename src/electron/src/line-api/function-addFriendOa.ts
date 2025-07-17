@@ -2,11 +2,12 @@ import http2 from "http2";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { lineconfig } from "../config/line-config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function addKaiOa(
+export async function findContactByUseridOa(
   accessToken: string,
   oaId: string,
   outputFilename = "admin.txt",
@@ -24,7 +25,7 @@ export async function addKaiOa(
     const footer = Buffer.from([0x00]);
     const payload = Buffer.concat([header, oaIdByte, oaIdbuffer, footer]);
 
-    const client = http2.connect("https://legy-backup.line-apps.com");
+    const client = http2.connect(lineconfig.URL_LINE);
 
     const req = client.request({
       ":method": "POST",

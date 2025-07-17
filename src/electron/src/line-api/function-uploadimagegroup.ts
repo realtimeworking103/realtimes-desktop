@@ -1,4 +1,5 @@
 import http2 from "http2";
+import { lineconfig } from "../config/line-config.js";
 
 function getRandomOid(): string {
   const randomNum = Math.floor(Math.random() * 8) + 1;
@@ -34,7 +35,7 @@ export function uploadImageToGroup(
       options: {},
     });
 
-    const client = http2.connect("https://legy.line-apps.com");
+    const client = http2.connect(lineconfig.URL_LINE);
 
     const req = client.request({
       ":method": "POST",

@@ -7,9 +7,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import { encodeGroupName, encodeMid, getMidCountBytes } from "./function.js";
-import { acquireEncryptedAccessToken } from "./function-acquireEncryptedAccessToken.js";
 import { uploadImageToGroup } from "./function-uploadimagegroup.js";
 import db from "../services/sqliteService.js";
+import { lineconfig } from "../config/line-config.js";
+import {acquireEncryptedAccessToken} from "../line-api/acquireEncryptedAccessToken.js"
 
 const MAX_PER_GROUP = 99;
 const chunkArray = (arr: string[], size: number) =>
@@ -42,6 +43,7 @@ export async function createGroup(params: {
   const sourcePath = path.join(contactDir, `${token}.txt`);
   if (!fs.existsSync(sourcePath)) {
     fs.writeFileSync(sourcePath, "", "utf8");
+    
   }
 
   const adminFilePath = path.join(__dirname, "admin.txt");
@@ -95,7 +97,7 @@ export async function createGroup(params: {
     ]);
 
     await new Promise<void>((resolve, reject) => {
-      const client = http2.connect("https://legy-backup.line-apps.com");
+      const client = http2.connect(lineconfig.URL_LINE);
 
       const req = client.request({
         ":method": "POST",

@@ -123,7 +123,7 @@ export default function Page() {
           target,
         });
 
-        await fetchLDPlayers(); // อัปเดตสถานะหลังเพิ่มเพื่อน
+        await fetchLDPlayers();
       } catch (err) {
         console.error(`❌ เพิ่มเพื่อนให้ ${row.ldName} ล้มเหลว`, err);
       }

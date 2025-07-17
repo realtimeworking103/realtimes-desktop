@@ -10,6 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export async function decryptAndSaveProfile(ldName: string): Promise<string> {
+  
   const pulledDbPath = path.resolve(
     __dirname,
     `../../../databaseldplayer/naver_line_${ldName}.db`,

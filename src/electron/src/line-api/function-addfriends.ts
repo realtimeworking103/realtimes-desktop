@@ -1,6 +1,5 @@
 import fs from "fs";
-import path from "path";
-import { syncContacts } from "./function-synccontact.js";
+import { syncContacts } from "./syncContacts.js";
 import db from "../services/sqliteService.js";
 
 function writePhonesToFile(phones: string[], filePath: string): void {

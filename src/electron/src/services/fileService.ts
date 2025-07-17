@@ -1,5 +1,7 @@
+import { dialog } from "electron";
 import db from "./sqliteService.js";
-
+import fs from "fs/promises";
+import path from "path";
 export function getTxtFiles() {
   db.prepare(
     `
@@ -32,7 +34,6 @@ export function saveTxtFile({
   count: number;
   path: string;
 }): boolean {
-  
   try {
     db.prepare(
       `
@@ -43,8 +44,50 @@ export function saveTxtFile({
 
     return true;
   } catch (err) {
-    console.error("❌ Error saving file:", err);
+    console.error("Error saving file:", err);
     return false;
+  }
+}
+
+export async function selectTextFile() {
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters: [
+        {
+          name: "Text File",
+          extensions: ["txt"],
+        },
+        {
+          name: "All File",
+          extensions: ["*"],
+        },
+      ],
+    });
+    
+    if (result.canceled || result.filePaths.length === 0) {
+      return {
+        name: "",
+        path: "",
+        count: 0,
+      };
+    }
+    
+    const filePath = result.filePaths[0];
+    const content = await fs.readFile(filePath, "utf-8");
+    const lines = content.split("\n").filter((line) => line.trim());
+    return {
+      name: path.basename(filePath, ".txt"),
+      path: filePath,
+      count: lines.length,
+    };
+  } catch (error) {
+    console.error("error selectTextFile" + error);
+    return {
+      name: "",
+      path: "",
+      count: 0,
+    };
   }
 }
 
@@ -55,7 +98,9 @@ export function deleteTxtFile(name: string) {
 
     return result.changes > 0;
   } catch (err) {
-    console.error("❌ Error deleting file from DB:", err);
+    console.error("Error deleting file from DB:", err);
     return false;
   }
 }
+
+

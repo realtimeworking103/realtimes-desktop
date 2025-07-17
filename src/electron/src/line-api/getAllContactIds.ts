@@ -2,26 +2,21 @@ import http2 from "http2";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { lineconfig } from "../config/line-config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/**
- * ดึง list ของ MID ทั้งหมดจาก API แล้วเขียนลงไฟล์ <token>.txt
- * @param accessToken X-Line-Access token เต็มรูปแบบ
- * @param contactFolder โฟลเดอร์ที่จะเก็บไฟล์ MID (default: "ContactMids")
- * @returns อาร์เรย์ของ MID ที่อ่านเจอ
- */
+const contactFolder = "ContactMids";
 
-export async function getContact(
-  accessToken: string,
-  contactFolder = "ContactMids",
-): Promise<string[]> {
+const contactDir = path.join(__dirname, contactFolder);
+if (!fs.existsSync(contactDir)) {
+  fs.mkdirSync(contactDir, { recursive: true });
+}
+
+export async function getAllContactIds(accessToken: string): Promise<string[]> {
   const token = accessToken.split(":")[0];
-  const contactDir = path.join(__dirname, contactFolder);
-  if (!fs.existsSync(contactDir)) {
-    fs.mkdirSync(contactDir, { recursive: true });
-  }
+
   const filePath = path.join(contactDir, `${token}.txt`);
 
   const payload = Buffer.from([
@@ -29,7 +24,7 @@ export async function getContact(
     0x6e, 0x74, 0x61, 0x63, 0x74, 0x49, 0x64, 0x73, 0x15, 0x02, 0x00,
   ]);
 
-  const client = http2.connect("https://legy-backup.line-apps.com");
+  const client = http2.connect(lineconfig.URL_LINE);
 
   const req = client.request({
     ":method": "POST",
@@ -46,7 +41,7 @@ export async function getContact(
   let body = "";
   return new Promise<string[]>((resolve, reject) => {
     req.on("data", (chunk) => {
-      // console.log(`Response Body GetContact :`,chunk.toString());
+      console.log(`Response Body GetContact :`, chunk.toString());
       body += chunk.toString();
     });
 

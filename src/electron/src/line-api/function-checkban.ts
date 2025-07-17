@@ -1,5 +1,6 @@
 import http2 from "http2";
 import db from "../services/sqliteService.js";
+import { lineconfig } from "../config/line-config.js";
 
 export function checkBanLdInstance(params: {
   ldName: string;
@@ -20,7 +21,7 @@ export function checkBanLdInstance(params: {
 
   return new Promise((resolve, reject) => {
     try {
-      const client = http2.connect("https://legy-backup.line-apps.com");
+      const client = http2.connect(lineconfig.URL_LINE);
 
       const req = client.request({
         ":method": "POST",

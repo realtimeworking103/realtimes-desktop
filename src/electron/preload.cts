@@ -36,8 +36,6 @@ electron.contextBridge.exposeInMainWorld("electron", {
   updatePhoneFile: (payload: { ldName: string; fileName: string }) =>
     ipcInvoke("updatePhoneFile", payload),
 
-  selectTxtFile: () => ipcInvoke("selectTxtFile"),
-
   getAccountLineId: () => ipcInvoke("getAccountLineId"),
   addAccountLineId: (payload: { lineId: string; type: string }) =>
     ipcInvoke("addAccountLineId", payload),
@@ -57,6 +55,10 @@ electron.contextBridge.exposeInMainWorld("electron", {
     oaId: string;
     privateId: string;
   }) => ipcInvoke("mainCreateGroup", payload),
+
+  selectTextFile: () => ipcInvoke("selectTextFile"),
+
+  getImageProfile: () => ipcInvoke("getImageProfile"),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions
