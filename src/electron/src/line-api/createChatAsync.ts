@@ -24,7 +24,7 @@ export async function mainCreateGroup({
     await createGroup({ accessToken, nameGroup, ldName });
 
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 }

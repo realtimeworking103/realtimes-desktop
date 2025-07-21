@@ -10,6 +10,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export async function decryptAndSaveProfile(ldName: string): Promise<string> {
+  // Input validation
+  if (!ldName || ldName.trim() === "") {
+    console.error("LDPlayer name is required");
+    return "";
+  }
   
   const pulledDbPath = path.resolve(
     __dirname,
@@ -21,9 +26,11 @@ export async function decryptAndSaveProfile(ldName: string): Promise<string> {
     return "";
   }
 
-  const pulledDb = new Database(pulledDbPath, { readonly: true });
+  let pulledDb: Database.Database | null = null;
 
   try {
+    pulledDb = new Database(pulledDbPath, { readonly: true });
+
     const tableExists = pulledDb
       .prepare(
         `SELECT name FROM sqlite_master WHERE type='table' AND name='setting'`,
@@ -69,7 +76,13 @@ export async function decryptAndSaveProfile(ldName: string): Promise<string> {
     console.error(`Error decrypting ${ldName}:`, err.message);
     return "";
   } finally {
-    pulledDb.close();
+    if (pulledDb) {
+      try {
+        pulledDb.close();
+      } catch (error) {
+        console.error("Error closing database:", error);
+      }
+    }
   }
 }
 

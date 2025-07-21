@@ -1,4 +1,5 @@
 import { LDPlayerType } from "@/ui/types/types";
+import { Semaphore } from "async-mutex";
 
 export function useLDPlayerActions(
   selectedRows: Set<string>,
@@ -23,10 +24,18 @@ export function useLDPlayerActions(
 
   const handleDeleteLDPlayer = async () => {
     try {
+      const semaphore = new Semaphore(1);
       await Promise.all(
-        getSelectedNames().map((ldName) =>
-          window.electron.deleteLdInstance(ldName),
-        ),
+        getSelectedNames().map(async (ldName) => {
+          try {
+            const [_, release] = await semaphore.acquire();
+            await window.electron.deleteLdInstance(ldName);
+            await fetchLDPlayers();
+            release(); // ปล่อยสิทธิให้กับอีกคน
+          } catch (err) {
+            console.error("Delete LDPlayer Fail:", err);
+          }
+        }),
       );
       await fetchLDPlayers();
     } catch (err) {
@@ -41,12 +50,12 @@ export function useLDPlayerActions(
       await Promise.all(
         names.map((ldName) => window.electron.deleteRowFromDB(ldName)),
       );
+      await fetchLDPlayers();
       setSelectedRows((prev) => {
         const updated = new Set(prev);
         names.forEach((n) => updated.delete(n));
         return updated;
       });
-      await fetchLDPlayers();
     } catch (err) {
       console.error("Delete Row Fail:", err);
     }
@@ -54,10 +63,18 @@ export function useLDPlayerActions(
 
   const handleGetTokenAuto = async () => {
     try {
+      const semaphore = new Semaphore(3);
       await Promise.all(
-        getSelectedNames().map((ldName) =>
-          window.electron.getTokenLdInstance(ldName),
-        ),
+        getSelectedNames().map(async (ldName) => {
+          try {
+            const [_, release] = await semaphore.acquire();
+            await window.electron.getTokenLdInstance(ldName);
+            await fetchLDPlayers();
+            release();
+          } catch (err) {
+            console.error("Get Token Auto Fail:", err);
+          }
+        }),
       );
       await fetchLDPlayers();
     } catch (err) {

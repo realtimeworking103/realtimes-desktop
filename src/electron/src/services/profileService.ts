@@ -1,22 +1,26 @@
-import db from "./sqliteService.js";
+import { dialog } from "electron";
+import path from "path";
 
-export function getImageProfile() {
-  db.prepare(
-    `
-      CREATE TABLE IF NOT EXISTS ImageProfile (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        image TEXT,
-        path TEXT,
-        createAt TIMESTAMP DEFAULT (datetime('now', 'localtime'))
-      )
-    `,
-  ).run();
+export async function selectImageFile(): Promise<{ name: string; path: string } | null> {
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters: [{ name: "Images", extensions: ["jpg", "jpeg", "png", "gif", "webp"] }],
+    });
 
-  const rows = db.prepare("SELECT id, image, path, createAt FROM ImageProfile").all();
-  return rows as {
-    id: number;
-    createAt: string;
-    image: string;
-    path: string;
-  }[];
+    if (result.canceled || result.filePaths.length === 0) {
+      return null;
+    }
+
+    const imagePath = result.filePaths[0];
+    const imageName = path.basename(imagePath);
+
+    return {
+      name: imageName,
+      path: imagePath,
+    };
+  } catch (error) {
+    console.error("Error selecting image file:", error);
+    return null;
+  }
 }

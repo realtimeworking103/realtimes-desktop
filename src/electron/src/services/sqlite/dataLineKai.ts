@@ -1,6 +1,10 @@
 import db from "../sqliteService.js";
 
-export function getTableDataLineKai() {
+export function getTableDataLineKai(): {
+  id: number;
+  type: string;
+  lineId: string;
+}[] {
   db.prepare(
     `
       CREATE TABLE IF NOT EXISTS DataLineKai (

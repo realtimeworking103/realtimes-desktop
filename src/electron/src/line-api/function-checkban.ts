@@ -60,7 +60,7 @@ export function checkBanLdInstance(params: {
           ldName,
         );
 
-        resolve(true);
+        resolve(isBanned);
       });
 
       req.on("error", (err) => {

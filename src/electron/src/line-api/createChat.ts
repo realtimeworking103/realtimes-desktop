@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import { encodeGroupName, encodeMid, getMidCountBytes } from "./function.js";
-import { uploadImageToGroup } from "./function-uploadimagegroup.js";
+import { uploadImageToGroup } from "./updateProfileGroup1.js";
 import db from "../services/sqliteService.js";
 import { lineconfig } from "../config/line-config.js";
 import {acquireEncryptedAccessToken} from "../line-api/acquireEncryptedAccessToken.js"
@@ -62,7 +62,7 @@ export async function createGroup(params: {
     .filter(Boolean);
 
   const usedPath = path.join(__dirname, usedFolder, `${token}.txt`);
-  let usedMids: string[] = fs.existsSync(usedPath)
+  const usedMids: string[] = fs.existsSync(usedPath)
     ? fs
         .readFileSync(usedPath, "utf-8")
         .split("\n")

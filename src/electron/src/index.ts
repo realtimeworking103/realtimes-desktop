@@ -15,13 +15,7 @@ import { getTableCreateLdInstance } from "./services/ldplayer/getTableCreateLdIn
 import { getLdInstance } from "./services/ldplayer/getLdInstance.js";
 import { addFriends } from "./line-api/function-addfriends.js";
 import { checkBanLdInstance } from "./line-api/function-checkban.js";
-import { mainCreateGroup } from "./line-api/function-createchat.js";
-
-import {
-  addLineKai,
-  deleteLineKai,
-  getTableDataLineKai,
-} from "./services/sqlite/dataLineKai.js";
+import { mainCreateGroup } from "./line-api/createChatAsync.js";
 
 import {
   deleteTxtFile,
@@ -31,7 +25,10 @@ import {
 } from "./services/fileService.js";
 
 import { updatePhoneFile } from "./function-db.js";
-import { getImageProfile } from "./services/profileService.js";
+import { login, logout } from "./api/index.js";
+import { getWindowsSID } from "./utils/getWindowsSid.js";
+import { setAuthData, clearAuthData } from "./config/app-config.js";
+import { selectImageFile } from "./services/profileService.js";
 
 export default function initMain(mainWindow: BrowserWindow) {
   pollResources(mainWindow);
@@ -52,11 +49,6 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("fetchLdInstance", fetchLdInstance);
   ipcMainHandle("getTokenLdInstance", getTokenLdInstance);
 
-  // Line Kai
-  ipcMainHandle("addAccountLineId", addLineKai);
-  ipcMainHandle("getAccountLineId", getTableDataLineKai);
-  ipcMainHandle("deleteAccountLineId", deleteLineKai);
-
   // Function Line Api
   ipcMainHandle("addFriends", addFriends);
   ipcMainHandle("mainCreateGroup", mainCreateGroup);
@@ -69,6 +61,29 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("updatePhoneFile", updatePhoneFile);
   ipcMainHandle("selectTextFile", selectTextFile);
 
-  //ImageProfile
-  ipcMainHandle("getImageProfile", getImageProfile);
+  //Login
+  ipcMainHandle("login", async (payload) => {
+    const { username, password } = payload;
+    const hwid = await getWindowsSID();
+    const response = await login(username, password, hwid);
+    
+    // Store auth data for logout
+    setAuthData(response.result.sessionId, response.result.userId);
+    
+    return { sessionId: response.result.sessionId, userId: response.result.userId };
+  });
+
+  //Logout
+  ipcMainHandle("logout", async (payload: { sessionId: string; userId: string } ) => {
+    const { sessionId, userId } = payload;
+    const response = await logout(sessionId, userId);
+    
+    // Clear auth data after logout
+    clearAuthData();
+    
+    return response.result;
+  });
+
+  //Select Image File
+  ipcMainHandle("selectImageFile", selectImageFile);
 }

@@ -50,10 +50,6 @@ export function uploadImageToGroup(
       "Accept-Encoding": "gzip, deflate, br",
     });
 
-    // req.on("response", (headers) => {
-    //   console.log("RESPONSE HEADERS:", headers);
-    // });
-
     req.on("data", (chunk) => {
       console.log(`Response Body UploadImageGroup :`,chunk.toString());
     });

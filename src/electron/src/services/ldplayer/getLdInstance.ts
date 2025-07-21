@@ -21,24 +21,44 @@ export function createGridLDTable() {
   ).run();
 }
 
-export function getLdInstance() {
-  const rows = db
-    .prepare(
-      "SELECT NoDataGridLD, LDPlayerGridLD, StatusAccGridLD, StatusGridLD, NameLineGridLD, FriendGridLD, GroupGridLD, PhoneGridLD, TokenGridLD, PhoneFileGridLD, DateTimeGridLD, CreateAt FROM GridLD",
-    )
-    .all();
-  return rows as {
-    NoDataGridLD: number;
-    LDPlayerGridLD: string;
-    StatusAccGridLD: string;
-    StatusGridLD: string;
-    NameLineGridLD: string;
-    FriendGridLD: string;
-    GroupGridLD: string;
-    PhoneGridLD: string;
-    TokenGridLD: string;
-    PhoneFileGridLD: string;
-    DateTimeGridLD: string;
-    CreateAt: string;
-  }[];
+export function getLdInstance(): {
+  NoDataGridLD: number;
+  LDPlayerGridLD: string;
+  StatusAccGridLD: string;
+  StatusGridLD: string;
+  NameLineGridLD: string;
+  FriendGridLD: string;
+  GroupGridLD: string;
+  PhoneGridLD: string;
+  TokenGridLD: string;
+  PhoneFileGridLD: string;
+  DateTimeGridLD: string;
+  CreateAt: string;
+}[] {
+  try {
+    createGridLDTable();
+    
+    const rows = db
+      .prepare(
+        "SELECT NoDataGridLD, LDPlayerGridLD, StatusAccGridLD, StatusGridLD, NameLineGridLD, FriendGridLD, GroupGridLD, PhoneGridLD, TokenGridLD, PhoneFileGridLD, DateTimeGridLD, CreateAt FROM GridLD",
+      )
+      .all();
+    return rows as {
+      NoDataGridLD: number;
+      LDPlayerGridLD: string;
+      StatusAccGridLD: string;
+      StatusGridLD: string;
+      NameLineGridLD: string;
+      FriendGridLD: string;
+      GroupGridLD: string;
+      PhoneGridLD: string;
+      TokenGridLD: string;
+      PhoneFileGridLD: string;
+      DateTimeGridLD: string;
+      CreateAt: string;
+    }[];
+  } catch (error) {
+    console.error("Error getting LDPlayer instances:", error);
+    return [];
+  }
 }

@@ -42,11 +42,34 @@ export async function syncContacts(
   phones: string[],
   accessToken: string,
 ): Promise<number> {
+  // Input validation
+  if (!phones || phones.length === 0) {
+    return 0;
+  }
+
+  if (!accessToken || accessToken.trim() === "") {
+    throw new Error("Access token is required");
+  }
+
+  // Filter out invalid phone numbers
+  const validPhones = phones.filter(phone => 
+    phone && phone.trim() !== "" && /^\d+$/.test(phone.replace(/\s/g, ""))
+  );
+
+  if (validPhones.length === 0) {
+    return 0;
+  }
+
   return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      client.close();
+      reject(new Error("Request timeout"));
+    }, 30000); // 30 seconds timeout
+
     const client = http2.connect(lineconfig.URL_LINE);
 
-    const countBuf = Buffer.from([phones.length]);
-    const contactBuf = createContactBuffers(phones);
+    const countBuf = Buffer.from([validPhones.length]);
+    const contactBuf = createContactBuffers(validPhones);
     const payload = Buffer.concat([header, countBuf, contactBuf, footer]);
 
     const req = client.request({
@@ -65,6 +88,7 @@ export async function syncContacts(
     req.on("data", (chunk) => chunks.push(chunk));
 
     req.on("end", () => {
+      clearTimeout(timeout);
       client.close();
       const resBuffer = Buffer.concat(chunks);
       const resString = resBuffer.toString("utf8");
@@ -74,6 +98,7 @@ export async function syncContacts(
     });
 
     req.on("error", (err) => {
+      clearTimeout(timeout);
       client.close();
       reject(err);
     });

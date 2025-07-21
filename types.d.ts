@@ -126,18 +126,6 @@ type IpcEventMap = {
     payload: { ldName: string; fileName: string };
     response: string;
   };
-  addAccountLineId: {
-    payload: { lineId: string; type: string };
-    response: string;
-  };
-  deleteAccountLineId: {
-    payload: number;
-    response: string;
-  };
-  getAccountLineId: {
-    payload: void;
-    response: LineAccount[];
-  };
   addFriends: {
     payload: {
       ldName: string;
@@ -162,14 +150,19 @@ type IpcEventMap = {
     };
   };
 
-  getImageProfile: {
+  login: {
+    payload: { username: string; password: string };
+    response: { sessionId: string; userId: string };
+  };
+
+  logout: {
+    payload: { sessionId: string; userId: string };
+    response: { userId: string; sessionId: string };
+  };
+
+  selectImageFile: {
     payload: void;
-    response: {
-      id: number;
-      image: string;
-      path: string;
-      createAt: string;
-    }[];
+    response: { name: string; path: string } | null;
   };
 };
 

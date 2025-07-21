@@ -5,3 +5,7 @@ export function callLdInstance(name:string) {
 export function deleteLdInstance(name:string) {
   return window.electron.deleteLdInstance(name);
 }
+
+export function deleteRowFromDB(name: string) {
+  return window.electron.deleteRowFromDB(name);
+}

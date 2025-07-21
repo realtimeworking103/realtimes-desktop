@@ -12,7 +12,7 @@ export async function addFriendByIdOa(
       0x64, 0x42, 0x79, 0x4d, 0x69, 0x64, 0x1c, 0x15, 0xc2, 0x3e, 0x18, 0x21,
     ]);
 
-    const midbuff = Buffer.from(mid, "utf8");
+    const midbuf = Buffer.from(mid, "utf8");
 
     const backmid = Buffer.from([
       0x1c, 0x18, 0x2f, 0x7b, 0x22, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x22,
@@ -23,15 +23,15 @@ export async function addFriendByIdOa(
     ]);
 
     const byteids = Buffer.from([oaId.length]);
-    const oaIdbuffer = Buffer.from(oaId, "utf8");
+    const oaIdbuf = Buffer.from(oaId, "utf8");
     const footer = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00]);
 
     const payload = Buffer.concat([
       header,
-      midbuff,
+      midbuf,
       backmid,
       byteids,
-      oaIdbuffer,
+      oaIdbuf,
       footer,
     ]);
 

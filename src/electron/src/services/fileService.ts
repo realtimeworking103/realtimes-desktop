@@ -2,7 +2,13 @@ import { dialog } from "electron";
 import db from "./sqliteService.js";
 import fs from "fs/promises";
 import path from "path";
-export function getTxtFiles() {
+export function getTxtFiles(): {
+  id: number;
+  name: string;
+  count: number;
+  path: string;
+  createAt: string;
+}[] {
   db.prepare(
     `
       CREATE TABLE IF NOT EXISTS Files (
@@ -49,7 +55,11 @@ export function saveTxtFile({
   }
 }
 
-export async function selectTextFile() {
+export async function selectTextFile(): Promise<{
+  name: string;
+  path: string;
+  count: number;
+}> {
   try {
     const result = await dialog.showOpenDialog({
       properties: ["openFile"],
@@ -74,15 +84,29 @@ export async function selectTextFile() {
     }
     
     const filePath = result.filePaths[0];
+    
+    // Validate file exists and is readable
+    try {
+      await fs.access(filePath);
+    } catch (error) {
+      console.error("File access error:", error);
+      return {
+        name: "",
+        path: "",
+        count: 0,
+      };
+    }
+    
     const content = await fs.readFile(filePath, "utf-8");
     const lines = content.split("\n").filter((line) => line.trim());
+    
     return {
       name: path.basename(filePath, ".txt"),
       path: filePath,
       count: lines.length,
     };
   } catch (error) {
-    console.error("error selectTextFile" + error);
+    console.error("Error in selectTextFile:", error);
     return {
       name: "",
       path: "",
@@ -91,7 +115,7 @@ export async function selectTextFile() {
   }
 }
 
-export function deleteTxtFile(name: string) {
+export function deleteTxtFile(name: string): boolean {
   try {
     const stmt = db.prepare("DELETE FROM Files WHERE name = ?");
     const result = stmt.run(name);

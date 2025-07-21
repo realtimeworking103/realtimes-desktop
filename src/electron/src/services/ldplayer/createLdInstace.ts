@@ -44,7 +44,7 @@ export async function createLdInstance({
     );
 
     return `สร้าง LDPlayer สำเร็จ: ${name}`;
-  } catch (err) {
+  } catch {
     insertCreateLDPlayer.run(name, prefix, "กำลังสร้าง LDPlayer");
     await new Promise((r) => setTimeout(r, 3000));
     updateStatus.run("สร้าง LDPlayer สำเร็จ", name);

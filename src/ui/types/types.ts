@@ -18,4 +18,5 @@ export type CreatedLDPlayerType = {
   LDPlayerGridLD: string;
   DateTimeGridLD: string;
   StatusGridLD: string;
+  PrefixGridLD: string;
 };

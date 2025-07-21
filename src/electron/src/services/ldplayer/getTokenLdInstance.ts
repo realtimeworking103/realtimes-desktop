@@ -32,20 +32,28 @@ export async function getTokenLdInstance(ldName: string): Promise<boolean> {
     const copyCommand = `"${ldconsolePath}" adb --name ${ldName} --command "shell su -c 'cat /data/data/jp.naver.line.android/databases/naver_line > /sdcard/naver_line_${ldName}.db'"`;
     await execAsync(copyCommand);
 
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    console.log("Copy Command:", copyCommand);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const pullCommand = `"${ldconsolePath}" adb --name ${ldName} --command "pull /sdcard/naver_line_${ldName}.db ${outputFolder}"`;
     await execAsync(pullCommand);
+
+    console.log("Pull Command:", pullCommand);
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const token = await decryptAndSaveProfile(ldName);
 
+    console.log("Token:", token);
+
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await updateSettingsAttributes1(token);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    console.log("Update Settings Attributes 1:", token);
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     await updateSettingsAttributes2(token);
 

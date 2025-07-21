@@ -1,6 +1,12 @@
 import db from "../sqliteService.js";
 
-export function getTableCreateLdInstance() {
+export function getTableCreateLdInstance(): {
+  NoDataGridLD: number;
+  LDPlayerGridLD: string;
+  DateTimeGridLD: string;
+  StatusGridLD: string;
+  PrefixGridLD: string;
+}[] {
   db.prepare(
     `
       CREATE TABLE IF NOT EXISTS CreateLDPlayer (
