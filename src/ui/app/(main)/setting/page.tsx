@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Button } from "@/ui/components/ui/button";
-import { Input } from "@/ui/components/ui/input";
 import {
   Card,
   CardContent,
@@ -10,68 +7,56 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/components/ui/card";
-import { toast } from "sonner";
+import { Settings } from "lucide-react";
+import { Input } from "@/ui/components/ui/input";
+import { Button } from "@/ui/components/ui/button";
+import { useEffect, useState } from "react";
 
 export default function Page() {
   const [ldplayerPath, setLdplayerPath] = useState("");
-  const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {
-    window.electron.getLDPlayerPath().then((path) => {
-      if (!path) {
-        setShowDialog(true);
-      } else {
-        setLdplayerPath(path);
-      }
-    });
+    const path = window.electron.getLdInstancePath();
+    setLdplayerPath(path as unknown as string);
   }, []);
 
-  const handleSave = async () => {
-    if (!ldplayerPath.toLowerCase().endsWith("ldconsole.exe")) {
-      toast.error("กรุณาเลือกไฟล์ ldconsole.exe ให้ถูกต้อง");
-      return;
+  const handleBrowse = async () => {
+    const result = await window.electron.browseLdInstancePath();
+    if (result) {
+      setLdplayerPath(ldplayerPath);
     }
-
-    await window.electron.setLDPlayerPath(ldplayerPath);
-    setShowDialog(false);
-    toast.success("บันทึก PATH LDPlayer เรียบร้อยแล้ว");
   };
 
   return (
-    <>
+    <div className="min-h-svh p-6 select-none">
+      <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
+        <div className="mx-auto flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Settings className="h-8 w-8" />
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+              ตั้งค่า
+            </h1>
+          </div>
+        </div>
+      </div>
       <Card>
         <CardHeader>
-          <CardTitle>ตั้งค่า</CardTitle>
+          <CardTitle>ตั้งค่า LDPlayer</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex w-full space-x-3">
             <Input
               type="text"
-              placeholder="PATH LDPlayer"
+              placeholder="LDPlayer Path"
+              className="w-full"
               value={ldplayerPath}
               onChange={(e) => setLdplayerPath(e.target.value)}
             />
-            <Button onClick={handleSave}>บันทึก</Button>
+            <Button onClick={handleBrowse}>Browse</Button>
           </div>
         </CardContent>
         <CardFooter></CardFooter>
       </Card>
-
-      {showDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-[400px] space-y-4 rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="text-lg font-semibold">กรุณาใส่ PATH LDPlayer</h2>
-            <Input
-              placeholder="C:\\LDPlayer\\ldconsole.exe"
-              value={ldplayerPath}
-              onChange={(e) => setLdplayerPath(e.target.value)}
-            />
-            <div className="flex justify-end space-x-2">
-              <Button onClick={handleSave}>บันทึก</Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

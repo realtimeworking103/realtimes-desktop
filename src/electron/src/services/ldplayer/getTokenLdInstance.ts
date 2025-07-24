@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { getLdConsolePath } from "./getLdConsolePath.js";
+import { getLdInstancePath } from "./getLdInstancePath.js";
 import { execAsync } from "../execCommand.js";
 
 import {
@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 const outputFolder = path.resolve(__dirname, "../../../../databaseldplayer");
 
 export async function getTokenLdInstance(ldName: string): Promise<boolean> {
-  const ldconsolePath = getLdConsolePath();
+  const ldconsolePath = getLdInstancePath();
 
   try {
     if (!fs.existsSync(outputFolder)) {

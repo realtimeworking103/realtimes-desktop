@@ -22,8 +22,10 @@ electron.contextBridge.exposeInMainWorld("electron", {
   moveSelectedLDPlayers: (payload) =>
     ipcInvoke("moveSelectedLDPlayers", payload),
 
-  setLDPlayerPath: (payload) => ipcInvoke("setLDPlayerPath", payload),
-  getLDPlayerPath: () => ipcInvoke("getLDPlayerPath"),
+  setLdInstancePath: (payload: string) =>
+    ipcInvoke("setLdInstancePath", payload),
+  getLdInstancePath: () => ipcInvoke("getLdInstancePath"),
+  browseLdInstancePath: () => ipcInvoke("browseLdInstancePath"),
 
   checkBanLdInstance: (payload: { ldName: string; accessToken: string }) =>
     ipcInvoke("checkBanLdInstance", payload),
@@ -31,7 +33,7 @@ electron.contextBridge.exposeInMainWorld("electron", {
   getTxtFiles: () => ipcInvoke("getTxtFiles"),
   saveTxtFile: (payload: { name: string; count: number; path: string }) =>
     ipcInvoke("saveTxtFile", payload),
-  deleteTxtFile: (fileName: string) => ipcInvoke("deleteTxtFile", fileName),
+  deleteTxtFile: (payload: number) => ipcInvoke("deleteTxtFile", payload),
 
   updatePhoneFile: (payload: { ldName: string; fileName: string }) =>
     ipcInvoke("updatePhoneFile", payload),
@@ -48,7 +50,7 @@ electron.contextBridge.exposeInMainWorld("electron", {
     ldName: string;
     nameGroup: string;
     oaId: string;
-    privateId: string;
+    privateId: string[];
   }) => ipcInvoke("mainCreateGroup", payload),
 
   selectTextFile: () => ipcInvoke("selectTextFile"),
@@ -59,6 +61,24 @@ electron.contextBridge.exposeInMainWorld("electron", {
     ipcInvoke("logout", payload),
 
   selectImageFile: () => ipcInvoke("selectImageFile"),
+
+  getAccount: () => ipcInvoke("getAccount"),
+  addAccount: (payload: { type: string; name: string; status: boolean }) =>
+    ipcInvoke("addAccount", payload),
+  deleteAccount: (payload: number) => ipcInvoke("deleteAccount", payload),
+  updateAccount: (payload: { name: string; type: string; status: boolean }) =>
+    ipcInvoke("updateAccount", payload),
+
+  selectFileNameGroup: () => ipcInvoke("selectFileNameGroup"),
+  getFileNameGroup: () => ipcInvoke("getFileNameGroup"),
+  deleteNameGroup: (payload: number) => ipcInvoke("deleteNameGroup", payload),
+  addNameGroup: (payload: { name: string; description: string }) =>
+    ipcInvoke("addNameGroup", payload),
+  editNameGroup: (payload: { id: number; name: string; description: string }) =>
+    ipcInvoke("editNameGroup", payload),
+
+  getProfile: () => ipcInvoke("getProfile"),
+  deleteProfile: (payload: string) => ipcInvoke("deleteProfile", payload),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions

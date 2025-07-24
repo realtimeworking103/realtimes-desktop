@@ -49,6 +49,8 @@ type IpcEventMap = {
     payload: void;
     response: StaticData;
   };
+
+  // LDPlayer
   getLDPlayersDB: {
     payload: void;
     response: DataLDPlayersDB[];
@@ -88,21 +90,23 @@ type IpcEventMap = {
     payload: string[];
     response: boolean;
   };
-  setLDPlayerPath: {
+  setLdInstancePath: {
     payload: string;
     response: boolean;
   };
-  getLDPlayerPath: {
+  getLdInstancePath: {
     payload: void;
     response: string;
   };
+
+  // Group
   mainCreateGroup: {
     payload: {
       accessToken: string;
       ldName: string;
       nameGroup: string;
       oaId: string;
-      privateId: string;
+      privateId: string[];
     };
     response: boolean;
   };
@@ -110,22 +114,34 @@ type IpcEventMap = {
     payload: { ldName: string; accessToken: string };
     response: boolean;
   };
+
+  // Txt File
   getTxtFiles: {
     payload: void;
-    response: { name: string; count: number; path: string; createAt: string }[];
+    response: {
+      id: number;
+      name: string;
+      count: number;
+      path: string;
+      createAt: string;
+    }[];
   };
   saveTxtFile: {
     payload: { name: string; count: number; path: string };
     response: boolean;
   };
   deleteTxtFile: {
-    payload: string;
+    payload: number;
     response: boolean;
   };
+
+  // Phone File
   updatePhoneFile: {
     payload: { ldName: string; fileName: string };
     response: string;
   };
+
+  // Friends
   addFriends: {
     payload: {
       ldName: string;
@@ -150,19 +166,93 @@ type IpcEventMap = {
     };
   };
 
+  // Account
+  getAccount: {
+    payload: void;
+    response: {
+      id: number;
+      type: string;
+      name: string;
+      status: boolean;
+      createAt: string;
+    }[];
+  };
+
+  // Account
+  addAccount: {
+    payload: { type: string; name: string; status: boolean };
+    response: boolean;
+  };
+
+  // Account
+  deleteAccount: {
+    payload: number;
+    response: boolean;
+  };
+
+  updateAccount: {
+    payload: { name: string; type: string; status: boolean };
+    response: boolean;
+  };
+
+  // Image File
+  selectImageFile: {
+    payload: void;
+    response: { name: string; path: string } | null;
+  };
+
+  // Profile
+  deleteProfile: {
+    payload: string;
+    response: boolean;
+  };
+  // Profil
+  getProfile: {
+    payload: void;
+    response: {
+      name: string;
+      path: string;
+      status: boolean;
+      createAt: string;
+    }[];
+  };
+
+  // Name Group
+  selectFileNameGroup: {
+    payload: void;
+    response: string[] | null;
+  };
+  getFileNameGroup: {
+    payload: void;
+    response: { id: number; name: string; description: string }[];
+  };
+  deleteNameGroup: {
+    payload: number;
+    response: boolean;
+  };
+  addNameGroup: {
+    payload: { name: string; description: string };
+    response: boolean;
+  };
+  editNameGroup: {
+    payload: { id: number; name: string; description: string };
+    response: boolean;
+  };
+
+  // LDPlayer
+  browseLdInstancePath: {
+    payload: void;
+    response: boolean;
+  };
+
+  // Login & Logout
   login: {
     payload: { username: string; password: string };
     response: { sessionId: string; userId: string };
   };
-
   logout: {
     payload: { sessionId: string; userId: string };
     response: { userId: string; sessionId: string };
-  };
-
-  selectImageFile: {
-    payload: void;
-    response: { name: string; path: string } | null;
   };
 };
 

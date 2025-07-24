@@ -14,14 +14,18 @@ import {
   SidebarRail,
 } from "@/ui/components/ui/sidebar";
 
-import IconChartBar from "@tabler/icons-react/dist/esm/icons/IconChartBar";
-import IconDashboard from "@tabler/icons-react/dist/esm/icons/IconDashboard";
-import IconFolder from "@tabler/icons-react/dist/esm/icons/IconFolder";
-import IconListDetails from "@tabler/icons-react/dist/esm/icons/IconListDetails";
-import IconSettings from "@tabler/icons-react/dist/esm/icons/IconSettings";
-import IconUsers from "@tabler/icons-react/dist/esm/icons/IconUsers";
-
 import { NavLink } from "react-router-dom";
+import {
+  Gauge,
+  FileText,
+  Image,
+  List,
+  Monitor,
+  Plus,
+  Settings,
+  Users,
+  MessageCircle,
+} from "lucide-react";
 
 // This is sample data.
 const data = {
@@ -34,17 +38,17 @@ const data = {
         {
           title: "DASHBOARD",
           url: "/dashboard",
-          icon: IconDashboard,
+          icon: Gauge,
         },
         {
           title: "LDPLAYER",
           url: "/ldplayer",
-          icon: IconListDetails,
+          icon: Monitor,
         },
         {
           title: "CREATE LDPLAYER",
           url: "/create-ldplayer",
-          icon: IconChartBar,
+          icon: Plus,
         },
       ],
     },
@@ -55,22 +59,32 @@ const data = {
         {
           title: "ACCOUNT",
           url: "/account",
-          icon: IconUsers,
+          icon: Users,
         },
         {
-          title: "MANAGER FILE",
+          title: "FILE MANAGER",
           url: "/file",
-          icon: IconFolder,
+          icon: FileText,
+        },
+        {
+          title: "NAME MANAGER",
+          url: "/name-manager",
+          icon: List,
         },
         {
           title: "PROFILE",
           url: "/profile",
-          icon: IconUsers,
+          icon: Image,
+        },
+        {
+          title: "MESSAGE",
+          url: "/message",
+          icon: MessageCircle,
         },
         {
           title: "SETTING",
           url: "/setting",
-          icon: IconSettings,
+          icon: Settings,
         },
       ],
     },

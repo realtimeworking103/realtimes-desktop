@@ -115,10 +115,10 @@ export async function selectTextFile(): Promise<{
   }
 }
 
-export function deleteTxtFile(name: string): boolean {
+export function deleteTxtFile(id: number): boolean {
   try {
-    const stmt = db.prepare("DELETE FROM Files WHERE name = ?");
-    const result = stmt.run(name);
+    const stmt = db.prepare("DELETE FROM Files WHERE id = ?");
+    const result = stmt.run(id);
 
     return result.changes > 0;
   } catch (err) {

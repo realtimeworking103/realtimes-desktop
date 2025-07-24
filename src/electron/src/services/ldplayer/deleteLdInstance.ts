@@ -1,9 +1,9 @@
 import { execAsync } from "../execCommand.js";
 import db from "../sqliteService.js";
-import { getLdConsolePath } from "./getLdConsolePath.js";
+import { getLdInstancePath } from "./getLdInstancePath.js";
 
 export async function deleteLdInstance(ldName: string): Promise<boolean> {
-  const ldconsolePath = getLdConsolePath();
+  const ldconsolePath = getLdInstancePath();
 
   const cmd = `"${ldconsolePath}" remove --name "${ldName}"`;
 

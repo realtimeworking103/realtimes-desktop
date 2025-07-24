@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/ui/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RotateCcw, Monitor } from "lucide-react";
 
 import {
   Table,
@@ -34,6 +34,8 @@ import { useLDPlayerActions } from "@/ui/hooks/use-LDPlayerActions";
 import { ConfirmDialog } from "@/ui/components/confirm-dialog";
 import { AddFriendDialog } from "@/ui/components/add-friend-dialog";
 import { CreateGroupDialog } from "@/ui/components/create-group-dialog";
+import { Input } from "@/ui/components/ui/input";
+import { Badge } from "@/ui/components/ui/badge";
 
 export default function Page() {
   const [ldplayers, setLDPlayers] = useState<LDPlayerType[]>([]);
@@ -45,7 +47,7 @@ export default function Page() {
   const [files, setFiles] = useState<{ name: string; count: number }[]>([]);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [friendCount, setFriendCount] = useState("");
-
+  const [search, setSearch] = useState("");
   const [isDialogOpenCreateGroup, setDialogOpenCreateGroup] = useState(false);
 
   const fetchLDPlayers = async () => {
@@ -127,7 +129,7 @@ export default function Page() {
           nameGroup: "",
           ldName: selected.LDPlayerGridLD,
           oaId: "",
-          privateId: "",
+          privateId: [""],
         });
 
         await fetchLDPlayers();
@@ -161,19 +163,47 @@ export default function Page() {
     fetchFiles();
   }, []);
 
+  const handleSearch = async () => {
+    const result = await window.electron.getLDPlayersDB();
+    setLDPlayers(
+      result.filter(
+        (item) =>
+          item.LDPlayerGridLD.toLowerCase().includes(search.toLowerCase()) ||
+          item.PhoneGridLD.toLowerCase().includes(search.toLowerCase()) ||
+          item.NameLineGridLD.toLowerCase().includes(search.toLowerCase()),
+      ),
+    );
+  };
+
   return (
-    <>
-      <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+    <div className="min-h-svh p-6 select-none">
+      <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur select-none dark:border-gray-700 dark:bg-gray-900/80">
+        <div className="mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <img src="/desktopIcon.png" alt="LDPlayer" className="h-8 w-8" />
+            <Monitor className="h-8 w-8" />
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
               จัดการ LDPlayer
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={handlefetchLdInstance} variant="outline">
-              <RefreshCw className="mr-2 h-4 w-4" />
+            <Input
+              placeholder="ค้นหา LDPlayer"
+              className="w-48"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearch();
+                }
+              }}
+            />
+            <Button
+              onClick={handlefetchLdInstance}
+              variant="default"
+              className="bg-gray-500 hover:bg-gray-600"
+              size="lg"
+            >
+              <RotateCcw className="mr-2 h-4 w-4" />
               รีเฟรชข้อมูล
             </Button>
           </div>
@@ -286,7 +316,14 @@ export default function Page() {
                                 : ""
                             }`}
                           >
-                            <TableCell>{item.NoDataGridLD}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="secondary"
+                                className="bg-blue-100 text-sm text-blue-800"
+                              >
+                                {item.NoDataGridLD}
+                              </Badge>
+                            </TableCell>
                             <TableCell>{item.LDPlayerGridLD}</TableCell>
                             <TableCell>{item.StatusAccGridLD}</TableCell>
                             <TableCell>{item.DateTimeGridLD}</TableCell>
@@ -440,14 +477,9 @@ export default function Page() {
             }}
           />
 
+          {/* CreateGroupDialog */}
           <CreateGroupDialog
             open={isDialogOpenCreateGroup}
-            oaAccounts={[]}
-            privateAccounts={[]}
-            selectedOa={""}
-            setSelectedOa={() => {}}
-            selectedPrivate={""}
-            setSelectedPrivate={() => {}}
             onCancel={() => setDialogOpenCreateGroup(false)}
             onConfirm={() => {
               handleCreateGroup();
@@ -471,31 +503,20 @@ export default function Page() {
           {/* Summary Bar */}
           <div className="mt-4 flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-800">
             <div>
-              <span className="font-semibold">LDPlayer ทั้งหมด:</span>{" "}
+              <span className="font-sans text-sm">LDPlayer ทั้งหมด:</span>{" "}
               {ldplayers.length}
-              <span className="mx-3 font-semibold">เลือก:</span>{" "}
+              <span className="mx-3 font-sans text-sm">เลือก:</span>{" "}
               {selectedRows.size}
-            </div>
-            <div className="text-sm text-gray-500">
-              Powered by RealTimes Desktop
             </div>
           </div>
 
           {/* Tips */}
-          <div className="mt-6 rounded bg-blue-50 px-6 py-3 text-sm text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
+          <div className="mt-2 rounded bg-blue-50 px-6 py-3 text-sm text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
             💡 <b>Tips:</b> กด <kbd>Ctrl</kbd> หรือ <kbd>Shift</kbd>{" "}
             เพื่อเลือกหลายแถว, คลิกขวาเพื่อดูเมนูเพิ่มเติม
           </div>
-
-          {/* Footer */}
-          <footer className="mt-8 w-full py-4 text-center text-xs text-gray-400">
-            © {new Date().getFullYear()} RealTimes Desktop | Version 1.0.0 |{" "}
-            <a href="https://yourwebsite.com" className="underline">
-              Support
-            </a>
-          </footer>
         </div>
       </div>
-    </>
+    </div>
   );
 }

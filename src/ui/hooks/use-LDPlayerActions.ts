@@ -29,9 +29,10 @@ export function useLDPlayerActions(
         getSelectedNames().map(async (ldName) => {
           try {
             const [_, release] = await semaphore.acquire();
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             await window.electron.deleteLdInstance(ldName);
             await fetchLDPlayers();
-            release(); // ปล่อยสิทธิให้กับอีกคน
+            release();
           } catch (err) {
             console.error("Delete LDPlayer Fail:", err);
           }

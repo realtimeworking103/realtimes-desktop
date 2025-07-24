@@ -20,3 +20,24 @@ export type CreatedLDPlayerType = {
   StatusGridLD: string;
   PrefixGridLD: string;
 };
+
+export type AccountType = {
+  id: number;
+  type: string;
+  name: string;
+  status: boolean;
+  createAt: string;
+};
+
+export type ProfileType = {
+  name: string;
+  path: string;
+  createAt: string;
+};
+
+export type NameGroupType = {
+  id: number;
+  name: string;
+  description: string;
+  createAt: string;
+};

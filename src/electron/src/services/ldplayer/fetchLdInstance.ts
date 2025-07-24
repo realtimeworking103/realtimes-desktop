@@ -1,9 +1,9 @@
 import { execAsync } from "../execCommand.js";
 import db from "../sqliteService.js";
-import { getLdConsolePath } from "./getLdConsolePath.js";
+import { getLdInstancePath } from "./getLdInstancePath.js";
 
 export async function fetchLdInstance(): Promise<string[]> {
-  const ldconsolePath = getLdConsolePath();
+  const ldconsolePath = getLdInstancePath();
 
   try {
     const { stdout } = await execAsync(`"${ldconsolePath}" list2`);

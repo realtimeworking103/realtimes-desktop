@@ -14,10 +14,10 @@ export async function mainCreateGroup({
   nameGroup: string;
   ldName: string;
   oaId: string;
-  privateId: string;
+  privateId: string[];
 }): Promise<boolean> {
   try {
-    await syncContactsKai(accessToken, [privateId]);
+    await syncContactsKai(accessToken, privateId);
     await findContactByUseridOa(accessToken, oaId);
 
     await getAllContactIds(accessToken);

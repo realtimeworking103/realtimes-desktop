@@ -12,6 +12,8 @@ import ProFile from "./app/(main)/profile/page";
 import Setting from "./app/(main)/setting/page";
 import Login from "./app/login/page";
 import Account from "./app/(main)/account/page";
+import NameManager from "./app/(main)/name-manager/page";
+import Message from "./app/(main)/message/page";
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
             <Route path="profile" element={<ProFile />} />
             <Route path="setting" element={<Setting />} />
             <Route path="account" element={<Account />} />
+            <Route path="name-manager" element={<NameManager />} />
+            <Route path="message" element={<Message />} />
           </Route>
         </Route>
 

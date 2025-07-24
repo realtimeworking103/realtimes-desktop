@@ -1,6 +1,6 @@
 import { execAsync } from "../execCommand.js";
 import db from "../sqliteService.js";
-import { getLdConsolePath } from "./getLdConsolePath.js";
+import { getLdInstancePath } from "./getLdInstancePath.js";
 
 function createNameLdInstance(prefix: string, count: number) {
   const today = new Date();
@@ -19,7 +19,7 @@ export async function createLdInstance({
   prefix: string;
   count: number;
 }): Promise<string> {
-  const ldconsolePath = getLdConsolePath();
+  const ldconsolePath = getLdInstancePath();
 
   const name = createNameLdInstance(prefix, count);
 
