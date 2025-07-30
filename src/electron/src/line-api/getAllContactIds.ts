@@ -1,28 +1,14 @@
 import http2 from "http2";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { lineconfig } from "../config/line-config.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const contactFolder = "ContactMids";
-
-const contactDir = path.join(__dirname, contactFolder);
-if (!fs.existsSync(contactDir)) {
-  fs.mkdirSync(contactDir, { recursive: true });
-}
-
 export async function getAllContactIds(accessToken: string): Promise<string[]> {
-  // Input validation
-  if (!accessToken || accessToken.trim() === "") {
-    throw new Error("Access token is required");
-  }
-
   const token = accessToken.split(":")[0];
-  if (!token) {
-    throw new Error("Invalid access token format");
+
+  const contactDir = path.join(process.cwd(), "ContactMids");
+  if (!fs.existsSync(contactDir)) {
+    fs.mkdirSync(contactDir, { recursive: true });
   }
 
   const filePath = path.join(contactDir, `${token}.txt`);
@@ -33,11 +19,6 @@ export async function getAllContactIds(accessToken: string): Promise<string[]> {
   ]);
 
   return new Promise<string[]>((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      client.close();
-      reject(new Error("Request timeout"));
-    }, 30000); // 30 seconds timeout
-
     const client = http2.connect(lineconfig.URL_LINE);
 
     const req = client.request({
@@ -54,30 +35,27 @@ export async function getAllContactIds(accessToken: string): Promise<string[]> {
 
     let body = "";
     req.on("data", (chunk) => {
-      console.log(`Response Body GetContact :`, chunk.toString());
       body += chunk.toString();
     });
 
     req.on("end", () => {
-      clearTimeout(timeout);
       client.close();
 
-      const mids = body.match(/u[a-f0-9]{32}/gi) || [];
-      if (mids.length) {
+      const allMids = body.match(/u[a-f0-9]{32}/gi) || [];
+      if (allMids.length) {
         try {
-          fs.writeFileSync(filePath, mids.join("\n") + "\n", "utf8");
-          console.log(`save ${mids.length} to File ${filePath}`);
+          fs.writeFileSync(filePath, allMids.join("\n") + "\n", "utf8");
+          console.log(`SAVE CONTACT IDS :`, allMids.length);
         } catch (error) {
           console.error("Error writing contact file:", error);
         }
       } else {
-        console.log("not found response");
+        console.log("NOT FOUND CONTACT IDS");
       }
-      resolve(mids);
+      resolve(allMids);
     });
 
     req.on("error", (err) => {
-      clearTimeout(timeout);
       client.close();
       reject(err);
     });

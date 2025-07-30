@@ -21,11 +21,10 @@ export type CreatedLDPlayerType = {
   PrefixGridLD: string;
 };
 
-export type AccountType = {
+export type NameGroupType = {
   id: number;
-  type: string;
   name: string;
-  status: boolean;
+  description: string;
   createAt: string;
 };
 
@@ -35,9 +34,10 @@ export type ProfileType = {
   createAt: string;
 };
 
-export type NameGroupType = {
+export type AccountType = {
   id: number;
+  type: string;
   name: string;
-  description: string;
+  status: boolean;
   createAt: string;
 };

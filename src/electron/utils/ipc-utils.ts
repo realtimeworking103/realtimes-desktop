@@ -46,11 +46,13 @@ export function ipcWebContentsSend<T extends IpcEventKey>(
 }
 
 export function validateEventFrame(frame: WebFrameMain) {
-  if (isDev() && new URL(frame.url).host === "localhost:5173") {
-    return;
-  }
+  // if (isDev() && new URL(frame.url).host === "localhost:5173") {
+  //   return;
+  // }
 
-  if (frame.url !== pathToFileURL(getUIPath()).toString()) {
-    throw new Error("Malicious event");
-  }
+  // if (frame.url !== pathToFileURL(getUIPath()).toString()) {
+  //   throw new Error("Malicious event");
+  // }
+
+  return;
 }

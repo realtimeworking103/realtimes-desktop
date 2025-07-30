@@ -25,7 +25,9 @@ export async function findContactByUserid(
   accessToken: string,
   ids: string[],
 ): Promise<void> {
-  fs.writeFileSync(outputPath, "", "utf8");
+  if (!fs.existsSync(outputPath)) {
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  }
 
   for (const id of ids) {
     const payload = buildFindContactPayload(id);

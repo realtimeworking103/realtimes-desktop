@@ -27,6 +27,9 @@ export async function getTokenLdInstance(ldName: string): Promise<boolean> {
     const launchCommand = `"${ldconsolePath}" launch --name ${ldName}`;
     await execAsync(launchCommand);
 
+    const minimodeCommand = `"${ldconsolePath}" minimode --name ${ldName} --mode 1`;
+    await execAsync(minimodeCommand);
+
     await new Promise((resolve) => setTimeout(resolve, 20000));
 
     const copyCommand = `"${ldconsolePath}" adb --name ${ldName} --command "shell su -c 'cat /data/data/jp.naver.line.android/databases/naver_line > /sdcard/naver_line_${ldName}.db'"`;

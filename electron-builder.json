@@ -12,6 +12,7 @@
         "target": [
             "portable",
             "msi"
-        ]
+        ],
+        "signAndEditExecutable": false
     }
 }

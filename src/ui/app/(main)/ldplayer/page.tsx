@@ -115,27 +115,52 @@ export default function Page() {
     }
   };
 
-  const handleCreateGroup = async () => {
+  const handleCreateGroup = async (
+    nameGroup: string,
+    profile: string,
+    officialId: string[],
+    privateId: string[],
+  ) => {
     const selectedList = ldplayers.filter((p) =>
       selectedRows.has(p.LDPlayerGridLD),
     );
 
     if (selectedList.length === 0) return;
 
-    try {
-      for (const selected of selectedList) {
-        await window.electron.mainCreateGroup({
-          accessToken: selected.TokenGridLD,
-          nameGroup: "",
-          ldName: selected.LDPlayerGridLD,
-          oaId: "",
-          privateId: [""],
-        });
+    if (profile === "") {
+      try {
+        for (const selected of selectedList) {
+          await window.electron.createChatSystem({
+            accessToken: selected.TokenGridLD,
+            ldName: selected.LDPlayerGridLD,
+            profile: "SYSTEM",
+            nameGroup: nameGroup,
+            oaId: officialId[0],
+            privateId: privateId,
+          });
 
-        await fetchLDPlayers();
+          await fetchLDPlayers();
+        }
+      } catch (err) {
+        console.error("Create Group Fail:", err);
       }
-    } catch (err) {
-      console.error("Create Group Fail:", err);
+    } else {
+      try {
+        for (const selected of selectedList) {
+          await window.electron.createChatCustom({
+            accessToken: selected.TokenGridLD,
+            ldName: selected.LDPlayerGridLD,
+            nameGroup: nameGroup,
+            profile: profile,
+            oaId: officialId[0],
+            privateId: privateId,
+          });
+
+          await fetchLDPlayers();
+        }
+      } catch (err) {
+        console.error("Create Group Fail:", err);
+      }
     }
   };
 
@@ -481,8 +506,8 @@ export default function Page() {
           <CreateGroupDialog
             open={isDialogOpenCreateGroup}
             onCancel={() => setDialogOpenCreateGroup(false)}
-            onConfirm={() => {
-              handleCreateGroup();
+            onConfirm={(nameGroup, profile, officialId, privateId) => {
+              handleCreateGroup(nameGroup, profile, officialId, privateId);
               setDialogOpenCreateGroup(false);
             }}
           />

@@ -1,12 +1,12 @@
 import { syncContactsKai } from "./syncContactPhoneKai.js";
 import { findContactByUseridOa } from "./function-addFriendOa.js";
-import { createGroup } from "./createChat.js";
+import { createChatWithProfileSystem } from "./createChatWithProfileSystem.js";
 import { getAllContactIds } from "./getAllContactIds.js";
 
-export async function mainCreateGroup({
+export async function createChatSystem({
   accessToken,
-  nameGroup,
   ldName,
+  nameGroup,
   oaId,
   privateId,
 }: {
@@ -18,13 +18,16 @@ export async function mainCreateGroup({
 }): Promise<boolean> {
   try {
     await syncContactsKai(accessToken, privateId);
+
     await findContactByUseridOa(accessToken, oaId);
 
     await getAllContactIds(accessToken);
-    await createGroup({ accessToken, nameGroup, ldName });
+
+    await createChatWithProfileSystem({ accessToken, ldName, nameGroup });
 
     return true;
-  } catch {
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการสร้างกลุ่ม:", error);
     return false;
   }
 }

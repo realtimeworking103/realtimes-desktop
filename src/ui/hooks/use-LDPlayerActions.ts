@@ -16,7 +16,7 @@ export function useLDPlayerActions(
           window.electron.callLdInstance(ldName),
         ),
       );
-      await fetchLDPlayers();
+      fetchLDPlayers();
     } catch (err) {
       console.error("Open LDPlayer Fail:", err);
     }
@@ -31,14 +31,14 @@ export function useLDPlayerActions(
             const [_, release] = await semaphore.acquire();
             await new Promise((resolve) => setTimeout(resolve, 1000));
             await window.electron.deleteLdInstance(ldName);
-            await fetchLDPlayers();
+            fetchLDPlayers();
             release();
           } catch (err) {
             console.error("Delete LDPlayer Fail:", err);
           }
         }),
       );
-      await fetchLDPlayers();
+      fetchLDPlayers();
     } catch (err) {
       console.error("Delete LDPlayer Fail:", err);
     }
@@ -51,7 +51,7 @@ export function useLDPlayerActions(
       await Promise.all(
         names.map((ldName) => window.electron.deleteRowFromDB(ldName)),
       );
-      await fetchLDPlayers();
+      fetchLDPlayers();
       setSelectedRows((prev) => {
         const updated = new Set(prev);
         names.forEach((n) => updated.delete(n));
@@ -70,14 +70,14 @@ export function useLDPlayerActions(
           try {
             const [_, release] = await semaphore.acquire();
             await window.electron.getTokenLdInstance(ldName);
-            await fetchLDPlayers();
+            fetchLDPlayers();
             release();
           } catch (err) {
             console.error("Get Token Auto Fail:", err);
           }
         }),
       );
-      await fetchLDPlayers();
+      fetchLDPlayers();
     } catch (err) {
       console.error("Get Token Auto Fail:", err);
     }
@@ -100,7 +100,7 @@ export function useLDPlayerActions(
       await Promise.all(
         toCheckban.map((item) => window.electron.checkBanLdInstance(item)),
       );
-      await fetchLDPlayers();
+      fetchLDPlayers();
     } catch (err) {
       console.error("Check Ban Failed:", err);
     }
@@ -112,7 +112,7 @@ export function useLDPlayerActions(
         window.electron.updatePhoneFile({ ldName, fileName }),
       ),
     );
-    await fetchLDPlayers();
+    fetchLDPlayers();
   };
 
   return {

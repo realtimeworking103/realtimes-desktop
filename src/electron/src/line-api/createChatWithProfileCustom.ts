@@ -1,29 +1,20 @@
 import http2 from "http2";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 import { encodeGroupName, encodeMid, getMidCountBytes } from "./function.js";
-import { uploadImageToGroup } from "./updateProfileGroup1.js";
+import { uploadImageWithHttps } from "./updateProfileGroup2.js";
 import db from "../services/sqliteService.js";
 import { lineconfig } from "../config/line-config.js";
-import {acquireEncryptedAccessToken} from "../line-api/acquireEncryptedAccessToken.js"
+import { acquireEncryptedAccessToken } from "./acquireEncryptedAccessToken.js";
 
-const MAX_PER_GROUP = 99;
-const chunkArray = (arr: string[], size: number) =>
-  Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
-    arr.slice(i * size, i * size + size),
-  );
-
-export async function createGroup(params: {
+export async function createChatWithProfileCustom(params: {
   accessToken: string;
   nameGroup: string;
   ldName: string;
   contactFolder?: string;
   usedFolder?: string;
+  profile: string;
+  midAdmin: string[];
 }) {
   const {
     accessToken,
@@ -31,37 +22,34 @@ export async function createGroup(params: {
     ldName,
     contactFolder = "ContactMids",
     usedFolder = "GroupMids",
+    profile,
+    midAdmin,
   } = params;
 
   const token = accessToken.split(":")[0];
+  const contactFolderPath = path.join(process.cwd(), contactFolder);
+  const contactFilePath = path.join(contactFolderPath, `${token}.txt`);
+  const usedPath = path.join(process.cwd(), usedFolder, `${token}.txt`);
+  const MAX_PER_GROUP = 99;
+  const adminMids = midAdmin;
 
-  const contactDir = path.join(__dirname, contactFolder);
-  if (!fs.existsSync(contactDir)) {
-    fs.mkdirSync(contactDir, { recursive: true });
-  }
+  const chunkArray = (arr: string[], size: number) =>
+    Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+      arr.slice(i * size, i * size + size),
+    );
 
-  const sourcePath = path.join(contactDir, `${token}.txt`);
-  if (!fs.existsSync(sourcePath)) {
-    fs.writeFileSync(sourcePath, "", "utf8");
-    
-  }
-
-  const adminFilePath = path.join(__dirname, "admin.txt");
-  const adminMids = fs.existsSync(adminFilePath)
+  const contactMids = fs.existsSync(contactFilePath)
     ? fs
-        .readFileSync(adminFilePath, "utf-8")
+        .readFileSync(contactFilePath, "utf-8")
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean)
     : [];
 
-  const allMids = fs
-    .readFileSync(sourcePath, "utf-8")
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
+  if (!fs.existsSync(usedPath)) {
+    fs.mkdirSync(path.dirname(usedPath), { recursive: true });
+  }
 
-  const usedPath = path.join(__dirname, usedFolder, `${token}.txt`);
   const usedMids: string[] = fs.existsSync(usedPath)
     ? fs
         .readFileSync(usedPath, "utf-8")
@@ -70,7 +58,7 @@ export async function createGroup(params: {
         .filter(Boolean)
     : [];
 
-  const newMids = allMids.filter((m) => !usedMids.includes(m));
+  const newMids = contactMids.filter((m) => !usedMids.includes(m));
   if (newMids.length < 10) {
     db.prepare(
       `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
@@ -96,7 +84,7 @@ export async function createGroup(params: {
       Buffer.from([0x18, 0x00, 0x00, 0x00]),
     ]);
 
-    await new Promise<void>((resolve, reject) => {
+    try {
       const client = http2.connect(lineconfig.URL_LINE);
 
       const req = client.request({
@@ -129,9 +117,10 @@ export async function createGroup(params: {
             ).run(`สร้างกลุ่มไม่สำเร็จ request blocked`, ldName);
           } else {
             const acquireToken = await acquireEncryptedAccessToken(accessToken);
-            await uploadImageToGroup(groupId, acquireToken);
+            await uploadImageWithHttps(groupId, acquireToken, profile);
 
             usedMids.push(...midsInGroup);
+
             fs.writeFileSync(usedPath, usedMids.join("\n") + "\n");
 
             const row = db
@@ -152,14 +141,15 @@ export async function createGroup(params: {
               ldName,
             );
           }
-          resolve();
         } catch (err) {
-          reject(err);
+          console.error("Error creating group:", err);
         }
       });
 
       req.write(payload);
       req.end();
-    });
+    } catch (error) {
+      console.error("Error creating group:", error);
+    }
   }
 }

@@ -1,11 +1,5 @@
 import http2 from "http2";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import { lineconfig } from "../config/line-config.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 function createContactBuffer(index: number, phone: string): Buffer {
   const indexSizeByte = Math.floor(Math.log10(Math.abs(index))) + 1;
@@ -47,52 +41,49 @@ const footer = Buffer.from([0x00]);
 export async function syncContactsKai(
   accessToken: string,
   phones: string[],
-  outputFilename = "admin.txt",
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const outputPath = path.join(__dirname, outputFilename);
-    const client = http2.connect(lineconfig.URL_LINE);
+): Promise<string> {
+  try {
+    return await new Promise<string>((resolve, reject) => {
+      const client = http2.connect(lineconfig.URL_LINE);
 
-    const countBuf = Buffer.from([phones.length]);
-    const contactBuf = createContactBuffers(phones);
-    const payload = Buffer.concat([header, countBuf, contactBuf, footer]);
+      const countBuf = Buffer.from([phones.length]);
+      const contactBuf = createContactBuffers(phones);
+      const payload = Buffer.concat([header, countBuf, contactBuf, footer]);
 
-    const req = client.request({
-      ":method": "POST",
-      ":path": "/S4",
-      "User-Agent": "Line/15.2.1",
-      "X-Line-Access": accessToken,
-      "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
-      "X-Lal": "th_TH",
-      "X-Lpv": "1",
-      "Content-Type": "application/x-thrift",
-      "Accept-Encoding": "gzip, deflate, br",
+      const req = client.request({
+        ":method": "POST",
+        ":path": "/S4",
+        "User-Agent": "Line/15.2.1",
+        "X-Line-Access": accessToken,
+        "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
+        "X-Lal": "th_TH",
+        "X-Lpv": "1",
+        "Content-Type": "application/x-thrift",
+        "Accept-Encoding": "gzip, deflate, br",
+      });
+
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk.toString();
+      });
+
+      req.on("end", () => {
+        client.close();
+        const mid = body.slice(36, 69);
+        resolve(mid);
+        console.log(`ADD CONTACT KAI :`, mid);
+      });
+
+      req.on("error", () => {
+        client.close();
+        resolve("");
+      });
+
+      req.write(payload);
+      req.end();
     });
-
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk.toString();
-      console.log(`Response Body syncContact Kai :`, chunk.toString());
-    });
-
-    req.on("end", () => {
-      client.close();
-      resolve();
-      const mid = body.slice(36, 69);
-      if (mid && mid.startsWith("u")) {
-        fs.appendFileSync(outputPath, mid + "\n", "utf8");
-        console.log(`SAVE MID: ${mid}`);
-      } else {
-        console.warn(`not found mid phone`);
-      }
-    });
-
-    req.on("error", (err) => {
-      client.close();
-      reject(err);
-    });
-
-    req.write(payload);
-    req.end();
-  });
+  } catch (error) {
+    console.log(error);
+    return "";
+  }
 }

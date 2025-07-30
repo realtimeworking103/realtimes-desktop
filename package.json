@@ -2,6 +2,8 @@
   "name": "realtimes-desktop",
   "private": true,
   "version": "0.0.0",
+  "description": "Realtimes Desktop Application",
+  "author": "Realtimes Team",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -12,7 +14,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "transpile:electron": "tsc --project src/electron/tsconfig.json",
-    "dist:win": "npm run transpile:electron && npm run build && electron-builder --win --x64"
+    "dist:win": "npm run transpile:electron && npm run build && electron-builder --win --x64",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.14",

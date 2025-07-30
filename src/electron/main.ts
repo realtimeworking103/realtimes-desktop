@@ -28,22 +28,22 @@ const createWindow = () => {
 app.whenReady().then(() => {
   const mainWindow = createWindow();
 
-  mainWindow.on('close', async(event) => {
+  mainWindow.on("close", async (event) => {
     // Prevent window from closing immediately
     event.preventDefault();
-    
+
     // Get stored auth data for logout
     const authData = getAuthData();
     if (authData) {
-      await logout(authData.sessionId, authData.userId);
+      await logout({ sessionId: authData.sessionId, userId: authData.userId });
     }
 
     // Show confirmation or cleanup
-    console.log('Window is about to close');
+    console.log("Window is about to close");
 
     // Do async or sync cleanup, then:
     // Remove the listener to avoid infinite loop
-    mainWindow.removeAllListeners('close');
+    mainWindow.removeAllListeners("close");
     mainWindow.close();
   });
 

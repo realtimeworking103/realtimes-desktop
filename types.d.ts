@@ -100,11 +100,23 @@ type IpcEventMap = {
   };
 
   // Group
-  mainCreateGroup: {
+  createChatSystem: {
     payload: {
       accessToken: string;
       ldName: string;
       nameGroup: string;
+      profile: string;
+      oaId: string;
+      privateId: string[];
+    };
+    response: boolean;
+  };
+  createChatCustom: {
+    payload: {
+      accessToken: string;
+      ldName: string;
+      nameGroup: string;
+      profile: string;
       oaId: string;
       privateId: string[];
     };
@@ -224,7 +236,12 @@ type IpcEventMap = {
   };
   getFileNameGroup: {
     payload: void;
-    response: { id: number; name: string; description: string }[];
+    response: {
+      id: number;
+      name: string;
+      description: string;
+      createAt: string;
+    }[];
   };
   deleteNameGroup: {
     payload: number;

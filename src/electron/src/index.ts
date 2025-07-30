@@ -4,7 +4,6 @@ import { getStatisData, pollResources } from "./resource-manager.js";
 
 import {
   getLdInstancePath,
-  setLdInstancePath as setLdInstancePathService,
   browseLdInstancePath,
 } from "./services/ldplayer/getLdInstancePath.js";
 
@@ -19,7 +18,8 @@ import { getTableCreateLdInstance } from "./services/ldplayer/getTableCreateLdIn
 import { getLdInstance } from "./services/ldplayer/getLdInstance.js";
 import { addFriends } from "./line-api/function-addfriends.js";
 import { checkBanLdInstance } from "./line-api/function-checkban.js";
-import { mainCreateGroup } from "./line-api/createChatAsync.js";
+import { createChatSystem } from "./line-api/createChatSystem.js";
+import { createChatCustom } from "./line-api/createChatCustom.js";
 
 import {
   deleteTxtFile,
@@ -30,8 +30,7 @@ import {
 
 import { updatePhoneFile } from "./function-db.js";
 import { login, logout } from "./api/index.js";
-import { getWindowsSID } from "./utils/getWindowsSid.js";
-import { setAuthData, clearAuthData } from "./config/app-config.js";
+
 import {
   deleteProfile,
   getProfile,
@@ -74,7 +73,8 @@ export default function initMain(mainWindow: BrowserWindow) {
 
   // Function Line Api
   ipcMainHandle("addFriends", addFriends);
-  ipcMainHandle("mainCreateGroup", mainCreateGroup);
+  ipcMainHandle("createChatSystem", createChatSystem);
+  ipcMainHandle("createChatCustom", createChatCustom);
   ipcMainHandle("checkBanLdInstance", checkBanLdInstance);
 
   //Txt File
@@ -85,33 +85,8 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("selectTextFile", selectTextFile);
 
   //Login
-  ipcMainHandle("login", async (payload) => {
-    const { username, password } = payload;
-    const hwid = await getWindowsSID();
-    const response = await login(username, password, hwid);
-
-    // Store auth data for logout
-    setAuthData(response.result.sessionId, response.result.userId);
-
-    return {
-      sessionId: response.result.sessionId,
-      userId: response.result.userId,
-    };
-  });
-
-  //Logout
-  ipcMainHandle(
-    "logout",
-    async (payload: { sessionId: string; userId: string }) => {
-      const { sessionId, userId } = payload;
-      const response = await logout(sessionId, userId);
-
-      // Clear auth data after logout
-      clearAuthData();
-
-      return response.result;
-    },
-  );
+  ipcMainHandle("login", login);
+  ipcMainHandle("logout", logout);
 
   //Account
   ipcMainHandle("getAccount", getAccount);

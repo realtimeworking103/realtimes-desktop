@@ -30,3 +30,5 @@ config
 databaseldplayer
 *.db
 profile
+ContactMids
+GroupMids

@@ -1,20 +1,11 @@
 import http2 from "http2";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import { lineconfig } from "../config/line-config.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export async function findContactByUseridOa(
   accessToken: string,
   oaId: string,
-  outputFilename = "admin.txt",
-): Promise<void> {
+): Promise<string> {
   return new Promise((resolve, reject) => {
-    const outputPath = path.join(__dirname, outputFilename);
-
     const header = Buffer.from([
       0x82, 0x21, 0x01, 0x13, 0x66, 0x69, 0x6e, 0x64, 0x43, 0x6f, 0x6e, 0x74,
       0x61, 0x63, 0x74, 0x42, 0x79, 0x55, 0x73, 0x65, 0x72, 0x69, 0x64, 0x28,
@@ -47,18 +38,8 @@ export async function findContactByUseridOa(
     req.on("end", async () => {
       client.close();
       const mid = body.slice(27, 60);
-      if (mid && mid.startsWith("u")) {
-        fs.appendFileSync(outputPath, mid + "\n", "utf8");
-        console.log(`SAVE MID: ${mid}`);
-      } else {
-        console.warn(`not found mid phone`);
-      }
-      try {
-        await addFriendByIdOa(accessToken, oaId, mid);
-        resolve();
-      } catch (err) {
-        reject(err);
-      }
+      resolve(mid);
+      await addFriendByIdOa(accessToken, oaId, mid);
     });
 
     req.on("error", reject);
@@ -116,8 +97,7 @@ export async function addFriendByIdOa(
     });
 
     req.on("data", (chunk) => {
-      console.log(`Response Body AddFriend oaId :`, chunk.toString());
-      // console.log("Response Body:", chunk.toString("utf8"));
+      console.log(`ADD CONTACT OA :`, chunk.toString());
     });
 
     req.on("end", () => {

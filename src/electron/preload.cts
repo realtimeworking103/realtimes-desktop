@@ -45,13 +45,23 @@ electron.contextBridge.exposeInMainWorld("electron", {
     phoneFile: string;
   }) => ipcInvoke("addFriends", payload),
 
-  mainCreateGroup: (payload: {
+  createChatSystem: (payload: {
     accessToken: string;
     ldName: string;
     nameGroup: string;
+    profile: string;
     oaId: string;
     privateId: string[];
-  }) => ipcInvoke("mainCreateGroup", payload),
+  }) => ipcInvoke("createChatSystem", payload),
+
+  createChatCustom: (payload: {
+    accessToken: string;
+    ldName: string;
+    nameGroup: string;
+    profile: string;
+    oaId: string;
+    privateId: string[];
+  }) => ipcInvoke("createChatCustom", payload),
 
   selectTextFile: () => ipcInvoke("selectTextFile"),
 

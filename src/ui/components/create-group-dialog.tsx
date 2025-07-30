@@ -18,13 +18,12 @@ import {
 import { Card, CardTitle, CardHeader, CardContent } from "./ui/card";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
-import { toast } from "sonner";
 
 interface CreateGroupDialogProps {
   open: boolean;
   onConfirm: (
-    profile: string,
     nameGroup: string,
+    profile: string,
     officialId: string[],
     privateId: string[],
   ) => void;
@@ -40,8 +39,9 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
   const [selectedNameGroup, setSelectedNameGroup] = useState<string>("");
 
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
-  const [selectedRandomProfile, setSelectedRandomProfile] =
-    useState<boolean>(false);
+  const [selectedProfilePaths, setSelectedProfilePaths] = useState<string[]>(
+    [],
+  );
 
   const [account, setAccount] = useState<AccountType[]>([]);
   const [officialId, setOfficialId] = useState<string[]>([]);
@@ -50,8 +50,7 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
 
   useEffect(() => {
     window.electron.getFileNameGroup().then((data) => {
-      setNameGroup(data as unknown as NameGroupType[]);
-      setSelectedNameGroup(data[0].id.toString());
+      setNameGroup(data);
     });
   }, []);
 
@@ -80,19 +79,12 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
   };
 
   const handleConfirm = () => {
-    if (selectedRandomProfile) {
-      if (selectedProfiles.length === 0) {
-        toast.error("กรุณาเลือกรูปภาพจากระบบ");
-        return;
-      }
-      onConfirm(selectedProfiles[0], selectedNameGroup, officialId, privateId);
-    } else {
-      if (selectedProfiles.length === 0) {
-        toast.error("กรุณาเลือกรูปภาพจากระบบ");
-        return;
-      }
-      onConfirm(selectedProfiles[0], selectedNameGroup, officialId, privateId);
-    }
+    onConfirm(
+      selectedNameGroup,
+      selectedProfilePaths[0],
+      officialId,
+      privateId,
+    );
   };
 
   return (
@@ -108,16 +100,13 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
             <CardTitle>ชื่อกลุ่ม</CardTitle>
           </CardHeader>
           <CardContent>
-            <Select
-              onValueChange={handleSelectNameGroup}
-              value={selectedNameGroup}
-            >
+            <Select onValueChange={handleSelectNameGroup}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="เลือกชื่อกลุ่ม" />
               </SelectTrigger>
               <SelectContent>
                 {nameGroup.map((item) => (
-                  <SelectItem key={item.id} value={item.id.toString()}>
+                  <SelectItem key={item.name} value={item.name}>
                     {item.name}
                   </SelectItem>
                 ))}
@@ -137,7 +126,7 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
                   src={`/profile/${profile.name}`}
                   alt="profile"
                   className={
-                    "mx-1 h-16 w-16 cursor-pointer hover:ring-2 hover:ring-blue-500" +
+                    " mx-1 h-16 w-16 cursor-pointer hover:ring-2 hover:ring-blue-500" +
                     (selectedProfiles.includes(profile.name)
                       ? " ring-4 ring-green-500"
                       : "")
@@ -145,9 +134,16 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
                   onClick={() => {
                     if (!selectedProfiles.includes(profile.name)) {
                       setSelectedProfiles([...selectedProfiles, profile.name]);
+                      setSelectedProfilePaths([
+                        ...selectedProfilePaths,
+                        profile.path,
+                      ]);
                     } else {
                       setSelectedProfiles(
                         selectedProfiles.filter((n) => n !== profile.name),
+                      );
+                      setSelectedProfilePaths(
+                        selectedProfilePaths.filter((p) => p !== profile.path),
                       );
                     }
                   }}
@@ -157,25 +153,25 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
             <div className="mt-4 flex items-center justify-center">
               <RadioGroup
                 className="flex items-center justify-center"
-                value={selectedRandomProfile ? "1" : "2"}
+                value={selectedProfiles.length === 1 ? "CUSTOM" : "SYSTEM"}
               >
                 <RadioGroupItem
-                  value="1"
-                  checked={selectedRandomProfile}
+                  value="CUSTOM"
+                  checked={selectedProfiles.length === 1}
                   onClick={() => {
-                    setSelectedRandomProfile(!selectedRandomProfile);
                     setSelectedProfiles([allProfile[0].name]);
+                    setSelectedProfilePaths([allProfile[0].path]);
                   }}
                 >
                   สุ่มรูปภาพ
                 </RadioGroupItem>
                 <Label>สุ่มรูปภาพ</Label>
                 <RadioGroupItem
-                  value="2"
-                  checked={!selectedRandomProfile}
+                  value="SYSTEM"
+                  checked={selectedProfiles.length === 0}
                   onClick={() => {
-                    setSelectedRandomProfile(!selectedRandomProfile);
-                    setSelectedProfiles([selectedProfiles[0]]);
+                    setSelectedProfiles([]);
+                    setSelectedProfilePaths([]);
                   }}
                 >
                   เลือกรูปภาพจากระบบ
@@ -199,7 +195,7 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
                   {account
                     .filter((item) => item.type === "ไลน์บอท")
                     .map((item) => (
-                      <SelectItem key={item.id} value={item.id.toString()}>
+                      <SelectItem key={item.name} value={item.name}>
                         {item.name}
                       </SelectItem>
                     ))}
@@ -213,7 +209,7 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
                   {account
                     .filter((item) => item.type === "ไลน์ส่วนตัว")
                     .map((item) => (
-                      <SelectItem key={item.id} value={item.id.toString()}>
+                      <SelectItem key={item.name} value={item.name}>
                         {item.name}
                       </SelectItem>
                     ))}
