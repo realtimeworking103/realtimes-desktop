@@ -52,6 +52,14 @@ import {
   editNameGroup,
 } from "./services/nameService.js";
 
+import { inviteIntoChats } from "./client/inviteIntoChat.js";
+import {
+  addMessage,
+  deleteMessage,
+  getMessage,
+  editMessage,
+} from "./services/messageService.js";
+
 export default function initMain(mainWindow: BrowserWindow) {
   pollResources(mainWindow);
   ipcMainHandle("getStaticData", getStatisData);
@@ -105,4 +113,13 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("deleteNameGroup", deleteNameGroup);
   ipcMainHandle("addNameGroup", addNameGroup);
   ipcMainHandle("editNameGroup", editNameGroup);
-}
+
+  //Invite Into Chat
+  ipcMainHandle("inviteIntoChats", inviteIntoChats);
+
+  //Message
+  ipcMainHandle("addMessage", addMessage);
+  ipcMainHandle("deleteMessage", deleteMessage);
+  ipcMainHandle("getMessage", getMessage);
+  ipcMainHandle("editMessage", editMessage);
+} 

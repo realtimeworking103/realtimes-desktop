@@ -7,7 +7,7 @@ function createContactBuffer(index: number, phone: string): Buffer {
     .toString()
     .split("")
     .map((num) => parseInt(`0x3${num}`, 16));
-  const numberBytes = Buffer.from(phone, "utf-8");
+  const numberBytes = Buffer.from(phone, "utf8");
 
   return Buffer.from([
     0x15,
@@ -31,20 +31,17 @@ function createContactBuffers(phones: string[]): Buffer {
   );
 }
 
-const header = Buffer.from([
-  0x82, 0x21, 0x01, 0x0c, 0x73, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x74, 0x61,
-  0x63, 0x74, 0x73, 0x15, 0xf6, 0x2e, 0x19, 0xfc,
-]);
-
-const footer = Buffer.from([0x00]);
-
-export async function syncContactsKai(
-  accessToken: string,
-  phones: string[],
-): Promise<string> {
-  try {
-    return await new Promise<string>((resolve, reject) => {
+export async function syncContactsKai(accessToken: string, phones: string[]) {
+  return new Promise<string>((resolve, reject) => {
+    try {
       const client = http2.connect(lineconfig.URL_LINE);
+
+      const header = Buffer.from([
+        0x82, 0x21, 0x01, 0x0c, 0x73, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x74,
+        0x61, 0x63, 0x74, 0x73, 0x15, 0xf6, 0x2e, 0x19, 0xfc,
+      ]);
+
+      const footer = Buffer.from([0x00]);
 
       const countBuf = Buffer.from([phones.length]);
       const contactBuf = createContactBuffers(phones);
@@ -62,28 +59,32 @@ export async function syncContactsKai(
         "Accept-Encoding": "gzip, deflate, br",
       });
 
-      let body = "";
+      let response = "";
       req.on("data", (chunk) => {
-        body += chunk.toString();
+        response += chunk.toString("utf8");
       });
 
-      req.on("end", () => {
+      req.on("end", async () => {
         client.close();
-        const mid = body.slice(36, 69);
+        const midMatch = response.match(/u[a-f0-9]{32}/i);
+        if (!midMatch) {
+          return reject(new Error("ไม่พบ MID ใน response"));
+        }
+        const mid = midMatch[0];
         resolve(mid);
-        console.log(`ADD CONTACT KAI :`, mid);
       });
 
-      req.on("error", () => {
+      req.on("error", (err) => {
         client.close();
-        resolve("");
+        console.error("Request error:", err);
+        reject(err);
       });
 
       req.write(payload);
       req.end();
-    });
-  } catch (error) {
-    console.log(error);
-    return "";
-  }
+    } catch (error) {
+      console.error("syncContactsKai error:", error);
+      reject(error);
+    }
+  });
 }

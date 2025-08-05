@@ -43,7 +43,7 @@ export default function Page() {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [progress, setProgress] = useState<{ current: number; total: number }>({
     current: 0,
-    total: 0,
+    total: 100,
   });
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
@@ -104,7 +104,7 @@ export default function Page() {
     } finally {
       setLoading(false);
       console.log("สร้าง LDPlayer เสร็จสิ้นทั้งหมด");
-      setProgress({ current: 0, total: 0 });
+      setProgress({ current: count, total: count });
     }
   };
 
@@ -141,6 +141,7 @@ export default function Page() {
 
       const updated = await window.electron.getDataCreateLDPlayers();
       setLdData(updated);
+      setProgress({ current: 0, total: 100 });
       console.log("Refreshed data after move.");
     } catch (error) {
       console.error("Error moving selected LDPlayers:", error);
@@ -258,7 +259,7 @@ export default function Page() {
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
             <span className="text-sm font-medium text-gray-700">
-              กำลังสร้าง LDPlayer
+              สถานะการทำงาน
             </span>
           </div>
           <span className="font-mono text-sm text-gray-500">
@@ -281,110 +282,118 @@ export default function Page() {
           <CardTitle>รายการ LDPlayer</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100">
-            <div className="overflow-hidden rounded-lg border border-gray-200">
-              <Table className="[&_*]:text-center [&_*]:align-middle">
-                <TableHeader className="sticky top-0 z-10 bg-gray-50">
-                  <TableRow className="hover:bg-gray-50">
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
-                      <Checkbox
-                        checked={
-                          ldData.length > 0 &&
-                          selectedRows.size === ldData.length
-                        }
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedRows(
-                              new Set(ldData.map((item) => item.NoDataGridLD)),
-                            );
-                          } else {
-                            setSelectedRows(new Set());
-                          }
-                        }}
-                      />
-                    </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
-                      ลำดับ
-                    </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
-                      LDPlayer
-                    </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
-                      เวลาที่สร้าง
-                    </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
-                      สถานะ
-                    </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
-                      การดำเนินการ
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {ldData.map((item) => (
-                    <TableRow
-                      key={item.NoDataGridLD}
-                      className="hover:bg-blue-50/50"
-                    >
-                      <TableCell className="text-center">
-                        <Checkbox
-                          checked={selectedRows.has(item.NoDataGridLD)}
-                          onCheckedChange={() => toggleRow(item.NoDataGridLD)}
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant="secondary"
-                          className="bg-blue-100 text-blue-800"
-                        >
-                          {item.NoDataGridLD}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.LDPlayerGridLD}
-                      </TableCell>
-                      <TableCell className="text-center text-sm text-gray-500">
-                        {item.DateTimeGridLD}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant="secondary"
-                          className="bg-green-100 text-sm text-green-800"
-                        >
-                          {item.StatusGridLD}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Button
-                            onClick={() =>
-                              handleOpenLDPlayer(item.LDPlayerGridLD)
+          <div className="h-[300px]">
+            <div className="h-[300px] overflow-y-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100">
+              <div>
+                <div className="min-w-[1000px]">
+                  <Table className="[&_*]:text-center [&_*]:align-middle">
+                    <TableHeader className="sticky top-0 z-10 bg-gray-50">
+                      <TableRow className="hover:bg-gray-50">
+                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                          <Checkbox
+                            checked={
+                              ldData.length > 0 &&
+                              selectedRows.size === ldData.length
                             }
-                            size="sm"
-                            variant="default"
-                            className="bg-blue-500 text-white hover:bg-blue-600"
-                          >
-                            <Monitor className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            onClick={() =>
-                              setOpenDeleteDialog({
-                                open: true,
-                                name: item.LDPlayerGridLD,
-                              })
-                            }
-                            size="sm"
-                            variant="destructive"
-                            className="bg-red-500 hover:bg-red-600"
-                          >
-                            <Trash className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedRows(
+                                  new Set(
+                                    ldData.map((item) => item.NoDataGridLD),
+                                  ),
+                                );
+                              } else {
+                                setSelectedRows(new Set());
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                          ลำดับ
+                        </TableHead>
+                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                          LDPlayer
+                        </TableHead>
+                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                          เวลาที่สร้าง
+                        </TableHead>
+                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                          สถานะ
+                        </TableHead>
+                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                          การดำเนินการ
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {ldData.map((item) => (
+                        <TableRow
+                          key={item.NoDataGridLD}
+                          className="hover:bg-blue-50/50"
+                        >
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={selectedRows.has(item.NoDataGridLD)}
+                              onCheckedChange={() =>
+                                toggleRow(item.NoDataGridLD)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant="secondary"
+                              className="bg-blue-100 text-blue-800"
+                            >
+                              {item.NoDataGridLD}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item.LDPlayerGridLD}
+                          </TableCell>
+                          <TableCell className="text-center text-sm text-gray-500">
+                            {item.DateTimeGridLD}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant="secondary"
+                              className="bg-green-100 text-sm text-green-800"
+                            >
+                              {item.StatusGridLD}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                onClick={() =>
+                                  handleOpenLDPlayer(item.LDPlayerGridLD)
+                                }
+                                size="sm"
+                                variant="default"
+                                className="bg-blue-500 text-white hover:bg-blue-600"
+                              >
+                                <Monitor className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                onClick={() =>
+                                  setOpenDeleteDialog({
+                                    open: true,
+                                    name: item.LDPlayerGridLD,
+                                  })
+                                }
+                                size="sm"
+                                variant="destructive"
+                                className="bg-red-500 hover:bg-red-600"
+                              >
+                                <Trash className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>

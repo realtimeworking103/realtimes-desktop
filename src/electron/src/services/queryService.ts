@@ -3,8 +3,6 @@ import db from "./sqliteService.js";
 export function queryTableGetToken(
   StatusAccGridLD: string,
   StatusGridLD: string,
-  FriendGridLD: string,
-  GroupGridLD: string,
   TokenGridLD: string,
   NameLineGridLD: string,
   PhoneGridLD: string,
@@ -16,8 +14,6 @@ export function queryTableGetToken(
       UPDATE GridLD SET
           StatusAccGridLD = @accStatus,
           StatusGridLD = @status,
-          FriendGridLD = @friends,
-          GroupGridLD = @groups,
           TokenGridLD = @token,
           NameLineGridLD = @name,
           PhoneGridLD = @phone,
@@ -28,8 +24,6 @@ export function queryTableGetToken(
     ).run({
       accStatus: StatusAccGridLD,
       status: StatusGridLD,
-      friends: FriendGridLD,
-      groups: GroupGridLD,
       token: TokenGridLD,
       name: NameLineGridLD,
       phone: PhoneGridLD,

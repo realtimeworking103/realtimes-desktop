@@ -28,6 +28,14 @@ const createWindow = () => {
 app.whenReady().then(() => {
   const mainWindow = createWindow();
 
+  const originalLog = console.log;
+  console.log = function (...args) {
+    originalLog.apply(console, args);
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send("test", args.join(" "));
+    }
+  };
+
   mainWindow.on("close", async (event) => {
     // Prevent window from closing immediately
     event.preventDefault();

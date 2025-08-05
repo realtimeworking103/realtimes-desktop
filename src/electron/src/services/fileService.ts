@@ -2,6 +2,7 @@ import { dialog } from "electron";
 import db from "./sqliteService.js";
 import fs from "fs/promises";
 import path from "path";
+
 export function getTxtFiles(): {
   id: number;
   name: string;
@@ -74,7 +75,7 @@ export async function selectTextFile(): Promise<{
         },
       ],
     });
-    
+
     if (result.canceled || result.filePaths.length === 0) {
       return {
         name: "",
@@ -82,24 +83,13 @@ export async function selectTextFile(): Promise<{
         count: 0,
       };
     }
-    
+
     const filePath = result.filePaths[0];
-    
-    // Validate file exists and is readable
-    try {
-      await fs.access(filePath);
-    } catch (error) {
-      console.error("File access error:", error);
-      return {
-        name: "",
-        path: "",
-        count: 0,
-      };
-    }
-    
     const content = await fs.readFile(filePath, "utf-8");
     const lines = content.split("\n").filter((line) => line.trim());
-    
+
+    console.log(filePath);
+
     return {
       name: path.basename(filePath, ".txt"),
       path: filePath,
@@ -126,5 +116,3 @@ export function deleteTxtFile(id: number): boolean {
     return false;
   }
 }
-
-

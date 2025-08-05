@@ -23,6 +23,7 @@ type DataLDPlayersDB = {
   TokenGridLD: string;
   PhoneFileGridLD: string;
   CreateAt: string;
+  LineKaiGridLD: string[];
 };
 
 type CreateLDPlayersDB = {
@@ -43,6 +44,10 @@ type LineAccount = {
 type IpcEventMap = {
   statistics: {
     payload: Statistics;
+    response: void;
+  };
+  test: {
+    payload: any;
     response: void;
   };
   getStaticData: {
@@ -105,9 +110,8 @@ type IpcEventMap = {
       accessToken: string;
       ldName: string;
       nameGroup: string;
-      profile: string;
       oaId: string;
-      privateId: string[];
+      privateId: string;
     };
     response: boolean;
   };
@@ -118,7 +122,7 @@ type IpcEventMap = {
       nameGroup: string;
       profile: string;
       oaId: string;
-      privateId: string[];
+      privateId: string;
     };
     response: boolean;
   };
@@ -187,23 +191,31 @@ type IpcEventMap = {
       name: string;
       status: boolean;
       createAt: string;
+      mid: string;
     }[];
   };
 
   // Account
   addAccount: {
-    payload: { type: string; name: string; status: boolean };
+    payload: {
+      type: string;
+      name: string;
+      mid: string;
+      status: boolean;
+    };
     response: boolean;
   };
-
-  // Account
   deleteAccount: {
-    payload: number;
+    payload: string;
     response: boolean;
   };
-
   updateAccount: {
-    payload: { name: string; type: string; status: boolean };
+    payload: {
+      name: string;
+      type: string;
+      mid: string;
+      status: boolean;
+    };
     response: boolean;
   };
 
@@ -222,6 +234,7 @@ type IpcEventMap = {
   getProfile: {
     payload: void;
     response: {
+      id: number;
       name: string;
       path: string;
       status: boolean;
@@ -256,9 +269,40 @@ type IpcEventMap = {
     response: boolean;
   };
 
+  // Message
+  addMessage: {
+    payload: { nameMessage: string; message: string };
+    response: boolean;
+  };
+  deleteMessage: {
+    payload: number;
+    response: boolean;
+  };
+  getMessage: {
+    payload: void;
+    response: MessageType[];
+  };
+  editMessage: {
+    payload: { id: number; nameMessage: string; message: string };
+    response: boolean;
+  };
   // LDPlayer
   browseLdInstancePath: {
     payload: void;
+    response: boolean;
+  };
+
+  // Invite Into Chat
+  inviteIntoChats: {
+    payload: {
+      ldName: string;
+      accessToken: string;
+      profile: string;
+      nameGroup: string;
+      oaId: string;
+      privateId: string;
+      message: string;
+    };
     response: boolean;
   };
 

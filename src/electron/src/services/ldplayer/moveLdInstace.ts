@@ -16,9 +16,11 @@ export function moveLdInstace(ldNames: string[]): boolean {
         LDPlayerGridLD,
         StatusAccGridLD,
         StatusGridLD,
+        FriendGridLD,
+        GroupGridLD,
         CreateAt
       )
-      VALUES (?, 'บัญชีรอการสมัคร', ?, '')
+      VALUES (?, 'บัญชีรอการสมัคร', ?, '0', '0', '')
     `);
 
     const deleteFromCreate = db.prepare(`

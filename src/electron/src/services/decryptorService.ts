@@ -1,24 +1,23 @@
 import fs from "fs";
-import { fileURLToPath } from "url";
 import path from "path";
 import crypto from "crypto";
 import Database from "better-sqlite3";
 import db from "./sqliteService.js";
 import { queryTableGetToken } from "./queryService.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+export interface LineProfile {
+  mid: string;
+  authKey: string;
+  name: string;
+  phone: string;
+  token: string;
+}
 
 export async function decryptAndSaveProfile(ldName: string): Promise<string> {
-  // Input validation
-  if (!ldName || ldName.trim() === "") {
-    console.error("LDPlayer name is required");
-    return "";
-  }
-  
-  const pulledDbPath = path.resolve(
-    __dirname,
-    `../../../databaseldplayer/naver_line_${ldName}.db`,
+  const pulledDbPath = path.join(
+    process.cwd(),
+    "databaseldplayer",
+    `naver_line_${ldName}.db`,
   );
 
   if (!fs.existsSync(pulledDbPath)) {
@@ -26,11 +25,9 @@ export async function decryptAndSaveProfile(ldName: string): Promise<string> {
     return "";
   }
 
-  let pulledDb: Database.Database | null = null;
+  const pulledDb = new Database(pulledDbPath, { readonly: true });
 
   try {
-    pulledDb = new Database(pulledDbPath, { readonly: true });
-
     const tableExists = pulledDb
       .prepare(
         `SELECT name FROM sqlite_master WHERE type='table' AND name='setting'`,
@@ -41,7 +38,6 @@ export async function decryptAndSaveProfile(ldName: string): Promise<string> {
       db.prepare(
         `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
       ).run("บัญชีไม่ได้สมัคร", ldName);
-      console.warn(`LDPlayer ${ldName} Not Found Table Setting`);
       return "";
     }
 
@@ -52,15 +48,12 @@ export async function decryptAndSaveProfile(ldName: string): Promise<string> {
       db.prepare(
         `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
       ).run("บัญชีไม่ได้สมัคร", ldName);
-      console.warn(`ถอดรหัสโปรไฟล์ล้มเหลว: ${ldName}`);
       return "";
     }
 
     queryTableGetToken(
       "บัญชีไลน์พร้อมทำงาน",
       "เก็บ Token สำเร็จ",
-      "0",
-      "0",
       profile.token,
       profile.name,
       profile.phone,
@@ -72,26 +65,8 @@ export async function decryptAndSaveProfile(ldName: string): Promise<string> {
     db.prepare(
       `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
     ).run("เก็บ Token ไม่สำเร็จ", ldName);
-
-    console.error(`Error decrypting ${ldName}:`, err.message);
     return "";
-  } finally {
-    if (pulledDb) {
-      try {
-        pulledDb.close();
-      } catch (error) {
-        console.error("Error closing database:", error);
-      }
-    }
   }
-}
-
-export interface LineProfile {
-  mid: string;
-  authKey: string;
-  name: string;
-  phone: string;
-  token: string;
 }
 
 export class LineProfileDecryptor {
@@ -258,7 +233,6 @@ export class TokenGenerator {
 
   static getIssuedAt(): string {
     const iat = `iat: ${Math.floor(Date.now() / 1000) * 60}\n`;
-    // const iat = `iat: ${104812828440}\n`;
     return Buffer.from(iat, "utf-8").toString("base64") + ".";
   }
 

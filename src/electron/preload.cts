@@ -4,37 +4,29 @@ const electron = require("electron");
 electron.contextBridge.exposeInMainWorld("electron", {
   statistics: (callback: (stats: Statistics) => void) =>
     ipcOn("statistics", callback),
-
+  test: (callback: (stats: any) => void) => ipcOn("test", callback),
   getStaticData: () => ipcInvoke("getStaticData"),
   getLDPlayersDB: () => ipcInvoke("getLDPlayersDB"),
-
   callLdInstance: (payload) => ipcInvoke("callLdInstance", payload),
   deleteLdInstance: (payload) => ipcInvoke("deleteLdInstance", payload),
   deleteRowFromDB: (payload) => ipcInvoke("deleteRowFromDB", payload),
-
   getTokenLdInstance: (payload) => ipcInvoke("getTokenLdInstance", payload),
   fetchLdInstance: () => ipcInvoke("fetchLdInstance"),
   getDataCreateLDPlayers: () => ipcInvoke("getDataCreateLDPlayers"),
-
   createLdInstance: (payload: { prefix: string; count: number }) =>
     ipcInvoke("createLdInstance", payload),
-
   moveSelectedLDPlayers: (payload) =>
     ipcInvoke("moveSelectedLDPlayers", payload),
-
   setLdInstancePath: (payload: string) =>
     ipcInvoke("setLdInstancePath", payload),
   getLdInstancePath: () => ipcInvoke("getLdInstancePath"),
   browseLdInstancePath: () => ipcInvoke("browseLdInstancePath"),
-
   checkBanLdInstance: (payload: { ldName: string; accessToken: string }) =>
     ipcInvoke("checkBanLdInstance", payload),
-
   getTxtFiles: () => ipcInvoke("getTxtFiles"),
   saveTxtFile: (payload: { name: string; count: number; path: string }) =>
     ipcInvoke("saveTxtFile", payload),
   deleteTxtFile: (payload: number) => ipcInvoke("deleteTxtFile", payload),
-
   updatePhoneFile: (payload: { ldName: string; fileName: string }) =>
     ipcInvoke("updatePhoneFile", payload),
 
@@ -49,9 +41,8 @@ electron.contextBridge.exposeInMainWorld("electron", {
     accessToken: string;
     ldName: string;
     nameGroup: string;
-    profile: string;
     oaId: string;
-    privateId: string[];
+    privateId: string;
   }) => ipcInvoke("createChatSystem", payload),
 
   createChatCustom: (payload: {
@@ -60,25 +51,25 @@ electron.contextBridge.exposeInMainWorld("electron", {
     nameGroup: string;
     profile: string;
     oaId: string;
-    privateId: string[];
+    privateId: string;
   }) => ipcInvoke("createChatCustom", payload),
 
   selectTextFile: () => ipcInvoke("selectTextFile"),
-
-  login: (payload: { username: string; password: string }) =>
-    ipcInvoke("login", payload),
-  logout: (payload: { sessionId: string; userId: string }) =>
-    ipcInvoke("logout", payload),
-
   selectImageFile: () => ipcInvoke("selectImageFile"),
-
   getAccount: () => ipcInvoke("getAccount"),
-  addAccount: (payload: { type: string; name: string; status: boolean }) =>
-    ipcInvoke("addAccount", payload),
-  deleteAccount: (payload: number) => ipcInvoke("deleteAccount", payload),
-  updateAccount: (payload: { name: string; type: string; status: boolean }) =>
-    ipcInvoke("updateAccount", payload),
-
+  addAccount: (payload: {
+    type: string;
+    name: string;
+    status: boolean;
+    mid: string;
+  }) => ipcInvoke("addAccount", payload),
+  deleteAccount: (payload: string) => ipcInvoke("deleteAccount", payload),
+  updateAccount: (payload: {
+    name: string;
+    type: string;
+    mid: string;
+    status: boolean;
+  }) => ipcInvoke("updateAccount", payload),
   selectFileNameGroup: () => ipcInvoke("selectFileNameGroup"),
   getFileNameGroup: () => ipcInvoke("getFileNameGroup"),
   deleteNameGroup: (payload: number) => ipcInvoke("deleteNameGroup", payload),
@@ -86,9 +77,33 @@ electron.contextBridge.exposeInMainWorld("electron", {
     ipcInvoke("addNameGroup", payload),
   editNameGroup: (payload: { id: number; name: string; description: string }) =>
     ipcInvoke("editNameGroup", payload),
-
   getProfile: () => ipcInvoke("getProfile"),
   deleteProfile: (payload: string) => ipcInvoke("deleteProfile", payload),
+
+  inviteIntoChats: (payload: {
+    ldName: string;
+    accessToken: string;
+    profile: string;
+    nameGroup: string;
+    oaId: string;
+    privateId: string;
+    message: string;
+  }) => ipcInvoke("inviteIntoChats", payload),
+
+  addMessage: (payload: { nameMessage: string; message: string }) =>
+    ipcInvoke("addMessage", payload),
+  deleteMessage: (payload: number) => ipcInvoke("deleteMessage", payload),
+  getMessage: () => ipcInvoke("getMessage"),
+  editMessage: (payload: {
+    id: number;
+    nameMessage: string;
+    message: string;
+  }) => ipcInvoke("editMessage", payload),
+
+  login: (payload: { username: string; password: string }) =>
+    ipcInvoke("login", payload),
+  logout: (payload: { sessionId: string; userId: string }) =>
+    ipcInvoke("logout", payload),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions

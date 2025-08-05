@@ -45,7 +45,7 @@ export async function getAllContactIds(accessToken: string): Promise<string[]> {
       if (allMids.length) {
         try {
           fs.writeFileSync(filePath, allMids.join("\n") + "\n", "utf8");
-          console.log(`SAVE CONTACT IDS :`, allMids.length);
+          console.log(`CONTACT IDS :`, allMids.length);
         } catch (error) {
           console.error("Error writing contact file:", error);
         }

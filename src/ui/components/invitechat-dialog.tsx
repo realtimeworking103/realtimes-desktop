@@ -7,7 +7,12 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import React, { useEffect, useState } from "react";
-import { AccountType, NameGroupType, ProfileType } from "@/ui/types/types";
+import {
+  AccountType,
+  MessageType,
+  NameGroupType,
+  ProfileType,
+} from "@/ui/types/types";
 import {
   Select,
   SelectContent,
@@ -16,32 +21,36 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Card, CardTitle, CardHeader, CardContent } from "./ui/card";
-import { toast } from "sonner";
 
-interface CreateGroupDialogProps {
+interface InviteChatDialogProps {
   open: boolean;
   onConfirm: (
     nameGroup: string,
     profile: string,
-    officialId: string,
-    privateId: string,
+    officialId: string[],
+    privateId: string[],
+    message: string,
   ) => void;
   onCancel: () => void;
 }
 
-export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
+export const InviteChatDialog: React.FC<InviteChatDialogProps> = ({
   open,
   onConfirm,
   onCancel,
 }) => {
   const [nameGroup, setNameGroup] = useState<NameGroupType[]>([]);
-  const [profile, setProfile] = useState<ProfileType[]>([]);
   const [selectedNameGroup, setSelectedNameGroup] = useState<string>("");
-  const [selectedProfile, setSelectedProfile] = useState<ProfileType>();
+  const [profile, setProfile] = useState<ProfileType[]>([]);
+  const [selectedProfiles, setSelectedProfiles] = useState<string>("");
+  const [selectedProfilePaths, setSelectedProfilePaths] = useState<string[]>(
+    [],
+  );
   const [account, setAccount] = useState<AccountType[]>([]);
-  const [officialId, setOfficialId] = useState<string>("");
-  const [privateId, setPrivateId] = useState<string>("");
-
+  const [officialId, setOfficialId] = useState<string[]>([]);
+  const [privateId, setPrivateId] = useState<string[]>([]);
+  const [selectedMessage, setSelectedMessage] = useState<string>("");
+  const [messageList, setMessageList] = useState<MessageType[]>([]);
   useEffect(() => {
     window.electron.getFileNameGroup().then((data) => {
       setNameGroup(data);
@@ -60,16 +69,11 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
     });
   }, []);
 
-  const handleRandomNameGroup = () => {
-    const randomNameGroup =
-      nameGroup[Math.floor(Math.random() * nameGroup.length)].name;
-    setSelectedNameGroup(randomNameGroup[0]);
-  };
-
-  const handleRandomProfile = () => {
-    const randomProfile = profile[Math.floor(Math.random() * profile.length)];
-    setSelectedProfile(randomProfile);
-  };
+  useEffect(() => {
+    window.electron.getMessage().then((data) => {
+      setMessageList(data as unknown as MessageType[]);
+    });
+  }, []);
 
   const handleSelectNameGroup = (value: string) => {
     if (value === "random") {
@@ -83,34 +87,52 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
     if (value === "random") {
       handleRandomProfile();
     } else {
-      setSelectedProfile(profile.find((item) => item.path === value));
+      setSelectedProfiles(value);
+      setSelectedProfilePaths([
+        profile.find((profile) => profile.name === value)?.path || "",
+      ]);
     }
   };
 
   const handleSelectOfficialId = (value: string) => {
-    setOfficialId(value);
+    setOfficialId([...officialId, value]);
   };
 
   const handleSelectPrivateId = (value: string) => {
-    setPrivateId(value);
+    setPrivateId([...privateId, value]);
+  };
+
+  const handleRandomNameGroup = () => {
+    const randomNameGroup =
+      nameGroup[Math.floor(Math.random() * nameGroup.length)].name;
+    setSelectedNameGroup(randomNameGroup);
+  };
+
+  const handleRandomProfile = () => {
+    const randomProfile = profile[Math.floor(Math.random() * profile.length)];
+    setSelectedProfilePaths([randomProfile.path]);
+  };
+
+  const clearAll = () => {
+    setSelectedNameGroup(
+      nameGroup[Math.floor(Math.random() * nameGroup.length)].name,
+    );
+    setSelectedProfilePaths([
+      profile[Math.floor(Math.random() * profile.length)].path,
+    ]);
+    setOfficialId([]);
+    setPrivateId([]);
   };
 
   const handleConfirm = () => {
-    if (
-      !selectedNameGroup ||
-      !selectedProfile?.path ||
-      !officialId ||
-      !privateId
-    ) {
-      toast.error("กรุณาเลือกข้อมูลให้ครบถ้วน");
-      return;
-    }
     onConfirm(
       selectedNameGroup,
-      selectedProfile?.path || "",
+      selectedProfilePaths[0],
       officialId,
       privateId,
+      selectedMessage,
     );
+    clearAll();
   };
 
   return (
@@ -149,20 +171,24 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
             <CardTitle>โปรไฟล์</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center">
-            <div className="flex h-40 flex-wrap gap-2 overflow-x-auto">
-              {profile.map((item) => (
-                <img
-                  src={`/profile/${item.name}`}
-                  alt="profile"
-                  className={`h-32 w-32 cursor-pointer ${
-                    selectedProfile?.name === item.name
-                      ? "border-2 border-blue-500"
-                      : ""
-                  }`}
-                  onClick={() => handleSelectProfile(item.path)}
-                />
-              ))}
-            </div>
+            <Select
+              onValueChange={handleSelectProfile}
+              defaultValue={selectedProfiles}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="เลือกโปรไฟล์" />
+              </SelectTrigger>
+              <SelectContent>
+                {profile.map((item) => (
+                  <SelectItem key={item.name} value={item.name}>
+                    {item.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value="random" onClick={handleRandomProfile}>
+                  สุ่มโปรไฟล์
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
         <Card>
@@ -200,6 +226,28 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
                 </SelectContent>
               </Select>
             </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>ข้อความ</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select
+              onValueChange={(value) => setSelectedMessage(value)}
+              defaultValue={selectedMessage}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="เลือกข้อความ" />
+              </SelectTrigger>
+              <SelectContent>
+                {messageList.map((item) => (
+                  <SelectItem key={item.id} value={item.nameMessage}>
+                    {item.nameMessage}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
         <DialogFooter>

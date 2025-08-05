@@ -29,13 +29,15 @@ import {
 } from "@/ui/components/ui/tooltip";
 
 import { LDPlayerType } from "@/ui/types/types";
-import { useLDPlayerActions } from "@/ui/hooks/use-LDPlayerActions";
+import { useLDPlayerActions } from "@/ui/hooks/use-ldplayer";
 
 import { ConfirmDialog } from "@/ui/components/confirm-dialog";
 import { AddFriendDialog } from "@/ui/components/add-friend-dialog";
-import { CreateGroupDialog } from "@/ui/components/create-group-dialog";
 import { Input } from "@/ui/components/ui/input";
 import { Badge } from "@/ui/components/ui/badge";
+import { InviteChatDialog } from "@/ui/components/invitechat-dialog";
+import { Semaphore } from "async-mutex";
+import { CreateGroupDialog } from "@/ui/components/create-group-dialog";
 
 export default function Page() {
   const [ldplayers, setLDPlayers] = useState<LDPlayerType[]>([]);
@@ -45,19 +47,14 @@ export default function Page() {
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
 
   const [files, setFiles] = useState<{ name: string; count: number }[]>([]);
-  const [isDialogOpen, setDialogOpen] = useState(false);
-  const [friendCount, setFriendCount] = useState("");
+  const [friendCount, setFriendCount] = useState("47");
   const [search, setSearch] = useState("");
+  const [isDialogOpenInviteChat, setDialogOpenInviteChat] = useState(false);
   const [isDialogOpenCreateGroup, setDialogOpenCreateGroup] = useState(false);
-
+  const [isDialogOpenAddFriend, setDialogOpenAddFriend] = useState(false);
   const fetchLDPlayers = async () => {
-    const data = await window.electron.getLDPlayersDB();
-
-    setLDPlayers((prev) => {
-      const oldJson = JSON.stringify(prev);
-      const newJson = JSON.stringify(data);
-      return oldJson === newJson ? prev : data;
-    });
+    const result = await window.electron.getLDPlayersDB();
+    setLDPlayers(result);
   };
 
   const {
@@ -108,6 +105,7 @@ export default function Page() {
           target,
         });
 
+        await window.electron.getTxtFiles();
         await fetchLDPlayers();
       } catch (err) {
         console.error(`เพิ่มเพื่อนให้ ${row.ldName} ล้มเหลว`, err);
@@ -118,8 +116,8 @@ export default function Page() {
   const handleCreateGroup = async (
     nameGroup: string,
     profile: string,
-    officialId: string[],
-    privateId: string[],
+    officialId: string,
+    privateId: string,
   ) => {
     const selectedList = ldplayers.filter((p) =>
       selectedRows.has(p.LDPlayerGridLD),
@@ -127,40 +125,71 @@ export default function Page() {
 
     if (selectedList.length === 0) return;
 
-    if (profile === "") {
-      try {
-        for (const selected of selectedList) {
-          await window.electron.createChatSystem({
-            accessToken: selected.TokenGridLD,
-            ldName: selected.LDPlayerGridLD,
-            profile: "SYSTEM",
-            nameGroup: nameGroup,
-            oaId: officialId[0],
-            privateId: privateId,
-          });
+    try {
+      const semaphore = new Semaphore(1);
+      await Promise.all(
+        selectedList.map(async (selected) => {
+          const [_, release] = await semaphore.acquire();
+          try {
+            await window.electron.createChatCustom({
+              accessToken: selected.TokenGridLD,
+              ldName: selected.LDPlayerGridLD,
+              profile: profile,
+              nameGroup: nameGroup,
+              oaId: officialId,
+              privateId: privateId,
+            });
+            await fetchLDPlayers();
+          } catch (error) {
+            console.error("Create Group Fail:", error);
+          } finally {
+            release();
+          }
+        }),
+      );
+    } catch (error) {
+      console.error("Create Group Fail:", error);
+    }
+  };
 
-          await fetchLDPlayers();
-        }
-      } catch (err) {
-        console.error("Create Group Fail:", err);
-      }
-    } else {
-      try {
-        for (const selected of selectedList) {
-          await window.electron.createChatCustom({
-            accessToken: selected.TokenGridLD,
-            ldName: selected.LDPlayerGridLD,
-            nameGroup: nameGroup,
-            profile: profile,
-            oaId: officialId[0],
-            privateId: privateId,
-          });
+  const handleInviteIntoChat = async (
+    nameGroup: string,
+    profile: string,
+    officialId: string[],
+    privateId: string[],
+    message: string,
+  ) => {
+    const selectedList = ldplayers.filter((p) =>
+      selectedRows.has(p.LDPlayerGridLD),
+    );
 
-          await fetchLDPlayers();
-        }
-      } catch (err) {
-        console.error("Create Group Fail:", err);
-      }
+    if (selectedList.length === 0) return;
+
+    try {
+      const semaphore = new Semaphore(1);
+      await Promise.all(
+        selectedList.map(async (selected) => {
+          const [_, release] = await semaphore.acquire();
+          try {
+            await window.electron.inviteIntoChats({
+              accessToken: selected.TokenGridLD,
+              ldName: selected.LDPlayerGridLD,
+              profile: profile,
+              nameGroup: nameGroup,
+              oaId: officialId[0],
+              privateId: privateId[0],
+              message: message,
+            });
+            await fetchLDPlayers();
+          } catch (error) {
+            console.error("Invite Into Chat Fail:", error);
+          } finally {
+            release();
+          }
+        }),
+      );
+    } catch (error) {
+      console.error("Create Group Fail:", error);
     }
   };
 
@@ -236,9 +265,9 @@ export default function Page() {
       </div>
       <div className="mx-auto max-w-5xl space-y-4">
         <div onMouseLeave={() => setIsSelecting(false)} className="select-none">
-          <div className="max-h-150 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100">
-            <div className="overflow-x-auto">
-              <div className="min-w-[1000px] overflow-hidden border-gray-200">
+          <div className="max-h-150 overflow-y-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100">
+            <div>
+              <div className="min-w-[1000px]">
                 <Table className="[&_*]:text-center [&_*]:align-middle">
                   <TableHeader className="sticky top-0 z-10 bg-gray-50">
                     <TableRow>
@@ -246,7 +275,7 @@ export default function Page() {
                         ลำดับ
                       </TableHead>
                       <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                        LDPlayer
+                        LDPLAYER
                       </TableHead>
                       <TableHead className="bg-gray-50 font-semibold text-gray-700">
                         สถานะบัญชีไลน์
@@ -344,7 +373,7 @@ export default function Page() {
                             <TableCell>
                               <Badge
                                 variant="secondary"
-                                className="bg-blue-100 text-sm text-blue-800"
+                                className="bg-blue-100 text-blue-800"
                               >
                                 {item.NoDataGridLD}
                               </Badge>
@@ -398,7 +427,7 @@ export default function Page() {
                               </ContextMenuItem>
                               <ContextMenuItem
                                 inset
-                                onClick={() => setDialogOpen(true)}
+                                onClick={() => setDialogOpenAddFriend(true)}
                               >
                                 เพิ่มเพื่อน
                               </ContextMenuItem>
@@ -492,13 +521,29 @@ export default function Page() {
 
           {/* AddFriendDialog */}
           <AddFriendDialog
-            open={isDialogOpen}
+            open={isDialogOpenAddFriend}
             value={friendCount}
             onChange={setFriendCount}
-            onCancel={() => setDialogOpen(false)}
+            onCancel={() => setDialogOpenAddFriend(false)}
             onConfirm={() => {
               handleAddFriends();
-              setDialogOpen(false);
+              setDialogOpenAddFriend(false);
+            }}
+          />
+
+          {/* InviteChatDialog */}
+          <InviteChatDialog
+            open={isDialogOpenInviteChat}
+            onCancel={() => setDialogOpenInviteChat(false)}
+            onConfirm={(nameGroup, profile, officialId, privateId, message) => {
+              handleInviteIntoChat(
+                nameGroup,
+                profile,
+                officialId,
+                privateId,
+                message,
+              );
+              setDialogOpenInviteChat(false);
             }}
           />
 

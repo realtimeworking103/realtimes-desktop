@@ -11,6 +11,7 @@ export type LDPlayerType = {
   TokenGridLD: string;
   PhoneFileGridLD: string;
   CreateAt: string;
+  LineKaiGridLD: string[];
 };
 
 export type CreatedLDPlayerType = {
@@ -29,6 +30,7 @@ export type NameGroupType = {
 };
 
 export type ProfileType = {
+  id: number;
   name: string;
   path: string;
   createAt: string;
@@ -38,6 +40,14 @@ export type AccountType = {
   id: number;
   type: string;
   name: string;
+  mid: string;
   status: boolean;
+  createAt: string;
+};
+
+export type MessageType = {
+  id: number;
+  nameMessage: string;
+  message: string;
   createAt: string;
 };

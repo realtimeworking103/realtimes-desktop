@@ -11,10 +11,18 @@ export function useLDPlayerActions(
 
   const handleOpenLDPlayer = async () => {
     try {
+      const semaphore = new Semaphore(3);
       await Promise.all(
-        getSelectedNames().map((ldName) =>
-          window.electron.callLdInstance(ldName),
-        ),
+        getSelectedNames().map(async (ldName) => {
+          const [_, release] = await semaphore.acquire();
+          try {
+            window.electron.callLdInstance(ldName);
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            release();
+          } catch (err) {
+            console.error("Open LDPlayer Fail:", err);
+          }
+        }),
       );
       fetchLDPlayers();
     } catch (err) {
@@ -77,13 +85,13 @@ export function useLDPlayerActions(
           }
         }),
       );
-      fetchLDPlayers();
     } catch (err) {
       console.error("Get Token Auto Fail:", err);
     }
   };
 
   const handleCheckban = async () => {
+    const semaphore = new Semaphore(1);
     const toCheckban = ldplayers
       .filter((p) => selectedRows.has(p.LDPlayerGridLD))
       .map((p) => ({
@@ -98,9 +106,14 @@ export function useLDPlayerActions(
 
     try {
       await Promise.all(
-        toCheckban.map((item) => window.electron.checkBanLdInstance(item)),
+        toCheckban.map(async (item) => {
+          const [_, release] = await semaphore.acquire();
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await window.electron.checkBanLdInstance(item);
+          fetchLDPlayers();
+          release();
+        }),
       );
-      fetchLDPlayers();
     } catch (err) {
       console.error("Check Ban Failed:", err);
     }

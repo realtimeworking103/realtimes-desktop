@@ -1,16 +1,20 @@
-import { Button } from "@/ui/components/ui/button";
-import IconUsers from "@tabler/icons-react/dist/esm/icons/IconUsers";
-import { Plus, Trash } from "lucide-react";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/ui/components/ui/table";
-import { Switch } from "@/ui/components/ui/switch";
 import { useState, useEffect } from "react";
+import { AccountType } from "@/ui/types/types";
+import { Button } from "@/ui/components/ui/button";
+import { Badge } from "@/ui/components/ui/badge";
+import { Plus, Trash, Users } from "lucide-react";
+import { Switch } from "@/ui/components/ui/switch";
+import { Input } from "@/ui/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/ui/components/ui/radio-group";
+import { Label } from "@/ui/components/ui/label";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/ui/components/ui/card";
+
 import {
   Dialog,
   DialogContent,
@@ -19,69 +23,62 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/components/ui/dialog";
-import { Input } from "@/ui/components/ui/input";
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/ui/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/ui/components/ui/radio-group";
-import { Label } from "@/ui/components/ui/label";
-import { AccountType } from "@/ui/types/types";
-import { Badge } from "@/ui/components/ui/badge";
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/ui/components/ui/table";
 
 export default function Page() {
   const [account, setAccount] = useState<AccountType[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [type, setType] = useState("ไลน์บอท");
   const [name, setName] = useState("");
+  const [type, setType] = useState("ไลน์บอท");
+  const [mid, setMid] = useState("");
   const [status, setStatus] = useState(true);
-  const [openConfirmDeleteAccount, setOpenConfirmDeleteAccount] =
-    useState(false);
-  const [id, setId] = useState(0);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   const fetchAccount = () => {
     window.electron.getAccount().then((data) => {
       setAccount(data);
     });
   };
 
-  useEffect(() => {
-    fetchAccount();
-  }, []);
-
   const handleAddAccount = () => {
-    window.electron.addAccount({ type, name, status: true });
+    window.electron.addAccount({ type, name, mid, status });
     fetchAccount();
     setOpenDialog(false);
   };
 
-  const handleDeleteAccount = (id: number) => {
-    window.electron.deleteAccount(id);
+  const handleDeleteAccount = (name: string) => {
+    window.electron.deleteAccount(name);
     fetchAccount();
   };
 
-  const handleChangeStatus = (account: AccountType) => {
+  const handleChangeStatus = (name: string, status: boolean) => {
     window.electron.updateAccount({
-      name: account.name,
-      type: account.type,
-      status: !account.status,
+      name: name,
+      type: type,
+      mid: mid,
+      status: !status,
     });
     fetchAccount();
   };
 
-  const handleConfirmDeleteAccount = (id: number) => {
-    window.electron.deleteAccount(id);
+  useEffect(() => {
     fetchAccount();
-  };
+  }, []);
 
   return (
     <div className="min-h-svh p-6 select-none">
       <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <IconUsers className="h-8 w-8" />
+            <Users className="h-8 w-8" />
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
               จัดการบัญชีไลน์
             </h1>
@@ -157,6 +154,9 @@ export default function Page() {
                         ไอดี
                       </TableHead>
                       <TableHead className="bg-gray-50 font-semibold text-gray-700">
+                        MID
+                      </TableHead>
+                      <TableHead className="bg-gray-50 font-semibold text-gray-700">
                         สถานะ
                       </TableHead>
                       <TableHead className="bg-gray-50 font-semibold text-gray-700">
@@ -178,10 +178,13 @@ export default function Page() {
                         <TableCell>{account.createAt}</TableCell>
                         <TableCell>{account.type}</TableCell>
                         <TableCell>{account.name}</TableCell>
+                        <TableCell>{account.mid}</TableCell>
                         <TableCell>
                           <Switch
                             checked={account.status}
-                            onCheckedChange={() => handleChangeStatus(account)}
+                            onCheckedChange={() =>
+                              handleChangeStatus(account.name, account.status)
+                            }
                             className="data-[state=checked]:bg-blue-500"
                           />
                         </TableCell>
@@ -189,8 +192,8 @@ export default function Page() {
                           <Button
                             variant="destructive"
                             onClick={() => {
-                              setId(account.id);
-                              setOpenConfirmDeleteAccount(true);
+                              setName(account.name);
+                              setConfirmDelete(true);
                             }}
                             size="sm"
                             className="bg-red-500 transition-colors duration-200 hover:bg-red-600"
@@ -219,6 +222,12 @@ export default function Page() {
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+            <Input
+              type="text"
+              placeholder="MID"
+              value={mid}
+              onChange={(e) => setMid(e.target.value)}
+            />
             <RadioGroup
               value={type}
               onValueChange={(value) => setType(value)}
@@ -234,7 +243,10 @@ export default function Page() {
             <div className="flex items-center gap-2">
               <Switch
                 checked={status}
-                onCheckedChange={() => setStatus(!status)}
+                onCheckedChange={(value) => {
+                  setStatus(value);
+                  handleChangeStatus(name, value);
+                }}
               />
               <Label>เปิดใช้งาน</Label>
             </div>
@@ -249,10 +261,7 @@ export default function Page() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Dialog
-        open={openConfirmDeleteAccount}
-        onOpenChange={setOpenConfirmDeleteAccount}
-      >
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>ยืนยันการลบบัญชีไลน์</DialogTitle>
@@ -261,17 +270,14 @@ export default function Page() {
             คุณต้องการลบบัญชีไลน์นี้หรือไม่?
           </DialogDescription>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setOpenConfirmDeleteAccount(false)}
-            >
+            <Button variant="outline" onClick={() => setConfirmDelete(false)}>
               ยกเลิก
             </Button>
             <Button
               variant="default"
               onClick={() => {
-                handleDeleteAccount(id);
-                setOpenConfirmDeleteAccount(false);
+                handleDeleteAccount(name);
+                setConfirmDelete(false);
               }}
             >
               ยืนยัน

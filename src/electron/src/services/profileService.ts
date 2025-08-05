@@ -32,6 +32,7 @@ export async function selectImageFile(): Promise<{
 
 export async function getProfile(): Promise<
   {
+    id: number;
     name: string;
     path: string;
     status: boolean;
@@ -46,6 +47,7 @@ export async function getProfile(): Promise<
   const profile = fs.readdirSync(profilePath);
 
   return profile.map((item) => ({
+    id: profile.indexOf(item),
     name: item,
     path: path.join(profilePath, item),
     status: true,

@@ -1,4 +1,11 @@
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import React from "react";
@@ -11,9 +18,15 @@ interface AddFriendDialogProps {
   onCancel: () => void;
 }
 
-export const AddFriendDialog: React.FC<AddFriendDialogProps> = ({ open, value, onChange, onConfirm, onCancel }) => (
+export const AddFriendDialog: React.FC<AddFriendDialogProps> = ({
+  open,
+  value,
+  onChange,
+  onConfirm,
+  onCancel,
+}) => (
   <Dialog open={open} onOpenChange={onCancel}>
-    <DialogContent>
+    <DialogContent className="max-w-md p-4 select-none">
       <DialogHeader>
         <DialogTitle>เพิ่มเพื่อน</DialogTitle>
         <DialogDescription>ใส่จำนวนเพื่อนที่ต้องการ</DialogDescription>
@@ -24,9 +37,11 @@ export const AddFriendDialog: React.FC<AddFriendDialogProps> = ({ open, value, o
         onChange={(e) => onChange(e.target.value)}
       />
       <DialogFooter>
-        <Button variant="outline" onClick={onCancel}>ยกเลิก</Button>
+        <Button variant="outline" onClick={onCancel}>
+          ยกเลิก
+        </Button>
         <Button onClick={onConfirm}>ยืนยัน</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
-); 
+);

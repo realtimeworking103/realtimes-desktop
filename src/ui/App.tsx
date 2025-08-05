@@ -14,8 +14,18 @@ import Login from "./app/login/page";
 import Account from "./app/(main)/account/page";
 import NameManager from "./app/(main)/name-manager/page";
 import Message from "./app/(main)/message/page";
+import { useEffect } from "react";
 
 function App() {
+  useEffect(() => {
+    // Subscribe to statistics updates
+    const unsubscribe = window.electron.test((data: any) => {
+      console.log(data);
+    });
+
+    // Cleanup subscription when component unmounts
+    return unsubscribe;
+  }, []);
   return (
     <HashRouter>
       <Routes>

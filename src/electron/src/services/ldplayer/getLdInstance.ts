@@ -15,7 +15,8 @@ export function createGridLDTable() {
         TokenGridLD TEXT,
         PhoneFileGridLD TEXT,
         DateTimeGridLD TIMESTAMP DEFAULT (datetime('now', 'localtime')),
-        CreateAt TIMESTAMP DEFAULT (datetime('now', 'localtime'))
+        CreateAt TIMESTAMP DEFAULT (datetime('now', 'localtime')),
+        LineKaiGridLD TEXT
       )
     `,
   ).run();
@@ -34,13 +35,14 @@ export function getLdInstance(): {
   PhoneFileGridLD: string;
   DateTimeGridLD: string;
   CreateAt: string;
+  LineKaiGridLD: string[];
 }[] {
   try {
     createGridLDTable();
-    
+
     const rows = db
       .prepare(
-        "SELECT NoDataGridLD, LDPlayerGridLD, StatusAccGridLD, StatusGridLD, NameLineGridLD, FriendGridLD, GroupGridLD, PhoneGridLD, TokenGridLD, PhoneFileGridLD, DateTimeGridLD, CreateAt FROM GridLD",
+        "SELECT NoDataGridLD, LDPlayerGridLD, StatusAccGridLD, StatusGridLD, NameLineGridLD, FriendGridLD, GroupGridLD, PhoneGridLD, TokenGridLD, PhoneFileGridLD, DateTimeGridLD, CreateAt, LineKaiGridLD FROM GridLD",
       )
       .all();
     return rows as {
@@ -56,6 +58,7 @@ export function getLdInstance(): {
       PhoneFileGridLD: string;
       DateTimeGridLD: string;
       CreateAt: string;
+      LineKaiGridLD: string[];
     }[];
   } catch (error) {
     console.error("Error getting LDPlayer instances:", error);

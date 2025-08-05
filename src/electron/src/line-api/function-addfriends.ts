@@ -6,12 +6,21 @@ function writePhonesToFile(phones: string[], filePath: string): void {
   fs.writeFileSync(filePath, phones.join("\n"), "utf-8");
 }
 
+function deletePhones(phones: string[], filePath: string): void {
+  fs.writeFileSync(filePath, phones.join("\n"), "utf-8");
+}
+
 export const addFriends = async (payload: {
   ldName: string;
   accessToken: string;
   target: number;
   phoneFile: string;
-}): Promise<{ success: boolean; added: number; remaining: number; message?: string }> => {
+}): Promise<{
+  success: boolean;
+  added: number;
+  remaining: number;
+  message?: string;
+}> => {
   const { ldName, accessToken, target, phoneFile } = payload;
 
   try {
@@ -19,11 +28,15 @@ export const addFriends = async (payload: {
     const fileRow = getPathStmt.get(phoneFile) as { path: string };
 
     if (!fileRow || !fs.existsSync(fileRow.path)) {
+      db.prepare(
+        `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+      ).run(`ไม่พบไฟล์รายชื่อ`, ldName);
+
       return {
         success: false,
         added: 0,
         remaining: 0,
-        message: `ไม่พบไฟล์เบอร์: ${fileRow?.path || "null"}`
+        message: `ไม่พบไฟล์รายชื่อ`,
       };
     }
 
@@ -35,11 +48,14 @@ export const addFriends = async (payload: {
       .filter(Boolean);
 
     if (phones.length === 0) {
+      db.prepare(
+        `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+      ).run(`เบอร์หมดแล้ว`, ldName);
       return {
         success: false,
         added: 0,
         remaining: 0,
-        message: "ไฟล์เบอร์ว่างเปล่า"
+        message: "เบอร์หมดแล้ว",
       };
     }
 
@@ -72,6 +88,7 @@ export const addFriends = async (payload: {
         friendCounter += response;
         usedPhones.push(...slice);
         console.log(`Add Friend: ${friendCounter}/${target}`);
+        deletePhones(slice, fileRow.path);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
         console.error("Error syncing contacts:", error);
@@ -108,7 +125,7 @@ export const addFriends = async (payload: {
       success: true,
       added: friendCounter,
       remaining: remainingPhones.length,
-      message: `เพิ่มเพื่อนสำเร็จ ${friendCounter}/${target} คน`
+      message: `เพิ่มเพื่อนสำเร็จ ${friendCounter}/${target} คน`,
     };
   } catch (error) {
     console.error("Error in addFriends:", error);
@@ -116,7 +133,7 @@ export const addFriends = async (payload: {
       success: false,
       added: 0,
       remaining: 0,
-      message: `เกิดข้อผิดพลาด: ${error instanceof Error ? error.message : 'Unknown error'}`
+      message: `เกิดข้อผิดพลาด: ${error instanceof Error ? error.message : "Unknown error"}`,
     };
   }
 };

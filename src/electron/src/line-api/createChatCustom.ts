@@ -1,7 +1,7 @@
-import { syncContactsKai } from "./syncContactPhoneKai.js";
-import { findContactByUseridOa } from "./function-addFriendOa.js";
 import { getAllContactIds } from "./getAllContactIds.js";
 import { createChatWithProfileCustom } from "./createChatWithProfileCustom.js";
+import { findContactByUseridOa } from "./function-addFriendOa.js";
+import { syncContactsKai } from "./syncContactPhoneKai.js";
 
 export async function createChatCustom({
   accessToken,
@@ -16,26 +16,42 @@ export async function createChatCustom({
   ldName: string;
   profile: string;
   oaId: string;
-  privateId: string[];
+  privateId: string;
 }): Promise<boolean> {
-  try {
-    const privateMids = await syncContactsKai(accessToken, privateId);
+  return new Promise<boolean>(async (resolve, reject) => {
+    try {
+      const allContactMids: string[] = await getAllContactIds(accessToken);
+      let privateMid: string | null = null;
+      let oaMid: string | null = null;
+      const isPrivateInContacts = allContactMids.includes(privateId);
 
-    const oaMid = await findContactByUseridOa(accessToken, oaId);
+      if (!isPrivateInContacts) {
+        privateMid = await syncContactsKai(accessToken, [privateId]);
+        console.log("ADD FRIEND PRIVATE MID:", privateMid);
+      } else {
+        privateMid = privateId;
+      }
 
-    await getAllContactIds(accessToken);
+      const isOaInContacts = allContactMids.includes(oaId);
 
-    await createChatWithProfileCustom({
-      accessToken,
-      ldName,
-      nameGroup,
-      profile,
-      midAdmin: [oaMid, privateMids],
-    });
+      if (!isOaInContacts) {
+        oaMid = await findContactByUseridOa(accessToken, oaId);
+        console.log("ADD FRIEND OA MID:", oaMid);
+      } else {
+        oaMid = oaId;
+      }
 
-    return true;
-  } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการสร้างกลุ่ม:", error);
-    return false;
-  }
+      await createChatWithProfileCustom({
+        accessToken,
+        ldName,
+        nameGroup,
+        profile,
+        midAdmin: [privateMid, oaMid],
+      });
+      resolve(true);
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการสร้างกลุ่ม:", error);
+      reject(error);
+    }
+  });
 }

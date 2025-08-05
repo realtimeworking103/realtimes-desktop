@@ -23,9 +23,6 @@ export async function uploadImageWithHttps(
   token: string,
   profile: string,
 ) {
-  console.log("chatmid : ", chatmid);
-  console.log("token : ", token);
-  console.log("profile 2 : ", profile);
   try {
     const payload = readImage(profile);
     const obsParams = makeObsParams(payload);

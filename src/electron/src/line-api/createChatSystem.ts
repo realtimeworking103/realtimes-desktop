@@ -1,7 +1,7 @@
-import { syncContactsKai } from "./syncContactPhoneKai.js";
-import { findContactByUseridOa } from "./function-addFriendOa.js";
-import { createChatWithProfileSystem } from "./createChatWithProfileSystem.js";
 import { getAllContactIds } from "./getAllContactIds.js";
+import { findContactByUseridOa } from "./function-addFriendOa.js";
+import { syncContactsKai } from "./syncContactPhoneKai.js";
+import { createChatWithProfileSystem } from "./createChatWithProfileSystem.js";
 
 export async function createChatSystem({
   accessToken,
@@ -14,20 +14,28 @@ export async function createChatSystem({
   nameGroup: string;
   ldName: string;
   oaId: string;
-  privateId: string[];
+  privateId: string;
 }): Promise<boolean> {
-  try {
-    await syncContactsKai(accessToken, privateId);
+  return new Promise<boolean>(async (resolve, reject) => {
+    try {
+      await getAllContactIds(accessToken);
 
-    await findContactByUseridOa(accessToken, oaId);
+      const privateMid = await syncContactsKai(accessToken, [privateId]);
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      const oaMid = await findContactByUseridOa(accessToken, oaId);
 
-    await getAllContactIds(accessToken);
+      await new Promise((resolve) => setTimeout(resolve, 30000));
 
-    await createChatWithProfileSystem({ accessToken, ldName, nameGroup });
-
-    return true;
-  } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการสร้างกลุ่ม:", error);
-    return false;
-  }
+      await createChatWithProfileSystem({
+        accessToken,
+        ldName,
+        nameGroup,
+        midAdmin: [oaMid, privateMid],
+      });
+      resolve(true);
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการสร้างกลุ่ม:", error);
+      reject(error);
+    }
+  });
 }
