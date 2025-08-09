@@ -1,5 +1,6 @@
 import { LDPlayerType } from "@/ui/types/types";
 import { Semaphore } from "async-mutex";
+import { toast } from "sonner";
 
 export function useLDPlayerActions(
   selectedRows: Set<string>,
@@ -11,7 +12,7 @@ export function useLDPlayerActions(
 
   const handleOpenLDPlayer = async () => {
     try {
-      const semaphore = new Semaphore(3);
+      const semaphore = new Semaphore(5);
       await Promise.all(
         getSelectedNames().map(async (ldName) => {
           const [_, release] = await semaphore.acquire();
@@ -35,18 +36,17 @@ export function useLDPlayerActions(
       const semaphore = new Semaphore(1);
       await Promise.all(
         getSelectedNames().map(async (ldName) => {
+          const [_, release] = await semaphore.acquire();
           try {
-            const [_, release] = await semaphore.acquire();
-            await new Promise((resolve) => setTimeout(resolve, 1000));
             await window.electron.deleteLdInstance(ldName);
-            fetchLDPlayers();
+            await fetchLDPlayers();
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             release();
           } catch (err) {
             console.error("Delete LDPlayer Fail:", err);
           }
         }),
       );
-      fetchLDPlayers();
     } catch (err) {
       console.error("Delete LDPlayer Fail:", err);
     }
@@ -75,10 +75,10 @@ export function useLDPlayerActions(
       const semaphore = new Semaphore(3);
       await Promise.all(
         getSelectedNames().map(async (ldName) => {
+          const [_, release] = await semaphore.acquire();
           try {
-            const [_, release] = await semaphore.acquire();
             await window.electron.getTokenLdInstance(ldName);
-            fetchLDPlayers();
+            await fetchLDPlayers();
             release();
           } catch (err) {
             console.error("Get Token Auto Fail:", err);
@@ -108,12 +108,13 @@ export function useLDPlayerActions(
       await Promise.all(
         toCheckban.map(async (item) => {
           const [_, release] = await semaphore.acquire();
-          await new Promise((resolve) => setTimeout(resolve, 1000));
           await window.electron.checkBanLdInstance(item);
-          fetchLDPlayers();
+          await fetchLDPlayers();
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           release();
         }),
       );
+      toast.success("ตรวจสอบบัญชีสำเร็จ");
     } catch (err) {
       console.error("Check Ban Failed:", err);
     }
@@ -125,7 +126,8 @@ export function useLDPlayerActions(
         window.electron.updatePhoneFile({ ldName, fileName }),
       ),
     );
-    fetchLDPlayers();
+    await fetchLDPlayers();
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   };
 
   return {

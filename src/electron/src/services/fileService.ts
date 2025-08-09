@@ -88,8 +88,6 @@ export async function selectTextFile(): Promise<{
     const content = await fs.readFile(filePath, "utf-8");
     const lines = content.split("\n").filter((line) => line.trim());
 
-    console.log(filePath);
-
     return {
       name: path.basename(filePath, ".txt"),
       path: filePath,
@@ -113,6 +111,40 @@ export function deleteTxtFile(id: number): boolean {
     return result.changes > 0;
   } catch (err) {
     console.error("Error deleting file from DB:", err);
+    return false;
+  }
+}
+
+export function updateFileCount(fileName: string): boolean {
+  try {
+    const getPathStmt = db.prepare(`SELECT path FROM Files WHERE name = ?`);
+    const fileRow = getPathStmt.get(fileName) as { path: string };
+
+    if (!fileRow || !fileRow.path) {
+      console.error("ไม่พบไฟล์ในฐานข้อมูล:", fileName);
+      return false;
+    }
+
+    const fsSync = require("fs");
+    if (!fsSync.existsSync(fileRow.path)) {
+      console.error("ไม่พบไฟล์:", fileRow.path);
+      return false;
+    }
+
+    const raw = fsSync.readFileSync(fileRow.path, "utf-8");
+    const phones = raw
+      .split(/\r?\n/)
+      .map((line: string) => line.trim())
+      .filter(Boolean);
+
+    const remainingCount = phones.length;
+
+    const updateStmt = db.prepare(`UPDATE Files SET count = ? WHERE name = ?`);
+    const result = updateStmt.run(remainingCount, fileName);
+
+    return result.changes > 0;
+  } catch (err) {
+    console.error("Error updating file count:", err);
     return false;
   }
 }

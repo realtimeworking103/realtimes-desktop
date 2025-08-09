@@ -15,6 +15,7 @@ import Account from "./app/(main)/account/page";
 import NameManager from "./app/(main)/name-manager/page";
 import Message from "./app/(main)/message/page";
 import { useEffect } from "react";
+import Status from "./app/(main)/status/page";
 
 function App() {
   useEffect(() => {
@@ -26,6 +27,7 @@ function App() {
     // Cleanup subscription when component unmounts
     return unsubscribe;
   }, []);
+
   return (
     <HashRouter>
       <Routes>
@@ -51,6 +53,7 @@ function App() {
             <Route path="account" element={<Account />} />
             <Route path="name-manager" element={<NameManager />} />
             <Route path="message" element={<Message />} />
+            <Route path="status" element={<Status />} />
           </Route>
         </Route>
 

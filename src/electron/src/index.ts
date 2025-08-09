@@ -20,12 +20,14 @@ import { addFriends } from "./line-api/function-addfriends.js";
 import { checkBanLdInstance } from "./line-api/function-checkban.js";
 import { createChatSystem } from "./line-api/createChatSystem.js";
 import { createChatCustom } from "./line-api/createChatCustom.js";
+import { createChat } from "./client/createChat.js";
 
 import {
   deleteTxtFile,
   getTxtFiles,
   saveTxtFile,
   selectTextFile,
+  updateFileCount,
 } from "./services/fileService.js";
 
 import { updatePhoneFile } from "./function-db.js";
@@ -59,6 +61,13 @@ import {
   getMessage,
   editMessage,
 } from "./services/messageService.js";
+import {
+  addStatus,
+  deleteStatus,
+  getStatus,
+  updateStatus,
+  updateStatusLDPlayer,
+} from "./services/statusService.js";
 
 export default function initMain(mainWindow: BrowserWindow) {
   pollResources(mainWindow);
@@ -91,6 +100,7 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("deleteTxtFile", deleteTxtFile);
   ipcMainHandle("updatePhoneFile", updatePhoneFile);
   ipcMainHandle("selectTextFile", selectTextFile);
+  ipcMainHandle("updateFileCount", updateFileCount);
 
   //Login
   ipcMainHandle("login", login);
@@ -122,4 +132,14 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("deleteMessage", deleteMessage);
   ipcMainHandle("getMessage", getMessage);
   ipcMainHandle("editMessage", editMessage);
-} 
+
+  //Create Chat
+  ipcMainHandle("createChat", createChat);
+
+  //Status
+  ipcMainHandle("getStatus", getStatus);
+  ipcMainHandle("addStatus", addStatus);
+  ipcMainHandle("updateStatus", updateStatus);
+  ipcMainHandle("deleteStatus", deleteStatus);
+  ipcMainHandle("updateStatusLDPlayer", updateStatusLDPlayer);
+}

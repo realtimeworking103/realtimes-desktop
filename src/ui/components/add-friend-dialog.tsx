@@ -9,6 +9,8 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import React from "react";
+import { Textarea } from "./ui/textarea";
+import { Label } from "./ui/label";
 
 interface AddFriendDialogProps {
   open: boolean;
@@ -16,6 +18,8 @@ interface AddFriendDialogProps {
   onChange: (v: string) => void;
   onConfirm: () => void;
   onCancel: () => void;
+  privatePhone: string;
+  onChangePrivatePhone: (v: string) => void;
 }
 
 export const AddFriendDialog: React.FC<AddFriendDialogProps> = ({
@@ -24,6 +28,8 @@ export const AddFriendDialog: React.FC<AddFriendDialogProps> = ({
   onChange,
   onConfirm,
   onCancel,
+  privatePhone,
+  onChangePrivatePhone,
 }) => (
   <Dialog open={open} onOpenChange={onCancel}>
     <DialogContent className="max-w-md p-4 select-none">
@@ -35,6 +41,11 @@ export const AddFriendDialog: React.FC<AddFriendDialogProps> = ({
         type="number"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+      />
+      <Label>เบอร์โทรส่วนตัว</Label>
+      <Textarea
+        value={privatePhone}
+        onChange={(e) => onChangePrivatePhone(e.target.value)}
       />
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>

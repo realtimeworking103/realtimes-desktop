@@ -9,10 +9,10 @@ import {
 } from "@/ui/components/ui/card";
 import { Input } from "@/ui/components/ui/input";
 import { Label } from "@/ui/components/ui/label";
-import { useState } from "react";
+import { Checkbox } from "@/ui/components/ui/checkbox";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAuthStore } from "../stores/useAuthStore";
-import { waitForDebugger } from "inspector";
 
 export function LoginForm({
   className,
@@ -20,8 +20,26 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberPassword, setRememberPassword] = useState(false);
   const { login, error, isLoggingIn, setError } = useAuthStore();
   const navigate = useNavigate();
+
+  // Load saved credentials on component mount
+  useEffect(() => {
+    const savedCredentials = localStorage.getItem("rememberedCredentials");
+    if (savedCredentials) {
+      try {
+        const { username: savedUsername, password: savedPassword } =
+          JSON.parse(savedCredentials);
+        setUsername(savedUsername);
+        setPassword(savedPassword);
+        setRememberPassword(true);
+      } catch (error) {
+        console.error("Error loading saved credentials:", error);
+        localStorage.removeItem("rememberedCredentials");
+      }
+    }
+  }, []);
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
@@ -33,16 +51,35 @@ export function LoginForm({
     if (error) setError(null);
   };
 
+  const handleRememberPasswordChange = (checked: boolean) => {
+    setRememberPassword(checked);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!username.trim() || !password.trim()) {
       setError("กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน");
       return;
     }
-    
+
     try {
-      await login(username, password);  
+      await login(username, password);
+
+      // Save credentials if remember password is checked
+      if (rememberPassword) {
+        localStorage.setItem(
+          "rememberedCredentials",
+          JSON.stringify({
+            username,
+            password,
+          }),
+        );
+      } else {
+        // Remove saved credentials if not remembering
+        localStorage.removeItem("rememberedCredentials");
+      }
+
       navigate("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
@@ -70,6 +107,7 @@ export function LoginForm({
                   type="text"
                   required
                   disabled={isLoggingIn}
+                  value={username}
                 />
               </div>
               <div className="grid gap-3">
@@ -88,14 +126,26 @@ export function LoginForm({
                   type="password"
                   required
                   disabled={isLoggingIn}
+                  value={password}
                 />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="rememberPassword"
+                  checked={rememberPassword}
+                  onCheckedChange={handleRememberPasswordChange}
+                  disabled={isLoggingIn}
+                />
+                <Label htmlFor="rememberPassword" className="text-sm">
+                  จดจำรหัสผ่าน
+                </Label>
               </div>
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoggingIn}>
                   {isLoggingIn ? "Logging in..." : "Login"}
                 </Button>
               </div>
-                {error && (
+              {error && (
                 <p className="text-center text-sm text-red-500">{error}</p>
               )}
             </div>

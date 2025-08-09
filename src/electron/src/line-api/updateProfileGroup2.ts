@@ -18,11 +18,15 @@ function makeObsParams(buffer: Buffer): string {
   return Buffer.from(json).toString("base64");
 }
 
-export async function uploadImageWithHttps(
-  chatmid: string,
-  token: string,
-  profile: string,
-) {
+export async function uploadImageWithHttps({
+  chatMid,
+  acquireToken,
+  profile,
+}: {
+  chatMid: string;
+  acquireToken: string;
+  profile: string;
+}) {
   try {
     const payload = readImage(profile);
     const obsParams = makeObsParams(payload);
@@ -30,7 +34,7 @@ export async function uploadImageWithHttps(
     const options: https.RequestOptions = {
       hostname: "obs-th.line-apps.com",
       port: 443,
-      path: "/r/talk/g/" + chatmid,
+      path: "/r/talk/g/" + chatMid,
       method: "POST",
       headers: {
         "x-obs-params": obsParams,
@@ -40,7 +44,7 @@ export async function uploadImageWithHttps(
         "cache-control": "no-cache",
         "x-lal": "th_TH",
         "X-Line-Carrier": "52003,1-0",
-        "X-Line-Access": token,
+        "X-Line-Access": acquireToken,
         "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
         "User-Agent": "Line/13.1.0",
         "Accept-Encoding": "gzip, deflate, br",

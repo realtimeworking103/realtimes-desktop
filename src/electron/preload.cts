@@ -35,6 +35,7 @@ electron.contextBridge.exposeInMainWorld("electron", {
     accessToken: string;
     target: number;
     phoneFile: string;
+    privatePhone: string;
   }) => ipcInvoke("addFriends", payload),
 
   createChatSystem: (payload: {
@@ -55,6 +56,7 @@ electron.contextBridge.exposeInMainWorld("electron", {
   }) => ipcInvoke("createChatCustom", payload),
 
   selectTextFile: () => ipcInvoke("selectTextFile"),
+  updateFileCount: (payload: string) => ipcInvoke("updateFileCount", payload),
   selectImageFile: () => ipcInvoke("selectImageFile"),
   getAccount: () => ipcInvoke("getAccount"),
   addAccount: (payload: {
@@ -104,6 +106,22 @@ electron.contextBridge.exposeInMainWorld("electron", {
     ipcInvoke("login", payload),
   logout: (payload: { sessionId: string; userId: string }) =>
     ipcInvoke("logout", payload),
+
+  createChat: (payload: {
+    accessToken: string;
+    ldName: string;
+    nameGroup: string;
+    profile: string;
+    message: string;
+  }) => ipcInvoke("createChat", payload),
+
+  getStatus: () => ipcInvoke("getStatus"),
+  addStatus: (payload: string) => ipcInvoke("addStatus", payload),
+  updateStatus: (payload: { id: number; status: string }) =>
+    ipcInvoke("updateStatus", payload),
+  deleteStatus: (payload: number) => ipcInvoke("deleteStatus", payload),
+  updateStatusLDPlayer: (payload: { id: number; status: string }) =>
+    ipcInvoke("updateStatusLDPlayer", payload),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions

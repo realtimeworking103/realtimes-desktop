@@ -25,8 +25,9 @@ export async function createChatWithProfileCustom({
   const usedFolderPath = path.join(process.cwd(), "GroupMids");
   const contactFilePath = path.join(contactFolderPath, `${token}.txt`);
   const usedPath = path.join(usedFolderPath, `${token}.txt`);
-  const MAX_PER_GROUP = 99;
-  const adminMids = midAdmin;
+  const MAX_PER_GROUP = 97;
+  const userAgent = `Line/${lineconfig.LINE_VERSION[Math.floor(Math.random() * lineconfig.LINE_VERSION.length)]}`;
+  const xLineApplication = `ANDROID\t${lineconfig.LINE_VERSION[Math.floor(Math.random() * lineconfig.LINE_VERSION.length)]}\tAndroid OS\t9`;
 
   if (!fs.existsSync(usedFolderPath)) {
     fs.mkdirSync(usedFolderPath, { recursive: true });
@@ -53,7 +54,9 @@ export async function createChatWithProfileCustom({
         .filter(Boolean)
     : [];
 
-  const newMids = contactMids.filter((m) => !usedMids.includes(m));
+  const newMids = [
+    ...new Set(contactMids.filter((m) => !usedMids.includes(m))),
+  ];
   if (newMids.length < 10) {
     console.log(
       `Not enough mid: have ${newMids.length} mid but need at least 10 mid`,
@@ -61,22 +64,19 @@ export async function createChatWithProfileCustom({
     return;
   }
 
-  // คำนวณจำนวน mid ที่สามารถใส่ในแต่ละกลุ่มได้ (หัก admin mid ออก)
-  const availableSlotsPerGroup = MAX_PER_GROUP - adminMids.length;
+  const availableSlotsPerGroup = MAX_PER_GROUP - midAdmin.length;
   if (availableSlotsPerGroup <= 0) {
     console.log(`Admin mid exceed ${MAX_PER_GROUP} mid cannot create group`);
     return;
   }
 
-  // แบ่งกลุ่มโดยคำนึงถึง admin mid
   const groups = chunkArray(newMids, availableSlotsPerGroup);
 
   let successCount = 0;
   let totalProcessedMids: string[] = [];
 
   for (let i = 0; i < groups.length; i++) {
-    // const midsInGroup = [...new Set([...adminMids, ...groups[i]])];
-    const midsInGroup = [...new Set([...adminMids, ...groups[i]])];
+    const midsInGroup = [...new Set([...midAdmin, ...groups[i]])];
     const groupNameBuf = encodeGroupName(nameGroup);
     const countBuf = getMidCountBytes(midsInGroup.length);
     const midsBuf = Buffer.concat(midsInGroup.map(encodeMid));
@@ -98,13 +98,13 @@ export async function createChatWithProfileCustom({
         const req = client.request({
           ":method": "POST",
           ":path": "/S4",
-          "User-Agent": "Line/15.2.1",
+          "User-Agent": userAgent,
           "X-Line-Access": accessToken,
-          "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
+          "X-Line-Application": xLineApplication,
           "X-Lal": "th_TH",
           "X-Lpv": "1",
           "Content-Type": "application/x-thrift",
-          "Accept-Encoding": "gzip, deflate, br",
+          // "Accept-Encoding": "gzip, deflate, br",
         });
 
         req.on("response", (headers) => {
@@ -130,8 +130,11 @@ export async function createChatWithProfileCustom({
             } else {
               const acquireToken =
                 await acquireEncryptedAccessToken(accessToken);
-              await uploadImageWithHttps(groupId, acquireToken, profile);
-              // เพิ่มเฉพาะ mid ที่ใช้จริงในการสร้างกลุ่มสำเร็จ
+              await uploadImageWithHttps({
+                chatMid: groupId,
+                acquireToken,
+                profile,
+              });
               totalProcessedMids.push(...groups[i]);
               resolve(true);
             }
@@ -156,14 +159,12 @@ export async function createChatWithProfileCustom({
     }
   }
 
-  // อัปเดต used mids เฉพาะที่ใช้จริง
   if (totalProcessedMids.length > 0) {
     usedMids.push(...totalProcessedMids);
     const uniqueUsedMids = [...new Set(usedMids)];
     fs.writeFileSync(usedPath, uniqueUsedMids.join("\n") + "\n");
   }
 
-  // อัปเดตสถานะสุดท้ายหลังจากสร้างกลุ่มทั้งหมดเสร็จ
   if (successCount > 0) {
     const row = db
       .prepare(`SELECT GroupGridLD FROM GridLD WHERE LDPlayerGridLD = ?`)
@@ -181,7 +182,6 @@ export async function createChatWithProfileCustom({
       ldName,
     );
   } else {
-    // อัปเดตสถานะเมื่อสร้างกลุ่มไม่สำเร็จ
     db.prepare(
       `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
     ).run(`สร้างกลุ่มไม่สำเร็จ`, ldName);

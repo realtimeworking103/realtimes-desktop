@@ -151,6 +151,12 @@ type IpcEventMap = {
     response: boolean;
   };
 
+  // Update File Count
+  updateFileCount: {
+    payload: string;
+    response: boolean;
+  };
+
   // Phone File
   updatePhoneFile: {
     payload: { ldName: string; fileName: string };
@@ -164,13 +170,9 @@ type IpcEventMap = {
       accessToken: string;
       target: number;
       phoneFile: string;
+      privatePhone: string;
     };
-    response: {
-      success: boolean;
-      added: number;
-      remaining: number;
-      message?: string;
-    };
+    response: boolean;
   };
 
   selectTextFile: {
@@ -314,6 +316,40 @@ type IpcEventMap = {
   logout: {
     payload: { sessionId: string; userId: string };
     response: { userId: string; sessionId: string };
+  };
+
+  // Create Chat
+  createChat: {
+    payload: {
+      accessToken: string;
+      ldName: string;
+      nameGroup: string;
+      profile: string;
+      message: string;
+    };
+    response: boolean;
+  };
+
+  // Status
+  getStatus: {
+    payload: void;
+    response: { id: number; status: string; createdAt: string }[];
+  };
+  addStatus: {
+    payload: string;
+    response: boolean;
+  };
+  updateStatus: {
+    payload: { id: number; status: string };
+    response: boolean;
+  };
+  deleteStatus: {
+    payload: number;
+    response: boolean;
+  };
+  updateStatusLDPlayer: {
+    payload: { id: number; status: string };
+    response: boolean;
   };
 };
 

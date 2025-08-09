@@ -112,7 +112,7 @@ export async function addFriendByIdOa(
       });
 
       req.on("data", (chunk) => {
-        console.log(`ADD CONTACT OA SUCCESS:`, chunk.toString());
+        console.log(chunk.toString());
       });
 
       req.on("end", () => {

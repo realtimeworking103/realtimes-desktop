@@ -13,6 +13,7 @@ const createWindow = () => {
     height: 900,
     webPreferences: {
       preload: preloadPath,
+      webSecurity: false,
     },
   });
 

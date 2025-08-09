@@ -11,7 +11,6 @@ import {
 export async function getTokenLdInstance(ldName: string): Promise<boolean> {
   const ldconsolePath = getLdInstancePath();
   const outputFolder = path.join(process.cwd(), "databaseldplayer");
-  console.log("outputFolder", outputFolder);
 
   if (!fs.existsSync(outputFolder)) {
     fs.mkdirSync(outputFolder, { recursive: true });
@@ -21,43 +20,55 @@ export async function getTokenLdInstance(ldName: string): Promise<boolean> {
     const launchCommand = `"${ldconsolePath}" launch --name ${ldName}`;
     await execAsync(launchCommand);
 
-    // await new Promise((resolve) => setTimeout(resolve, 20000));
-    const waitCommand = `"${ldconsolePath}" adb --name ${ldName} --command "wait-for-device'"`;
-    await execAsync(waitCommand);
-    console.log("Wait Command:", waitCommand);
+    const waitCommand = `"${ldconsolePath}" adb --name ${ldName} --command "wait-for-device"`;
 
-    const copyCommand = `"${ldconsolePath}" adb --name ${ldName} --command "shell su -c 'cat /data/data/jp.naver.line.android/databases/naver_line > /sdcard/naver_line_${ldName}.db'"`;
-    await execAsync(copyCommand);
+    const waitResult = await Promise.race([
+      execAsync(waitCommand)
+        .then(() => true)
+        .catch(() => false),
+      new Promise<boolean>((resolve) =>
+        setTimeout(() => resolve(false), 60000),
+      ),
+    ]);
 
-    console.log("Copy Command:", copyCommand);
+    if (!waitResult) {
+      const quitCommand = `"${ldconsolePath}" quit --name ${ldName}`;
+      await execAsync(quitCommand);
+      return false;
+    } else {
+      const copyCommand = `"${ldconsolePath}" adb --name ${ldName} --command "shell su -c 'cat /data/data/jp.naver.line.android/databases/naver_line > /sdcard/naver_line_${ldName}.db'"`;
+      await execAsync(copyCommand);
 
-    const pullCommand = `"${ldconsolePath}" adb --name ${ldName} --command "pull /sdcard/naver_line_${ldName}.db ${outputFolder}"`;
-    await execAsync(pullCommand);
+      console.log("Copy Command:", copyCommand);
 
-    console.log("Pull Command:", pullCommand);
+      const pullCommand = `"${ldconsolePath}" adb --name ${ldName} --command "pull /sdcard/naver_line_${ldName}.db ${outputFolder}"`;
+      await execAsync(pullCommand);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Pull Command:", pullCommand);
 
-    const token = await decryptAndSaveProfile(ldName);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    console.log("Token:", token);
+      const token = await decryptAndSaveProfile(ldName);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Token:", token);
 
-    await updateSettingsAttributes1(token);
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    console.log("Update Settings Attributes 1:", token);
+      await updateSettingsAttributes1(token);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Update Settings Attributes 1:", token);
 
-    await updateSettingsAttributes2(token);
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      await updateSettingsAttributes2(token);
 
-    const quitCommand = `"${ldconsolePath}" quit --name ${ldName}`;
-    await execAsync(quitCommand);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    return true;
+      const quitCommand = `"${ldconsolePath}" quit --name ${ldName}`;
+      await execAsync(quitCommand);
+
+      return true;
+    }
   } catch (error) {
     console.log(error);
     return false;

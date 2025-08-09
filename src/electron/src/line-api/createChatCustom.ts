@@ -1,57 +1,59 @@
+import db from "../services/sqliteService.js";
 import { getAllContactIds } from "./getAllContactIds.js";
-import { createChatWithProfileCustom } from "./createChatWithProfileCustom.js";
 import { findContactByUseridOa } from "./function-addFriendOa.js";
-import { syncContactsKai } from "./syncContactPhoneKai.js";
+import { getContactsV2 } from "./getContactsV2.js";
+import { createChatWithProfileCustom } from "./createChatWithProfileCustom.js";
+import { FileStorage } from "@evex/linejs/storage";
+import { loginWithAuthToken } from "@evex/linejs";
 
 export async function createChatCustom({
   accessToken,
   ldName,
   nameGroup,
-  profile,
   oaId,
   privateId,
+  profile,
 }: {
   accessToken: string;
-  nameGroup: string;
   ldName: string;
-  profile: string;
+  nameGroup: string;
   oaId: string;
   privateId: string;
-}): Promise<boolean> {
-  return new Promise<boolean>(async (resolve, reject) => {
-    try {
-      const allContactMids: string[] = await getAllContactIds(accessToken);
-      let privateMid: string | null = null;
-      let oaMid: string | null = null;
-      const isPrivateInContacts = allContactMids.includes(privateId);
+  profile: string;
+}) {
+  try {
+    let oaMid: string | null = null;
+    let privateMid: string | null = null;
 
-      if (!isPrivateInContacts) {
-        privateMid = await syncContactsKai(accessToken, [privateId]);
-        console.log("ADD FRIEND PRIVATE MID:", privateMid);
-      } else {
-        privateMid = privateId;
-      }
+    const client = await loginWithAuthToken(accessToken, {
+      device: "IOS",
+      storage: new FileStorage("./storage.json"),
+    });
 
-      const isOaInContacts = allContactMids.includes(oaId);
+    const findContactByUserid = await client.base.talk.findContactByUserid({
+      searchId: privateId,
+    });
 
-      if (!isOaInContacts) {
-        oaMid = await findContactByUseridOa(accessToken, oaId);
-        console.log("ADD FRIEND OA MID:", oaMid);
-      } else {
-        oaMid = oaId;
-      }
+    privateMid = findContactByUserid.mid;
+    await getContactsV2(accessToken, privateMid);
 
-      await createChatWithProfileCustom({
-        accessToken,
-        ldName,
-        nameGroup,
-        profile,
-        midAdmin: [privateMid, oaMid],
-      });
-      resolve(true);
-    } catch (error) {
-      console.error("เกิดข้อผิดพลาดในการสร้างกลุ่ม:", error);
-      reject(error);
-    }
-  });
+    oaMid = await findContactByUseridOa(accessToken, oaId);
+    await getContactsV2(accessToken, oaMid);
+
+    await getAllContactIds(accessToken);
+
+    await createChatWithProfileCustom({
+      accessToken,
+      ldName,
+      nameGroup,
+      profile,
+      midAdmin: [oaMid, privateMid],
+    });
+    return true;
+  } catch (error) {
+    db.prepare(
+      `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+    ).run("สร้างกลุ่มไม่สำเร็จ", ldName);
+    return false;
+  }
 }

@@ -1,131 +1,113 @@
-import { List, Pencil, Plus, Trash, Upload } from "lucide-react";
-import { Table } from "@/ui/components/ui/table";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/ui/components/ui/card";
-import { Button } from "@/ui/components/ui/button";
+import { Pencil, Plus, Settings, Trash } from "lucide-react";
 import {
-  TableBody,
-  TableCell,
-  TableHead,
+  Table,
   TableHeader,
   TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
 } from "@/ui/components/ui/table";
+import { Button } from "@/ui/components/ui/button";
 import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
+  DialogDescription,
 } from "@/ui/components/ui/dialog";
 import { Input } from "@/ui/components/ui/input";
 import { Checkbox } from "@/ui/components/ui/checkbox";
 import { Badge } from "@/ui/components/ui/badge";
-import { MessageType } from "@/ui/types/types";
-import { Label } from "@/ui/components/ui/label";
+import { toast } from "sonner";
 
 export default function Page() {
-  const [message, setMessage] = useState<MessageType[]>([] as MessageType[]);
+  const [id, setId] = useState<number>(0);
+  const [status, setStatus] = useState<any[]>([]);
+  const [statusEdit, setStatusEdit] = useState<string>("");
   const [openDialog, setOpenDialog] = useState(false);
-  const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [nameMessage, setNameMessage] = useState("");
-  const [messageText, setMessageText] = useState("");
-  const [id, setId] = useState(0);
-  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [openDialogEdit, setOpenDialogEdit] = useState(false);
+  const [statusInput, setStatusInput] = useState("");
   const [openConfirmDeleteDialog, setOpenConfirmDeleteDialog] = useState(false);
   const [confirmDeleteIds, setConfirmDeleteIds] = useState<number[]>([]);
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
 
   const toggleRow = (id: number) => {
     setSelectedRows((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
+      newSet.has(id) ? newSet.delete(id) : newSet.add(id);
       return newSet;
     });
   };
 
-  const handleFetchMessage = async () => {
-    const result = await window.electron.getMessage();
-    setMessage(result as unknown as MessageType[]);
-  };
-
-  const handleAddMessage = async (nameMessage: string, message: string) => {
-    const result = await window.electron.addMessage({
-      nameMessage: nameMessage.trim(),
-      message: message.trim(),
+  const fetchStatus = () => {
+    window.electron.getStatus().then((status) => {
+      setStatus(status);
     });
-    if (!result) return;
-    handleFetchMessage();
-    setOpenDialog(false);
-    setNameMessage("");
-    setMessageText("");
   };
 
-  const handleDeleteMessage = async (ids: number[]) => {
-    for (const id of ids) {
-      const result = await window.electron.deleteMessage(id);
-      if (!result) return;
+  const handleAddStatus = () => {
+    if (statusInput.trim() === "") {
+      toast.error("กรุณากรอกสถานะ");
+      return;
     }
-    handleFetchMessage();
-    setSelectedRows(new Set());
+    window.electron.addStatus(statusInput);
+    fetchStatus();
+    setOpenDialog(false);
+    setStatusInput("");
   };
 
-  const handleEditMessage = async (
-    id: number,
-    nameMessage: string,
-    message: string,
-  ) => {
-    const result = await window.electron.editMessage({
-      id,
-      nameMessage: nameMessage.trim(),
-      message: message.trim(),
-    });
-    if (!result) return;
-    handleFetchMessage();
+  const handleEditStatus = (id: number, status: string) => {
+    window.electron.updateStatus({ id, status });
+    fetchStatus();
+    setOpenDialogEdit(false);
+  };
+
+  const handleDeleteStatus = (id: number) => {
+    window.electron.deleteStatus(id);
+    fetchStatus();
+    setOpenConfirmDeleteDialog(false);
     setSelectedRows(new Set());
-    setOpenEditDialog(false);
-    setNameMessage("");
-    setMessageText("");
-    setId(0);
+    setConfirmDeleteIds([]);
   };
 
   useEffect(() => {
-    handleFetchMessage();
+    fetchStatus();
   }, []);
 
   return (
     <div className="min-h-svh p-6 select-none">
-      {/* Header */}
       <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <List className="h-8 w-8" />
-            <h1 className="text-2xl font-bold text-gray-800">จัดการข้อความ</h1>
+            <Settings className="h-8 w-8" />
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+              สถานะ
+            </h1>
           </div>
         </div>
       </div>
 
-      {/* Status Card */}
+      {/* Card */}
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>จำนวนข้อความ</CardTitle>
+            <CardTitle>จำนวนสถานะ</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-600">
-                จำนวนข้อความทั้งหมด
+                จำนวนสถานะทั้งหมด
               </p>
               <p className="text-3xl font-bold text-blue-600">
-                {message.length}
+                {status.length}
               </p>
             </div>
           </CardContent>
@@ -135,20 +117,9 @@ export default function Page() {
       {/* Content */}
       <div className="mx-auto space-y-4">
         <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>รายการข้อความ</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>รายการสถานะ</CardTitle>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="lg"
-                className="bg-green-500 text-white transition-colors duration-200 hover:bg-green-600"
-                onClick={() => {
-                  setOpenDialog(true);
-                }}
-              >
-                <Upload className="h-4 w-4" />
-                นำเข้าข้อความ
-              </Button>
               <Button
                 variant="outline"
                 size="lg"
@@ -156,7 +127,7 @@ export default function Page() {
                 onClick={() => setOpenDialog(true)}
               >
                 <Plus className="h-4 w-4" />
-                เพิ่มข้อความ
+                เพิ่มสถานะ
               </Button>
               <Button
                 variant="outline"
@@ -168,7 +139,7 @@ export default function Page() {
                 }}
               >
                 <Trash className="h-4 w-4" />
-                ลบรายการที่เลือก
+                ลบสถานะที่เลือก
               </Button>
             </div>
           </CardHeader>
@@ -180,14 +151,11 @@ export default function Page() {
                     <TableRow>
                       <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
                         <Checkbox
-                          checked={
-                            message.length > 0 &&
-                            selectedRows.size === message.length
-                          }
+                          checked={selectedRows.size === status.length}
                           onCheckedChange={(checked) => {
                             if (checked) {
                               setSelectedRows(
-                                new Set(message.map((item) => item.id)),
+                                new Set(status.map((item) => item.id)),
                               );
                             } else {
                               setSelectedRows(new Set());
@@ -199,29 +167,26 @@ export default function Page() {
                         ลำดับ
                       </TableHead>
                       <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
-                        ชื่อข้อความ
-                      </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
-                        รายละเอียด
+                        รายการสถานะ
                       </TableHead>
                       <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
                         วันที่สร้าง
                       </TableHead>
                       <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
-                        จัดการ
+                        การจัดการ
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {message.map((item, index) => (
-                      <TableRow key={index} className="hover:bg-blue-50/50">
-                        <TableCell className="text-center">
+                    {status.map((item, index) => (
+                      <TableRow key={item.id}>
+                        <TableCell>
                           <Checkbox
                             checked={selectedRows.has(item.id)}
                             onCheckedChange={() => toggleRow(item.id)}
                           />
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-center">
                           <Badge
                             variant="secondary"
                             className="bg-blue-100 text-sm text-blue-800"
@@ -229,30 +194,31 @@ export default function Page() {
                             {index + 1}
                           </Badge>
                         </TableCell>
-                        <TableCell>{item.nameMessage}</TableCell>
-                        <TableCell>{item.message}</TableCell>
-                        <TableCell>{item.createAt}</TableCell>
+                        <TableCell>{item.status}</TableCell>
+                        <TableCell>{item.createdAt}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-2">
                             <Button
                               variant="outline"
-                              size="sm"
+                              size="icon"
                               className="bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-600"
                               onClick={() => {
-                                setNameMessage(item.nameMessage);
-                                setMessageText(item.message);
+                                setStatusEdit(item.status);
                                 setId(item.id);
-                                setOpenEditDialog(true);
+                                setOpenDialogEdit(true);
                               }}
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
-                              size="sm"
+                              size="icon"
                               className="bg-red-500 text-white transition-colors duration-200 hover:bg-red-600"
                               onClick={() => {
-                                setConfirmDeleteIds([item.id]);
+                                setConfirmDeleteIds((prev) => [
+                                  ...prev,
+                                  item.id,
+                                ]);
                                 setOpenConfirmDeleteDialog(true);
                               }}
                             >
@@ -274,36 +240,24 @@ export default function Page() {
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>เพิ่มข้อความ</DialogTitle>
+            <DialogTitle>เพิ่มสถานะ</DialogTitle>
           </DialogHeader>
           <DialogDescription>
             <div className="flex flex-col gap-2">
-              <div className="flex flex-col gap-2">
-                <Label>ชื่อ</Label>
-                <Input
-                  placeholder="กรอกชื่อ"
-                  value={nameMessage}
-                  onChange={(e) => setNameMessage(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>ข้อความ</Label>
-                <Input
-                  placeholder="กรอกข้อความ"
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                />
-              </div>
+              <Input
+                placeholder="กรอกสถานะ"
+                value={statusInput}
+                onChange={(e) => setStatusInput(e.target.value)}
+              />
             </div>
           </DialogDescription>
           <DialogFooter>
-            <Button onClick={() => setOpenDialog(false)}>ยกเลิก</Button>
+            <Button variant="outline" onClick={() => setOpenDialog(false)}>
+              ยกเลิก
+            </Button>
             <Button
               onClick={() => {
-                handleAddMessage(nameMessage, messageText);
-                setOpenDialog(false);
-                setNameMessage("");
-                setMessageText("");
+                handleAddStatus();
               }}
             >
               เพิ่ม
@@ -312,71 +266,72 @@ export default function Page() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirm Delete Dialog */}
-      <Dialog
-        open={openConfirmDeleteDialog}
-        onOpenChange={setOpenConfirmDeleteDialog}
-      >
+      {/* Dialog Edit */}
+      <Dialog open={openDialogEdit} onOpenChange={setOpenDialogEdit}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>ยืนยันการลบข้อความ</DialogTitle>
-            <DialogDescription>
-              คุณต้องการลบข้อความนี้หรือไม่?
-            </DialogDescription>
+            <DialogTitle>แก้ไขสถานะ</DialogTitle>
           </DialogHeader>
+          <DialogDescription>
+            <div className="flex flex-col gap-2">
+              <Input
+                placeholder="กรอกสถานะ"
+                value={statusEdit}
+                onChange={(e) => setStatusEdit(e.target.value)}
+              />
+            </div>
+          </DialogDescription>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setOpenConfirmDeleteDialog(false)}
-            >
+            <Button variant="outline" onClick={() => setOpenDialogEdit(false)}>
               ยกเลิก
             </Button>
             <Button
               onClick={() => {
-                handleDeleteMessage(confirmDeleteIds);
-                setOpenConfirmDeleteDialog(false);
+                handleEditStatus(id, statusEdit);
+                setOpenDialogEdit(false);
               }}
             >
-              ยืนยัน
+              บันทึก
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
+      {/* Confirm Delete Dialog */}
+      <Dialog
+        open={openConfirmDeleteDialog}
+        onOpenChange={(open) => {
+          setOpenConfirmDeleteDialog(open);
+          setSelectedRows(new Set());
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>แก้ไขข้อความ</DialogTitle>
+            <DialogTitle>ยืนยันการลบสถานะ</DialogTitle>
+            <DialogDescription>คุณต้องการลบสถานะนี้หรือไม่?</DialogDescription>
           </DialogHeader>
-          <DialogDescription>
-            <div className="flex flex-col gap-2">
-              <Input
-                placeholder="ชื่อข้อความ"
-                value={nameMessage}
-                onChange={(e) => setNameMessage(e.target.value)}
-              />
-              <Input
-                placeholder="ข้อความ"
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-              />
-            </div>
-          </DialogDescription>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenEditDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOpenConfirmDeleteDialog(false);
+                setSelectedRows(new Set());
+                setConfirmDeleteIds([]);
+              }}
+            >
               ยกเลิก
             </Button>
             <Button
               onClick={() => {
-                handleEditMessage(id, nameMessage, messageText);
-                setOpenEditDialog(false);
-                setNameMessage("");
-                setMessageText("");
-                setId(0);
+                for (const id of confirmDeleteIds) {
+                  handleDeleteStatus(id);
+                }
+                setOpenConfirmDeleteDialog(false);
+                setSelectedRows(new Set());
+                setConfirmDeleteIds([]);
               }}
             >
-              บันทึก
+              ยืนยัน
             </Button>
           </DialogFooter>
         </DialogContent>

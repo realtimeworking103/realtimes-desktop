@@ -11,19 +11,26 @@ import { Settings } from "lucide-react";
 import { Input } from "@/ui/components/ui/input";
 import { Button } from "@/ui/components/ui/button";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function Page() {
   const [ldplayerPath, setLdplayerPath] = useState("");
 
   useEffect(() => {
-    const path = window.electron.getLdInstancePath();
-    setLdplayerPath(path as unknown as string);
+    fetchPath();
   }, []);
+
+  const fetchPath = async () => {
+    const path = await window.electron.getLdInstancePath();
+    setLdplayerPath(path);
+  };
 
   const handleBrowse = async () => {
     const result = await window.electron.browseLdInstancePath();
     if (result) {
       setLdplayerPath(ldplayerPath);
+      await fetchPath();
+      toast.success("ตั้งค่า LDPlayer เรียบร้อย");
     }
   };
 
@@ -51,12 +58,19 @@ export default function Page() {
               className="w-full"
               value={ldplayerPath}
               onChange={(e) => setLdplayerPath(e.target.value)}
+              disabled={true}
             />
-            <Button onClick={handleBrowse}>Browse</Button>
+            <Button onClick={handleBrowse}>เลือกไฟล์</Button>
           </div>
         </CardContent>
         <CardFooter></CardFooter>
       </Card>
+
+      {/* Tips */}
+      <div className="mt-2 rounded bg-blue-50 px-6 py-3 text-sm text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
+        💡 <b>Tips:</b> กดปุ่ม <kbd>เลือกไฟล์</kbd> เพื่อเลือกไฟล์ LDPlayer
+        ตัวอย่าง : C:\LDPlayer\LDPlayer9\ldconsole.exe
+      </div>
     </div>
   );
 }

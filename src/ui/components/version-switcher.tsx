@@ -1,26 +1,38 @@
-import * as React from "react"
-import { Check, ChevronsUpDown, GalleryVerticalEnd } from "lucide-react"
+import * as React from "react";
+import { Check, ChevronsUpDown, GalleryVerticalEnd } from "lucide-react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/ui/components/ui/dropdown-menu"
+} from "@/ui/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/ui/components/ui/sidebar"
+} from "@/ui/components/ui/sidebar";
 
 export function VersionSwitcher({
   versions,
   defaultVersion,
 }: {
-  versions: string[]
-  defaultVersion: string
+  versions: string[];
+  defaultVersion: string;
 }) {
-  const [selectedVersion, setSelectedVersion] = React.useState(defaultVersion)
+  // Load selected version from localStorage or use default
+  const [selectedVersion, setSelectedVersion] = React.useState(() => {
+    const savedVersion = localStorage.getItem("selectedVersion");
+    return savedVersion && versions.includes(savedVersion)
+      ? savedVersion
+      : defaultVersion;
+  });
+
+  // Save selected version to localStorage when it changes
+  const handleVersionChange = (version: string) => {
+    setSelectedVersion(version);
+    localStorage.setItem("selectedVersion", version);
+  };
 
   return (
     <SidebarMenu>
@@ -36,7 +48,9 @@ export function VersionSwitcher({
               </div>
               <div className="flex flex-col gap-0.5 leading-none">
                 <span className="font-medium">Realtimes Desktop</span>
-                <span className="">v{selectedVersion}</span>
+                <span className="font-medium text-blue-500">
+                  {selectedVersion}
+                </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -48,7 +62,7 @@ export function VersionSwitcher({
             {versions.map((version) => (
               <DropdownMenuItem
                 key={version}
-                onSelect={() => setSelectedVersion(version)}
+                onSelect={() => handleVersionChange(version)}
               >
                 v{version}{" "}
                 {version === selectedVersion && <Check className="ml-auto" />}
@@ -58,5 +72,5 @@ export function VersionSwitcher({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

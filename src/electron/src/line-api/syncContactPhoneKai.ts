@@ -66,9 +66,10 @@ export async function syncContactsKai(accessToken: string, phones: string[]) {
 
       req.on("end", async () => {
         client.close();
+        console.log("response", response);
         const midMatch = response.match(/u[a-f0-9]{32}/i);
         if (!midMatch) {
-          return reject(new Error("ไม่พบ MID ใน response"));
+          return reject(new Error(`เพิ่มเพื่อน ${phones} ไม่สำเร็จ`));
         }
         const mid = midMatch[0];
         resolve(mid);

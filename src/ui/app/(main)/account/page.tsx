@@ -32,12 +32,13 @@ import {
   TableBody,
   TableCell,
 } from "@/ui/components/ui/table";
+import { toast } from "sonner";
 
 export default function Page() {
   const [account, setAccount] = useState<AccountType[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [name, setName] = useState("");
-  const [type, setType] = useState("ไลน์บอท");
+  const [type, setType] = useState("");
   const [mid, setMid] = useState("");
   const [status, setStatus] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -48,10 +49,22 @@ export default function Page() {
     });
   };
 
+  const handleClear = () => {
+    setName("");
+    setMid("");
+    setType("");
+    setStatus(true);
+  };
+
   const handleAddAccount = () => {
+    if (name === "" || type === "") {
+      toast.error("กรุณากรอกข้อมูลให้ครบ");
+      return;
+    }
     window.electron.addAccount({ type, name, mid, status });
     fetchAccount();
     setOpenDialog(false);
+    handleClear();
   };
 
   const handleDeleteAccount = (name: string) => {
@@ -227,6 +240,7 @@ export default function Page() {
               placeholder="MID"
               value={mid}
               onChange={(e) => setMid(e.target.value)}
+              disabled={true}
             />
             <RadioGroup
               value={type}

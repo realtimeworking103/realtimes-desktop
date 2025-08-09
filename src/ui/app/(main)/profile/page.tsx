@@ -150,9 +150,9 @@ export default function Page() {
                       <TableCell>{item.name}</TableCell>
                       <TableCell className="flex justify-center">
                         <img
-                          src={`/profile/${item.name}`}
+                          src={`file:///${item.path.replace(/\\/g, "/")}`}
                           alt="profile"
-                          className="h-10 w-10 rounded-full"
+                          className="h-10 w-10"
                         />
                       </TableCell>
                       <TableCell className="text-left">

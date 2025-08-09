@@ -51,3 +51,9 @@ export type MessageType = {
   message: string;
   createAt: string;
 };
+
+export type StatusType = {
+  id: number;
+  status: string;
+  createdAt: string;
+};
