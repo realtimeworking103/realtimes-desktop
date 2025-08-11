@@ -43,15 +43,15 @@ export function uploadImageToGroup(
       "X-Obs-Channeltype": "legy",
       "X-Obs-Host": "obs-th.line-apps.com",
       "X-Line-Access": acqyireToken,
-      "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
-      "User-Agent": "Line/15.2.1",
+      "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
+      "User-Agent": "Line/13.1.0",
       "Content-Type": "application/json",
       "Content-Length": Buffer.byteLength(payload).toString(),
       "Accept-Encoding": "gzip, deflate, br",
     });
 
     req.on("data", (chunk) => {
-      console.log(`Response Body UploadImageGroup :`,chunk.toString());
+      console.log(`Response Body UploadImageGroup :`, chunk.toString());
     });
 
     req.on("end", () => {

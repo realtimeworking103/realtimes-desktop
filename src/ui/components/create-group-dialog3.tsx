@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { NameGroupType, ProfileType, AccountType } from "@/ui/types/types";
+import { AccountType, NameGroupType, ProfileType } from "@/ui/types/types";
 
 import { Button } from "./ui/button";
 
@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from "./ui/select";
 
-import { toast } from "sonner";
 import { Switch } from "./ui/switch";
 
 interface CreateGroupDialogProps {
@@ -29,21 +28,21 @@ interface CreateGroupDialogProps {
   onCancel: () => void;
 }
 
-export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
-  onCancel,
+export const CreateGroupDialog3: React.FC<CreateGroupDialogProps> = ({
   onConfirm,
+  onCancel,
 }) => {
   const [nameGroup, setNameGroup] = useState<NameGroupType[]>([]);
   const [profile, setProfile] = useState<ProfileType[]>([]);
-  const [account, setAccount] = useState<AccountType[]>([]);
-  const officalAccount = account.filter((item) => item.type === "ไลน์บอท");
-  const privateAccount = account.filter((item) => item.type === "ไลน์ส่วนตัว");
   const [selectedNameGroup, setSelectedNameGroup] = useState<string>("");
   const [selectedProfile, setSelectedProfile] = useState<ProfileType>();
-  const [selectedOffAccount, setSelectedOffAccount] = useState<string>();
+  const [officalAccount, setOfficalAccount] = useState<AccountType[]>([]);
+  const [privateAccount, setPrivateAccount] = useState<AccountType[]>([]);
+  const [selectedOffAccount, setSelectedOffAccount] = useState<string>("");
   const [selectedPrivateAccount, setSelectedPrivateAccount] =
-    useState<string>();
+    useState<string>("");
   const [enabled, setEnabled] = useState(true);
+
   useEffect(() => {
     window.electron.getFileNameGroup().then((data) => {
       setNameGroup(data);
@@ -57,18 +56,12 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
   }, []);
 
   useEffect(() => {
-    window.electron.getAccount().then((data) => {
-      setAccount(data);
-    });
-  }, []);
-
-  useEffect(() => {
     if (nameGroup.length > 0) {
       setSelectedNameGroup(
         nameGroup[Math.floor(Math.random() * nameGroup.length)].name,
       );
     }
-  }, [nameGroup, profile, account]);
+  }, [nameGroup]);
 
   useEffect(() => {
     if (profile.length > 0) {
@@ -77,11 +70,23 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
   }, [profile]);
 
   useEffect(() => {
-    if (account.length > 0) {
+    if (enabled) {
+      window.electron.getAccount().then((data) => {
+        setOfficalAccount(data.filter((item) => item.type === "ไลน์บอท"));
+        setPrivateAccount(data.filter((item) => item.type === "ไลน์ส่วนตัว"));
+      });
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    if (enabled) {
       handleRandomOffAccount();
       handleRandomPrivateAccount();
+    } else {
+      setSelectedOffAccount("");
+      setSelectedPrivateAccount("");
     }
-  }, [account, officalAccount, privateAccount]);
+  }, [enabled, officalAccount, privateAccount]);
 
   const handleRandomNameGroup = () => {
     const randomNameGroup =
@@ -135,20 +140,11 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
   };
 
   const handleConfirm = () => {
-    if (
-      !selectedNameGroup ||
-      !selectedProfile?.path ||
-      !selectedOffAccount ||
-      !selectedPrivateAccount
-    ) {
-      toast.error("กรุณาเลือกข้อมูลให้ครบถ้วน");
-      return;
-    }
     onConfirm(
       selectedNameGroup,
       selectedProfile?.path || "",
-      selectedOffAccount || "",
-      selectedPrivateAccount || "",
+      selectedOffAccount,
+      selectedPrivateAccount,
     );
     onCancel();
   };
@@ -214,7 +210,7 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
               value={selectedOffAccount}
               onValueChange={handleSelectOffAccount}
             >
-              <SelectTrigger className="w-full" disabled={!enabled}>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="เลือกบัญชีไลน์" />
               </SelectTrigger>
               <SelectContent>
@@ -230,7 +226,7 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
               value={selectedPrivateAccount}
               onValueChange={handleSelectPrivateAccount}
             >
-              <SelectTrigger className="w-full" disabled={!enabled}>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="เลือกบัญชีไลน์" />
               </SelectTrigger>
               <SelectContent>

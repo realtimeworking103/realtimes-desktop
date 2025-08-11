@@ -57,3 +57,9 @@ export type StatusType = {
   status: string;
   createdAt: string;
 };
+
+export type VersionData = {
+  currentVersion: string;
+  availableVersions: string[];
+  lastUpdated: string;
+};

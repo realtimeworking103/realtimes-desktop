@@ -55,6 +55,13 @@ electron.contextBridge.exposeInMainWorld("electron", {
     privateId: string;
   }) => ipcInvoke("createChatCustom", payload),
 
+  addMe: (payload: {
+    accessToken: string;
+    ldName: string;
+    phone: string;
+    userId: string;
+  }) => ipcInvoke("addMe", payload),
+
   selectTextFile: () => ipcInvoke("selectTextFile"),
   updateFileCount: (payload: string) => ipcInvoke("updateFileCount", payload),
   selectImageFile: () => ipcInvoke("selectImageFile"),
@@ -72,6 +79,12 @@ electron.contextBridge.exposeInMainWorld("electron", {
     mid: string;
     status: boolean;
   }) => ipcInvoke("updateAccount", payload),
+  saveRememberedCredentials: (payload: {
+    username: string;
+    password: string;
+  }) => ipcInvoke("saveRememberedCredentials", payload),
+  getRememberedCredentials: () => ipcInvoke("getRememberedCredentials"),
+  deleteRememberedCredentials: () => ipcInvoke("deleteRememberedCredentials"),
   selectFileNameGroup: () => ipcInvoke("selectFileNameGroup"),
   getFileNameGroup: () => ipcInvoke("getFileNameGroup"),
   deleteNameGroup: (payload: number) => ipcInvoke("deleteNameGroup", payload),
@@ -112,6 +125,7 @@ electron.contextBridge.exposeInMainWorld("electron", {
     ldName: string;
     nameGroup: string;
     profile: string;
+    oaId: string;
     message: string;
   }) => ipcInvoke("createChat", payload),
 
@@ -122,6 +136,15 @@ electron.contextBridge.exposeInMainWorld("electron", {
   deleteStatus: (payload: number) => ipcInvoke("deleteStatus", payload),
   updateStatusLDPlayer: (payload: { id: number; status: string }) =>
     ipcInvoke("updateStatusLDPlayer", payload),
+
+  //Version Management
+  getVersionData: () => ipcInvoke("getVersionData"),
+  updateCurrentVersion: (payload: string) =>
+    ipcInvoke("updateCurrentVersion", payload),
+  addAvailableVersion: (payload: string) =>
+    ipcInvoke("addAvailableVersion", payload),
+  removeAvailableVersion: (payload: string) =>
+    ipcInvoke("removeAvailableVersion", payload),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions

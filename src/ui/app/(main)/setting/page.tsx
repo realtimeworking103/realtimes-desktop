@@ -12,13 +12,26 @@ import { Input } from "@/ui/components/ui/input";
 import { Button } from "@/ui/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { VersionManager } from "@/ui/components/version-manager";
+import { VersionData } from "@/ui/types/types";
 
 export default function Page() {
   const [ldplayerPath, setLdplayerPath] = useState("");
+  const [versionData, setVersionData] = useState<VersionData | null>(null);
 
   useEffect(() => {
     fetchPath();
+    fetchVersionData();
   }, []);
+
+  const fetchVersionData = async () => {
+    try {
+      const data = await window.electron.getVersionData();
+      setVersionData(data);
+    } catch (error) {
+      console.error('Error loading version data:', error);
+    }
+  };
 
   const fetchPath = async () => {
     const path = await window.electron.getLdInstancePath();
@@ -62,6 +75,24 @@ export default function Page() {
             />
             <Button onClick={handleBrowse}>เลือกไฟล์</Button>
           </div>
+        </CardContent>
+        <CardFooter></CardFooter>
+      </Card>
+
+      {/* Version Management */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Version Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {versionData ? (
+            <VersionManager 
+              versionData={versionData} 
+              onVersionDataChange={setVersionData} 
+            />
+          ) : (
+            <div className="text-center py-4">Loading version data...</div>
+          )}
         </CardContent>
         <CardFooter></CardFooter>
       </Card>

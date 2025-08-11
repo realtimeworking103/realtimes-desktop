@@ -126,6 +126,7 @@ type IpcEventMap = {
     };
     response: boolean;
   };
+
   checkBanLdInstance: {
     payload: { ldName: string; accessToken: string };
     response: boolean;
@@ -218,6 +219,26 @@ type IpcEventMap = {
       mid: string;
       status: boolean;
     };
+    response: boolean;
+  };
+
+  // Remembered Credentials
+  saveRememberedCredentials: {
+    payload: {
+      username: string;
+      password: string;
+    };
+    response: boolean;
+  };
+  getRememberedCredentials: {
+    payload: void;
+    response: {
+      username: string;
+      password: string;
+    } | null;
+  };
+  deleteRememberedCredentials: {
+    payload: void;
     response: boolean;
   };
 
@@ -325,6 +346,7 @@ type IpcEventMap = {
       ldName: string;
       nameGroup: string;
       profile: string;
+      oaId: string;
       message: string;
     };
     response: boolean;
@@ -349,6 +371,39 @@ type IpcEventMap = {
   };
   updateStatusLDPlayer: {
     payload: { id: number; status: string };
+    response: boolean;
+  };
+
+  // Add Me
+  addMe: {
+    payload: {
+      accessToken: string;
+      ldName: string;
+      phone: string;
+      userId: string;
+    };
+    response: boolean;
+  };
+
+  // Version Management
+  getVersionData: {
+    payload: void;
+    response: {
+      currentVersion: string;
+      availableVersions: string[];
+      lastUpdated: string;
+    };
+  };
+  updateCurrentVersion: {
+    payload: string;
+    response: boolean;
+  };
+  addAvailableVersion: {
+    payload: string;
+    response: boolean;
+  };
+  removeAvailableVersion: {
+    payload: string;
     response: boolean;
   };
 };

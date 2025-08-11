@@ -1,19 +1,22 @@
+import db from "../services/sqliteService.js";
 import { loginWithAuthToken } from "@evex/linejs";
 import { FileStorage } from "@evex/linejs/storage";
 import { uploadImageWithHttps } from "../line-api/updateProfileGroup2.js";
-import db from "../services/sqliteService.js";
+import { addFriendById } from "../line-api/addFriendById.js";
 
 export const createChat = async ({
   ldName,
   accessToken,
   nameGroup,
   profile,
+  oaId,
   message,
 }: {
   ldName: string;
   accessToken: string;
   nameGroup: string;
   profile: string;
+  oaId: string;
   message: string;
 }) => {
   const client = await loginWithAuthToken(accessToken, {
@@ -22,6 +25,30 @@ export const createChat = async ({
   });
 
   try {
+    await client.base.talk.getRecentFriendRequests({
+      syncReason: 0,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const midUserId = await client.base.talk.findContactByUserid({
+      searchId: oaId,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    await addFriendById({
+      accessToken,
+      userId: oaId,
+      midUserId: midUserId.mid,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    await client.base.talk.getContactsV2({
+      mids: [midUserId.mid],
+    });
+
     const getAllContactIds = await client.base.talk.getAllContactIds();
 
     const responseChat = await client.base.talk.createChat({
@@ -50,11 +77,6 @@ export const createChat = async ({
       profile: profile,
     });
 
-    await client.base.talk.sendMessage({
-      to: responseChat.chat.chatMid,
-      text: message,
-    });
-
     const row = db
       .prepare(`SELECT GroupGridLD FROM GridLD WHERE LDPlayerGridLD = ?`)
       .get(ldName) as { GroupGridLD: string };
@@ -64,14 +86,19 @@ export const createChat = async ({
 
     db.prepare(
       `UPDATE GridLD SET  StatusGridLD = ?, GroupGridLD = ? WHERE LDPlayerGridLD = ?`,
-    ).run(`สร้างกลุ่มสำเร็จ`, newCount.toString(), ldName);
+    ).run(`สร้างกลุ่มสำเร็จ 1/1 กลุ่ม`, newCount.toString(), ldName);
+
+    await client.base.talk.sendMessage({
+      to: responseChat.chat.chatMid,
+      text: message,
+    });
 
     return true;
   } catch (error) {
     console.log(error);
     db.prepare(
       `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
-    ).run("สร้างกลุ่มไม่สำเร็จ", ldName);
+    ).run(`สร้างกลุ่มไม่สำเร็จ`, ldName);
     return false;
   }
 };

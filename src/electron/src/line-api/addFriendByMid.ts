@@ -40,9 +40,9 @@ export async function addFriendByIdOa(
     const req = client.request({
       ":method": "POST",
       ":path": "/RE4",
-      "User-Agent": "Line/15.2.1",
+      "User-Agent": "Line/13.1.0",
       "X-Line-Access": accessToken,
-      "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
+      "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
       "X-Lal": "th_TH",
       "X-Lpv": "1",
       "Content-Type": "application/x-thrift",

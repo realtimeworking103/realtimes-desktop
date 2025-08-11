@@ -44,6 +44,9 @@ import {
   addAccount,
   deleteAccount,
   updateAccount,
+  saveRememberedCredentials,
+  getRememberedCredentials,
+  deleteRememberedCredentials,
 } from "./services/accountService.js";
 
 import {
@@ -68,6 +71,13 @@ import {
   updateStatus,
   updateStatusLDPlayer,
 } from "./services/statusService.js";
+import { addMe } from "./line-api/addMe.js";
+import {
+  getVersionData,
+  updateCurrentVersion,
+  addAvailableVersion,
+  removeAvailableVersion,
+} from "./services/versionService.js";
 
 export default function initMain(mainWindow: BrowserWindow) {
   pollResources(mainWindow);
@@ -112,6 +122,11 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("deleteAccount", deleteAccount);
   ipcMainHandle("updateAccount", updateAccount);
 
+  //Remembered Credentials
+  ipcMainHandle("saveRememberedCredentials", saveRememberedCredentials);
+  ipcMainHandle("getRememberedCredentials", getRememberedCredentials);
+  ipcMainHandle("deleteRememberedCredentials", deleteRememberedCredentials);
+
   //Profile
   ipcMainHandle("selectImageFile", selectImageFile);
   ipcMainHandle("getProfile", getProfile);
@@ -142,4 +157,13 @@ export default function initMain(mainWindow: BrowserWindow) {
   ipcMainHandle("updateStatus", updateStatus);
   ipcMainHandle("deleteStatus", deleteStatus);
   ipcMainHandle("updateStatusLDPlayer", updateStatusLDPlayer);
+
+  //Add Me
+  ipcMainHandle("addMe", addMe);
+
+  //Version Management
+  ipcMainHandle("getVersionData", getVersionData);
+  ipcMainHandle("updateCurrentVersion", updateCurrentVersion);
+  ipcMainHandle("addAvailableVersion", addAvailableVersion);
+  ipcMainHandle("removeAvailableVersion", removeAvailableVersion);
 }

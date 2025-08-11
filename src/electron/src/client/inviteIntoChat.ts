@@ -1,28 +1,21 @@
 import { loginWithAuthToken } from "@evex/linejs";
 import { FileStorage } from "@evex/linejs/storage";
 import { uploadImageWithHttps } from "../line-api/updateProfileGroup2.js";
+import db from "../services/sqliteService.js";
 
 export async function inviteIntoChats({
   ldName,
   accessToken,
   nameGroup,
   profile,
-  oaId,
-  privateId,
   message,
 }: {
   ldName: string;
   accessToken: string;
   nameGroup: string;
   profile: string;
-  oaId: string;
-  privateId: string;
   message: string;
 }) {
-  console.log(ldName);
-  console.log(oaId);
-  console.log(privateId);
-
   try {
     const client = await loginWithAuthToken(accessToken, {
       device: "IOS",
@@ -61,6 +54,10 @@ export async function inviteIntoChats({
 
     const getAllContactIds = await client.base.talk.getAllContactIds();
 
+    await client.base.talk.getContactsV2({
+      mids: getAllContactIds,
+    });
+
     await client.base.talk.inviteIntoChat({
       chatMid: responseChat.chat.chatMid,
       targetUserMids: getAllContactIds,
@@ -71,9 +68,23 @@ export async function inviteIntoChats({
       text: message,
     });
 
+    const row = db
+      .prepare(`SELECT GroupGridLD FROM GridLD WHERE LDPlayerGridLD = ?`)
+      .get(ldName) as { GroupGridLD: string };
+
+    const currentCount = parseInt(row?.GroupGridLD || "0", 10);
+    const newCount = currentCount + 1;
+
+    db.prepare(
+      `UPDATE GridLD SET  StatusGridLD = ?, GroupGridLD = ? WHERE LDPlayerGridLD = ?`,
+    ).run(`สร้างกลุ่มสำเร็จ`, newCount.toString(), ldName);
+
     return true;
   } catch (error) {
     console.log(error);
+    db.prepare(
+      `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+    ).run("สร้างกลุ่มไม่สำเร็จ", ldName);
     return false;
   }
 }

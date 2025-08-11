@@ -19,48 +19,53 @@ export async function getAllContactIds(accessToken: string): Promise<string[]> {
   ]);
 
   return new Promise<string[]>((resolve, reject) => {
-    const client = http2.connect(lineconfig.URL_LINE);
+    try {
+      const client = http2.connect(lineconfig.URL_LINE);
 
-    const req = client.request({
-      ":method": "POST",
-      ":path": "/S4",
-      "User-Agent": "Line/15.2.1",
-      "X-Line-Access": accessToken,
-      "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
-      "X-Lal": "th_TH",
-      "X-Lpv": "1",
-      "Content-Type": "application/x-thrift",
-      "Accept-Encoding": "gzip, deflate, br",
-    });
+      const req = client.request({
+        ":method": "POST",
+        ":path": "/S4",
+        "User-Agent": "Line/13.1.0",
+        "X-Line-Access": accessToken,
+        "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
+        "X-Lal": "th_TH",
+        "X-Lpv": "1",
+        "Content-Type": "application/x-thrift",
+        "Accept-Encoding": "gzip, deflate, br",
+      });
 
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk.toString();
-    });
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk.toString();
+      });
 
-    req.on("end", () => {
-      client.close();
+      req.on("end", () => {
+        client.close();
 
-      const allMids = body.match(/u[a-f0-9]{32}/gi) || [];
-      if (allMids.length) {
-        try {
-          fs.writeFileSync(filePath, allMids.join("\n") + "\n", "utf8");
-          console.log(`CONTACT IDS :`, allMids.length);
-        } catch (error) {
-          console.error("Error writing contact file:", error);
+        const allMids = body.match(/u[a-f0-9]{32}/gi) || [];
+        if (allMids.length) {
+          try {
+            fs.writeFileSync(filePath, allMids.join("\n") + "\n", "utf8");
+            console.log(`CONTACT IDS :`, allMids.length);
+          } catch (error) {
+            console.error("Error writing contact file:", error);
+          }
+        } else {
+          console.log("NOT FOUND CONTACT IDS");
         }
-      } else {
-        console.log("NOT FOUND CONTACT IDS");
-      }
-      resolve(allMids);
-    });
+        resolve(allMids);
+      });
 
-    req.on("error", (err) => {
-      client.close();
-      reject(err);
-    });
+      req.on("error", (err) => {
+        client.close();
+        reject(err);
+      });
 
-    req.write(payload);
-    req.end();
+      req.write(payload);
+      req.end();
+    } catch (error) {
+      console.error("Error getting all contact ids:", error);
+      reject([]);
+    }
   });
 }

@@ -36,9 +36,18 @@ import { AddFriendDialog } from "@/ui/components/add-friend-dialog";
 import { Input } from "@/ui/components/ui/input";
 import { Badge } from "@/ui/components/ui/badge";
 import { Semaphore } from "async-mutex";
-import { CreateGroupDialog } from "@/ui/components/create-group-dialog";
 import { Card, CardContent } from "@/ui/components/ui/card";
 import { toast } from "sonner";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/ui/components/ui/tabs";
+import { CreateGroupDialog2 } from "@/ui/components/create-group-dialog2";
+import { CreateGroupDialog } from "@/ui/components/create-group-dialog";
+import { Dialog, DialogContent } from "@/ui/components/ui/dialog";
+import { AddMeDialog } from "@/ui/components/add-me-dialog";
 
 export default function Page() {
   const [ldplayers, setLDPlayers] = useState<LDPlayerType[]>([]);
@@ -51,9 +60,14 @@ export default function Page() {
   const [files, setFiles] = useState<{ name: string; count: number }[]>([]);
   const [friendCount, setFriendCount] = useState("47");
   const [search, setSearch] = useState("");
-  const [isDialogOpenCreateGroup, setDialogOpenCreateGroup] = useState(false);
   const [isDialogOpenAddFriend, setDialogOpenAddFriend] = useState(false);
+  const [isDialogOpenAddMe, setDialogOpenAddMe] = useState(false);
   const [privatePhone, setPrivatePhone] = useState("");
+
+  const [isDialogOpenTabCreateGroup, setDialogOpenTabCreateGroup] =
+    useState(false);
+  const [tabDialog, setTabDialog] = useState<"create" | "create2">("create");
+
   const fetchLDPlayers = async () => {
     const result = await window.electron.getLDPlayersDB();
     setLDPlayers(result);
@@ -120,6 +134,11 @@ export default function Page() {
       }));
 
     for (const row of toAdd) {
+      if (!row.accessToken || row.accessToken.trim() === "") {
+        toast.error(`LDPlayer ${row.ldName} ไม่มี Token หรือ Token ไม่ถูกต้อง`);
+        return;
+      }
+
       try {
         await window.electron.addFriends({
           ...row,
@@ -139,7 +158,8 @@ export default function Page() {
   const handleCreateGroup = async (
     nameGroup: string,
     profile: string,
-    message: string,
+    officalAccount: string,
+    privateAccount: string,
   ) => {
     const selectedList = ldplayers.filter((p) =>
       selectedRows.has(p.LDPlayerGridLD),
@@ -152,24 +172,76 @@ export default function Page() {
       await Promise.all(
         selectedList.map(async (selected) => {
           const [_, release] = await semaphore.acquire();
+          if (!selected.TokenGridLD || selected.TokenGridLD.trim() === "") {
+            toast.error(
+              `LDPlayer ${selected.LDPlayerGridLD} ไม่มี Token หรือ Token ไม่ถูกต้อง`,
+            );
+            release();
+            return;
+          }
+          try {
+            await window.electron.createChatCustom({
+              accessToken: selected.TokenGridLD,
+              ldName: selected.LDPlayerGridLD,
+              profile: profile,
+              nameGroup: nameGroup,
+              oaId: officalAccount,
+              privateId: privateAccount,
+            });
+            await fetchLDPlayers();
+            release();
+          } catch (error) {
+            console.log(error);
+          }
+        }),
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleCreateGroup2 = async (
+    nameGroup: string,
+    profile: string,
+    message: string,
+    oaId: string,
+  ) => {
+    const selectedList = ldplayers.filter((p) =>
+      selectedRows.has(p.LDPlayerGridLD),
+    );
+
+    if (selectedList.length === 0) return;
+
+    try {
+      const semaphore = new Semaphore(1);
+      await Promise.all(
+        selectedList.map(async (selected) => {
+          const [_, release] = await semaphore.acquire();
+          if (!selected.TokenGridLD || selected.TokenGridLD.trim() === "") {
+            toast.error(
+              `LDPlayer ${selected.LDPlayerGridLD} ไม่มี Token หรือ Token ไม่ถูกต้อง`,
+            );
+            release();
+            return;
+          }
           try {
             await window.electron.createChat({
               accessToken: selected.TokenGridLD,
               ldName: selected.LDPlayerGridLD,
               profile: profile,
               nameGroup: nameGroup,
+              oaId: oaId,
               message: message,
             });
-            await fetchLDPlayers();
-            await new Promise((resolve) => setTimeout(resolve, 10000));
             release();
           } catch (error) {
-            toast.error("สร้างกลุ่มไม่สำเร็จ");
+            console.log(error);
+            release();
           }
         }),
       );
     } catch (error) {
-      toast.error("สร้างกลุ่มไม่สำเร็จ");
+      console.log(error);
     }
   };
 
@@ -187,9 +259,37 @@ export default function Page() {
           status,
         });
         await fetchLDPlayers();
-        await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
         toast.error("เปลี่ยนสถานะไม่สำเร็จ");
+      }
+    }
+  };
+
+  const handleAddMe = async (phone: string, userId: string) => {
+    const selectedList = ldplayers.filter((p) =>
+      selectedRows.has(p.LDPlayerGridLD),
+    );
+
+    if (selectedList.length === 0) return;
+
+    for (const row of selectedList) {
+      if (!row.TokenGridLD || row.TokenGridLD.trim() === "") {
+        toast.error(
+          `LDPlayer ${row.LDPlayerGridLD} ไม่มี Token หรือ Token ไม่ถูกต้อง`,
+        );
+        return;
+      }
+
+      try {
+        await window.electron.addMe({
+          accessToken: row.TokenGridLD,
+          ldName: row.LDPlayerGridLD,
+          phone: phone,
+          userId: userId,
+        });
+        await fetchLDPlayers();
+      } catch (error) {
+        toast.error("เพิ่มเพื่อนหาตัวเองไม่สำเร็จ");
       }
     }
   };
@@ -258,7 +358,7 @@ export default function Page() {
         </div>
       </div>
 
-      <Card className="mx-auto my-auto max-w-5xl">
+      <Card>
         <CardContent>
           <div className="h-[550px]">
             <div className="h-[550px] overflow-y-auto">
@@ -442,9 +542,15 @@ export default function Page() {
                                   </ContextMenuItem>
                                   <ContextMenuItem
                                     inset
-                                    onClick={() =>
-                                      setDialogOpenCreateGroup(true)
-                                    }
+                                    onClick={() => setDialogOpenAddMe(true)}
+                                  >
+                                    เพิ่มเพื่อนหาตัวเอง
+                                  </ContextMenuItem>
+                                  <ContextMenuItem
+                                    inset
+                                    onClick={() => {
+                                      setDialogOpenTabCreateGroup(true);
+                                    }}
                                   >
                                     สร้างกลุ่ม
                                   </ContextMenuItem>
@@ -582,13 +688,13 @@ export default function Page() {
         onChangePrivatePhone={setPrivatePhone}
       />
 
-      {/* CreateGroupDialog */}
-      <CreateGroupDialog
-        open={isDialogOpenCreateGroup}
-        onCancel={() => setDialogOpenCreateGroup(false)}
-        onConfirm={(nameGroup, profile, message) => {
-          handleCreateGroup(nameGroup, profile, message);
-          setDialogOpenCreateGroup(false);
+      {/* AddMeDialog */}
+      <AddMeDialog
+        open={isDialogOpenAddMe}
+        onCancel={() => setDialogOpenAddMe(false)}
+        onConfirm={(userId, phone) => {
+          handleAddMe(phone, userId);
+          setDialogOpenAddMe(false);
         }}
       />
 
@@ -602,6 +708,38 @@ export default function Page() {
           setConfirmDialog({ open: false, action: null, message: "" });
         }}
       />
+
+      {/* Tab Menu */}
+      <Dialog
+        open={isDialogOpenTabCreateGroup}
+        onOpenChange={setDialogOpenTabCreateGroup}
+      >
+        <DialogContent>
+          <Tabs
+            value={tabDialog}
+            onValueChange={(value) =>
+              setTabDialog(value as "create" | "create2")
+            }
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="create">สร้างกลุ่มแบบที่ 1</TabsTrigger>
+              <TabsTrigger value="create2">สร้างกลุ่มแบบที่ 2</TabsTrigger>
+            </TabsList>
+            <TabsContent value="create">
+              <CreateGroupDialog
+                onCancel={() => setDialogOpenTabCreateGroup(false)}
+                onConfirm={handleCreateGroup}
+              />
+            </TabsContent>
+            <TabsContent value="create2">
+              <CreateGroupDialog2
+                onCancel={() => setDialogOpenTabCreateGroup(false)}
+                onConfirm={handleCreateGroup2}
+              />
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

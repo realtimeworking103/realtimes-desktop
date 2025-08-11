@@ -100,7 +100,7 @@ export function useLDPlayerActions(
       }));
 
     if (toCheckban.length === 0) {
-      console.warn("กรุณาเลือก LDPlayer ที่ต้องการตรวจสอบก่อน");
+      toast.warning("กรุณาเลือก LDPlayer ที่ต้องการตรวจสอบก่อน");
       return;
     }
 
@@ -108,13 +108,20 @@ export function useLDPlayerActions(
       await Promise.all(
         toCheckban.map(async (item) => {
           const [_, release] = await semaphore.acquire();
+          if (!item.accessToken || item.accessToken.trim() === "") {
+            toast.error(
+              `LDPlayer ${item.ldName} ไม่มี Token หรือ Token ไม่ถูกต้อง`,
+            );
+            release();
+            return;
+          }
           await window.electron.checkBanLdInstance(item);
           await fetchLDPlayers();
           await new Promise((resolve) => setTimeout(resolve, 2000));
+          toast.success("ตรวจสอบบัญชีสำเร็จ");
           release();
         }),
       );
-      toast.success("ตรวจสอบบัญชีสำเร็จ");
     } catch (err) {
       console.error("Check Ban Failed:", err);
     }

@@ -26,19 +26,20 @@ export function LoginForm({
 
   // Load saved credentials on component mount
   useEffect(() => {
-    const savedCredentials = localStorage.getItem("rememberedCredentials");
-    if (savedCredentials) {
+    const loadSavedCredentials = async () => {
       try {
-        const { username: savedUsername, password: savedPassword } =
-          JSON.parse(savedCredentials);
-        setUsername(savedUsername);
-        setPassword(savedPassword);
-        setRememberPassword(true);
+        const savedCredentials = await window.electron.getRememberedCredentials();
+        if (savedCredentials) {
+          setUsername(savedCredentials.username);
+          setPassword(savedCredentials.password);
+          setRememberPassword(true);
+        }
       } catch (error) {
         console.error("Error loading saved credentials:", error);
-        localStorage.removeItem("rememberedCredentials");
       }
-    }
+    };
+
+    loadSavedCredentials();
   }, []);
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,8 +52,16 @@ export function LoginForm({
     if (error) setError(null);
   };
 
-  const handleRememberPasswordChange = (checked: boolean) => {
+  const handleRememberPasswordChange = async (checked: boolean) => {
     setRememberPassword(checked);
+    if (!checked) {
+      // Clear saved credentials if user unchecks remember password
+      try {
+        await window.electron.deleteRememberedCredentials();
+      } catch (error) {
+        console.error("Error deleting remembered credentials:", error);
+      }
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -65,21 +74,23 @@ export function LoginForm({
 
     try {
       await login(username, password);
-
+      
       // Save credentials if remember password is checked
       if (rememberPassword) {
-        localStorage.setItem(
-          "rememberedCredentials",
-          JSON.stringify({
-            username,
-            password,
-          }),
-        );
+        try {
+          await window.electron.saveRememberedCredentials({ username, password });
+        } catch (error) {
+          console.error("Error saving remembered credentials:", error);
+        }
       } else {
-        // Remove saved credentials if not remembering
-        localStorage.removeItem("rememberedCredentials");
+        // Remove saved credentials if remember password is unchecked
+        try {
+          await window.electron.deleteRememberedCredentials();
+        } catch (error) {
+          console.error("Error deleting remembered credentials:", error);
+        }
       }
-
+      
       navigate("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
@@ -131,12 +142,15 @@ export function LoginForm({
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="rememberPassword"
+                  id="remember-password"
                   checked={rememberPassword}
                   onCheckedChange={handleRememberPasswordChange}
                   disabled={isLoggingIn}
                 />
-                <Label htmlFor="rememberPassword" className="text-sm">
+                <Label
+                  htmlFor="remember-password"
+                  className="text-sm font-normal cursor-pointer"
+                >
                   จดจำรหัสผ่าน
                 </Label>
               </div>

@@ -1,5 +1,6 @@
 import http2 from "http2";
 import { lineconfig } from "../config/line-config.js";
+import { getContactsV2 } from "./getContactsV2.js";
 
 function createContactBuffer(index: number, phone: string): Buffer {
   const indexSizeByte = Math.floor(Math.log10(Math.abs(index))) + 1;
@@ -41,46 +42,45 @@ export async function syncContactsKai(accessToken: string, phones: string[]) {
         0x61, 0x63, 0x74, 0x73, 0x15, 0xf6, 0x2e, 0x19, 0xfc,
       ]);
 
-      const footer = Buffer.from([0x00]);
-
       const countBuf = Buffer.from([phones.length]);
       const contactBuf = createContactBuffers(phones);
+      const footer = Buffer.from([0x00]);
       const payload = Buffer.concat([header, countBuf, contactBuf, footer]);
 
       const req = client.request({
         ":method": "POST",
         ":path": "/S4",
-        "User-Agent": "Line/15.2.1",
+        "User-Agent": "Line/13.1.0",
         "X-Line-Access": accessToken,
-        "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
+        "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
         "X-Lal": "th_TH",
         "X-Lpv": "1",
         "Content-Type": "application/x-thrift",
         "Accept-Encoding": "gzip, deflate, br",
       });
 
-      let response = "";
-      req.on("data", (chunk) => {
-        response += chunk.toString("utf8");
-      });
+      let chunks: Buffer[] = [];
+      req.on("data", (c) => chunks.push(Buffer.from(c)));
 
       req.on("end", async () => {
-        client.close();
-        console.log("response", response);
+        const buf = Buffer.concat(chunks);
+        const response = buf.toString("utf8");
         const midMatch = response.match(/u[a-f0-9]{32}/i);
+        client.close();
         if (!midMatch) {
           return reject(new Error(`เพิ่มเพื่อน ${phones} ไม่สำเร็จ`));
         }
         const mid = midMatch[0];
+        await getContactsV2(accessToken, mid);
         resolve(mid);
       });
 
-      req.on("error", (err) => {
-        client.close();
-        console.error("Request error:", err);
-        reject(err);
+      req.on("error", (e) => {
+        try {
+          client.close();
+        } catch {}
+        reject(e);
       });
-
       req.write(payload);
       req.end();
     } catch (error) {

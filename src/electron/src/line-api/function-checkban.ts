@@ -1,8 +1,9 @@
 import http2 from "http2";
 import db from "../services/sqliteService.js";
 import { lineconfig } from "../config/line-config.js";
+import { checkAccount } from "../client/checkAccount.js";
 
-export function checkBanLdInstance({
+export async function checkBanLdInstance({
   ldName,
   accessToken,
 }: {
@@ -21,16 +22,17 @@ export function checkBanLdInstance({
         0x63, 0x65, 0x32, 0x62, 0x32, 0x65, 0x30, 0x35, 0x30, 0x65, 0x39, 0x64,
         0x11, 0x00, 0x00, 0x22, 0x00, 0x00,
       ]);
+
       const client = http2.connect(lineconfig.URL_LINE);
 
       const req = client.request({
         ":method": "POST",
         ":path": "/LIFF1?X-Line-Liff-Id=1359301715-JKd7Y7j1",
         "x-line-liff-id": "1359301715-JKd7Y7j1",
-        "User-Agent": "Line/15.2.1",
+        "User-Agent": "Line/13.1.0",
         Accept: "application/x-thrift",
         "X-Line-Access": accessToken,
-        "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
+        "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
         "X-Lal": "th_TH",
         "X-Lpv": "1",
         "Content-Type": "application/x-thrift",
@@ -43,8 +45,20 @@ export function checkBanLdInstance({
         console.log(`Response Body CheckBan :`, chunk.toString());
       });
 
-      req.on("end", () => {
+      req.on("end", async () => {
         client.close();
+
+        const count = await checkAccount(accessToken);
+
+        const stmt = db.prepare(
+          `UPDATE GridLD SET FriendGridLD = ?, GroupGridLD = ? WHERE LDPlayerGridLD = ?`,
+        );
+
+        stmt.run(
+          count.getAllContactIds.toString(),
+          count.getAllChatMids.toString(),
+          ldName,
+        );
 
         const bodyText = body.toLowerCase();
         const isBanned =

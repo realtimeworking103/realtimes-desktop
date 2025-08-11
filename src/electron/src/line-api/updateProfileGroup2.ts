@@ -68,7 +68,9 @@ export async function uploadImageWithHttps({
 
     req.write(payload);
     req.end();
+    return true;
   } catch (error) {
     console.error("Upload Image Fail:", error);
+    return false;
   }
 }

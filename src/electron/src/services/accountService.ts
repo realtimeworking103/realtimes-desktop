@@ -66,3 +66,78 @@ export function updateAccount(payload: {
   );
   return true;
 }
+
+export function saveRememberedCredentials({
+  username,
+  password,
+}: {
+  username: string;
+  password: string;
+}): boolean {
+  try {
+    db.prepare(
+      `
+      CREATE TABLE IF NOT EXISTS RememberedCredentials (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT,
+        createdAt TIMESTAMP DEFAULT (datetime('now', 'localtime'))
+      )
+    `,
+    ).run();
+
+    // Delete existing record if exists
+    db.prepare("DELETE FROM RememberedCredentials WHERE username = ?").run(username);
+
+    // Insert new record
+    db.prepare(
+      `
+      INSERT INTO RememberedCredentials (username, password)
+      VALUES (?, ?)
+      `,
+    ).run(username, password);
+
+    return true;
+  } catch (err) {
+    console.error("Error saving remembered credentials:", err);
+    return false;
+  }
+}
+
+export function getRememberedCredentials(): {
+  username: string;
+  password: string;
+} | null {
+  try {
+    db.prepare(
+      `
+      CREATE TABLE IF NOT EXISTS RememberedCredentials (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT,
+        createdAt TIMESTAMP DEFAULT (datetime('now', 'localtime'))
+      )
+    `,
+    ).run();
+
+    const row = db.prepare("SELECT username, password FROM RememberedCredentials ORDER BY id DESC LIMIT 1").get() as {
+      username: string;
+      password: string;
+    } | undefined;
+
+    return row || null;
+  } catch (err) {
+    console.error("Error getting remembered credentials:", err);
+    return null;
+  }
+}
+
+export function deleteRememberedCredentials(): boolean {
+  try {
+    db.prepare("DELETE FROM RememberedCredentials").run();
+    return true;
+  } catch (err) {
+    console.error("Error deleting remembered credentials:", err);
+    return false;
+  }
+}

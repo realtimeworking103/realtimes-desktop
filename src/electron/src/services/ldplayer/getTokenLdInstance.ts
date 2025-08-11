@@ -27,7 +27,7 @@ export async function getTokenLdInstance(ldName: string): Promise<boolean> {
         .then(() => true)
         .catch(() => false),
       new Promise<boolean>((resolve) =>
-        setTimeout(() => resolve(false), 60000),
+        setTimeout(() => resolve(false), 180 * 1000),
       ),
     ]);
 

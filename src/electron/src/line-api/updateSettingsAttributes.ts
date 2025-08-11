@@ -24,9 +24,9 @@ export async function updateSettingsAttributes1(acessToken: string) {
     const req = client.request({
       ":method": "POST",
       ":path": "/S4",
-      "User-Agent": "Line/15.2.1",
+      "User-Agent": "Line/13.1.0",
       "X-Line-Access": acessToken,
-      "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
+      "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
       "X-Lal": "th_TH",
       "X-Lpv": "1",
       "Content-Type": "application/x-thrift",
@@ -87,9 +87,9 @@ export async function updateSettingsAttributes2(acessToken: string) {
     const req = client.request({
       ":method": "POST",
       ":path": "/S4",
-      "User-Agent": "Line/15.2.1",
+      "User-Agent": "Line/13.1.0",
       "X-Line-Access": acessToken,
-      "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
+      "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
       "X-Lal": "th_TH",
       "X-Lpv": "1",
       "Content-Type": "application/x-thrift",

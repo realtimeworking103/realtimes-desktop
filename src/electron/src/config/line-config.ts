@@ -1,5 +1,6 @@
 export const lineconfig = {
-  URL_LINE: "https://legy-backup.line-apps.com",
+  URL_LINE: "https://legy.line-apps.com",
+  URL_LINE_BACKUP: "https://legy-backup.line-apps.com",
   LINE_VERSION: [
     "15.0.0",
     "14.21.1",
@@ -12,4 +13,5 @@ export const lineconfig = {
     "14.14.0",
     "14.13.1",
   ],
+  SYSTEM_VERSION_LIST: ["13", "14", "15", "11", "12"],
 };

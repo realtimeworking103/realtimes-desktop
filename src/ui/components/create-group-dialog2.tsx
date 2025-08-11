@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-import { NameGroupType, ProfileType, AccountType } from "@/ui/types/types";
+import {
+  AccountType,
+  NameGroupType,
+  ProfileType,
+  MessageType,
+} from "@/ui/types/types";
 
 import { Button } from "./ui/button";
 
@@ -17,33 +22,31 @@ import {
 } from "./ui/select";
 
 import { toast } from "sonner";
-import { Switch } from "./ui/switch";
 
-interface CreateGroupDialogProps {
+interface CreateGroupDialog2Props {
   onConfirm: (
     nameGroup: string,
     profile: string,
-    officalAccount: string,
-    privateAccount: string,
+    message: string,
+    oaId: string,
   ) => void;
   onCancel: () => void;
 }
 
-export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
+export const CreateGroupDialog2: React.FC<CreateGroupDialog2Props> = ({
   onCancel,
   onConfirm,
 }) => {
   const [nameGroup, setNameGroup] = useState<NameGroupType[]>([]);
   const [profile, setProfile] = useState<ProfileType[]>([]);
-  const [account, setAccount] = useState<AccountType[]>([]);
-  const officalAccount = account.filter((item) => item.type === "ไลน์บอท");
-  const privateAccount = account.filter((item) => item.type === "ไลน์ส่วนตัว");
-  const [selectedNameGroup, setSelectedNameGroup] = useState<string>("");
+  const [message, setMessage] = useState<MessageType[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<ProfileType>();
-  const [selectedOffAccount, setSelectedOffAccount] = useState<string>();
-  const [selectedPrivateAccount, setSelectedPrivateAccount] =
-    useState<string>();
-  const [enabled, setEnabled] = useState(true);
+  const [selectedNameGroup, setSelectedNameGroup] = useState<string>("");
+  const [selectedMessage, setSelectedMessage] = useState<MessageType>();
+  const [selectedOffAccount, setSelectedOffAccount] = useState<string>("");
+  const [officalAccount, setOfficalAccount] = useState<AccountType[]>([]);
+  const [privateAccount, setPrivateAccount] = useState<AccountType[]>([]);
+
   useEffect(() => {
     window.electron.getFileNameGroup().then((data) => {
       setNameGroup(data);
@@ -58,7 +61,14 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
 
   useEffect(() => {
     window.electron.getAccount().then((data) => {
-      setAccount(data);
+      setOfficalAccount(data.filter((item) => item.type === "ไลน์บอท"));
+      setPrivateAccount(data.filter((item) => item.type === "ไลน์ส่วนตัว"));
+    });
+  }, []);
+
+  useEffect(() => {
+    window.electron.getMessage().then((data) => {
+      setMessage(data);
     });
   }, []);
 
@@ -68,7 +78,7 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
         nameGroup[Math.floor(Math.random() * nameGroup.length)].name,
       );
     }
-  }, [nameGroup, profile, account]);
+  }, [nameGroup, profile, officalAccount, privateAccount]);
 
   useEffect(() => {
     if (profile.length > 0) {
@@ -77,11 +87,18 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
   }, [profile]);
 
   useEffect(() => {
-    if (account.length > 0) {
-      handleRandomOffAccount();
-      handleRandomPrivateAccount();
+    if (officalAccount.length > 0) {
+      setSelectedOffAccount(
+        officalAccount[Math.floor(Math.random() * officalAccount.length)].name,
+      );
     }
-  }, [account, officalAccount, privateAccount]);
+  }, [officalAccount, privateAccount]);
+
+  useEffect(() => {
+    if (message.length > 0) {
+      setSelectedMessage(message[Math.floor(Math.random() * message.length)]);
+    }
+  }, [message]);
 
   const handleRandomNameGroup = () => {
     const randomNameGroup =
@@ -110,36 +127,20 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
     }
   };
 
-  const handleRandomOffAccount = () => {
-    if (officalAccount.length > 0) {
-      const randomOffAccount =
-        officalAccount[Math.floor(Math.random() * officalAccount.length)].name;
-      setSelectedOffAccount(randomOffAccount);
-    }
-  };
-
-  const handleRandomPrivateAccount = () => {
-    if (privateAccount.length > 0) {
-      const randomPrivateAccount =
-        privateAccount[Math.floor(Math.random() * privateAccount.length)].name;
-      setSelectedPrivateAccount(randomPrivateAccount);
-    }
+  const handleSelectMessage = (value: string) => {
+    setSelectedMessage(message.find((item) => item.nameMessage === value));
   };
 
   const handleSelectOffAccount = (value: string) => {
     setSelectedOffAccount(value);
   };
 
-  const handleSelectPrivateAccount = (value: string) => {
-    setSelectedPrivateAccount(value);
-  };
-
   const handleConfirm = () => {
     if (
       !selectedNameGroup ||
       !selectedProfile?.path ||
-      !selectedOffAccount ||
-      !selectedPrivateAccount
+      !selectedMessage?.message ||
+      !selectedOffAccount
     ) {
       toast.error("กรุณาเลือกข้อมูลให้ครบถ้วน");
       return;
@@ -147,8 +148,8 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
     onConfirm(
       selectedNameGroup,
       selectedProfile?.path || "",
-      selectedOffAccount || "",
-      selectedPrivateAccount || "",
+      selectedMessage?.message || "",
+      selectedOffAccount,
     );
     onCancel();
   };
@@ -190,7 +191,7 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
                 src={`file://${item.path.replace(/\\/g, "/")}`}
                 alt="profile"
                 className={`h-28 w-28 cursor-pointer ${
-                  selectedProfile?.path === item.path
+                  selectedProfile?.name === item.name
                     ? "border-2 border-blue-500"
                     : ""
                 }`}
@@ -202,46 +203,24 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="flex flex-row items-center justify-between">
-            บัญชีไลน์
-            <Switch checked={enabled} onCheckedChange={setEnabled} />
-          </CardTitle>
+          <CardTitle>บัญชีไลน์</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-row items-center justify-between gap-2">
-            <Select
-              disabled={!enabled}
-              value={selectedOffAccount}
-              onValueChange={handleSelectOffAccount}
-            >
-              <SelectTrigger className="w-full" disabled={!enabled}>
-                <SelectValue placeholder="เลือกบัญชีไลน์" />
-              </SelectTrigger>
-              <SelectContent>
-                {officalAccount.map((item) => (
-                  <SelectItem key={item.name} value={item.name}>
-                    {item.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              disabled={!enabled}
-              value={selectedPrivateAccount}
-              onValueChange={handleSelectPrivateAccount}
-            >
-              <SelectTrigger className="w-full" disabled={!enabled}>
-                <SelectValue placeholder="เลือกบัญชีไลน์" />
-              </SelectTrigger>
-              <SelectContent>
-                {privateAccount.map((item) => (
-                  <SelectItem key={item.name} value={item.name}>
-                    {item.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select
+            value={selectedOffAccount}
+            onValueChange={handleSelectOffAccount}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="เลือกบัญชี" />
+            </SelectTrigger>
+            <SelectContent>
+              {officalAccount.map((item) => (
+                <SelectItem key={item.name} value={item.name}>
+                  {item.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
       <Card>
@@ -249,14 +228,19 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
           <CardTitle>ข้อความ</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select disabled>
+          <Select
+            value={selectedMessage?.message}
+            onValueChange={handleSelectMessage}
+          >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="ยังไม่เปิดให้ใช้งาน" />
+              <SelectValue placeholder="เลือกข้อความ" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ยังไม่เปิดให้ใช้งาน">
-                ยังไม่เปิดให้ใช้งาน
-              </SelectItem>
+              {message.map((item) => (
+                <SelectItem key={item.nameMessage} value={item.nameMessage}>
+                  {item.nameMessage}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </CardContent>
@@ -269,3 +253,5 @@ export const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({
     </div>
   );
 };
+
+export default CreateGroupDialog2;

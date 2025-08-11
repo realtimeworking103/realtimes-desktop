@@ -1,10 +1,10 @@
-import http2 from "http2";
 import fs from "fs";
 import path from "path";
+import db from "../services/sqliteService.js";
+import http2 from "http2";
+import { lineconfig } from "../config/line-config.js";
 import { encodeGroupName, encodeMid, getMidCountBytes } from "./function.js";
 import { uploadImageWithHttps } from "./updateProfileGroup2.js";
-import db from "../services/sqliteService.js";
-import { lineconfig } from "../config/line-config.js";
 import { acquireEncryptedAccessToken } from "./acquireEncryptedAccessToken.js";
 
 export async function createChatWithProfileCustom({
@@ -25,9 +25,7 @@ export async function createChatWithProfileCustom({
   const usedFolderPath = path.join(process.cwd(), "GroupMids");
   const contactFilePath = path.join(contactFolderPath, `${token}.txt`);
   const usedPath = path.join(usedFolderPath, `${token}.txt`);
-  const MAX_PER_GROUP = 97;
-  const userAgent = `Line/${lineconfig.LINE_VERSION[Math.floor(Math.random() * lineconfig.LINE_VERSION.length)]}`;
-  const xLineApplication = `ANDROID\t${lineconfig.LINE_VERSION[Math.floor(Math.random() * lineconfig.LINE_VERSION.length)]}\tAndroid OS\t9`;
+  const MAX_PER_GROUP = 99;
 
   if (!fs.existsSync(usedFolderPath)) {
     fs.mkdirSync(usedFolderPath, { recursive: true });
@@ -64,9 +62,11 @@ export async function createChatWithProfileCustom({
     return;
   }
 
-  const availableSlotsPerGroup = MAX_PER_GROUP - midAdmin.length;
-  if (availableSlotsPerGroup <= 0) {
-    console.log(`Admin mid exceed ${MAX_PER_GROUP} mid cannot create group`);
+  const midAdminFiltered = midAdmin.filter(Boolean);
+  const availableSlotsPerGroup = MAX_PER_GROUP - midAdminFiltered.length;
+  const totalCanInvite = midAdminFiltered.length + newMids.length;
+  if (totalCanInvite < 10) {
+    console.log(`Not enough mids: have ${totalCanInvite}, need at least 10`);
     return;
   }
 
@@ -76,7 +76,7 @@ export async function createChatWithProfileCustom({
   let totalProcessedMids: string[] = [];
 
   for (let i = 0; i < groups.length; i++) {
-    const midsInGroup = [...new Set([...midAdmin, ...groups[i]])];
+    const midsInGroup = [...new Set([...midAdminFiltered, ...groups[i]])];
     const groupNameBuf = encodeGroupName(nameGroup);
     const countBuf = getMidCountBytes(midsInGroup.length);
     const midsBuf = Buffer.concat(midsInGroup.map(encodeMid));
@@ -98,17 +98,16 @@ export async function createChatWithProfileCustom({
         const req = client.request({
           ":method": "POST",
           ":path": "/S4",
-          "User-Agent": userAgent,
+          "User-Agent": "Line/13.1.0",
           "X-Line-Access": accessToken,
-          "X-Line-Application": xLineApplication,
+          "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
           "X-Lal": "th_TH",
           "X-Lpv": "1",
           "Content-Type": "application/x-thrift",
-          // "Accept-Encoding": "gzip, deflate, br",
+          "Accept-Encoding": "gzip, deflate, br",
         });
 
         req.on("response", (headers) => {
-          console.log("Response Headers:");
           for (const name in headers) {
             console.log(`${name}: ${headers[name]}`);
           }
@@ -117,13 +116,18 @@ export async function createChatWithProfileCustom({
         let response = "";
         req.on("data", (chunk) => {
           response += chunk.toString();
-          console.log(`Response Body CreateChat :`, response);
+          console.log("response", response);
         });
 
         req.on("end", async () => {
+          client.close();
           try {
-            client.close();
-            const groupId = response.slice(21, 54);
+            const match = response.match(/\bu[0-9a-f]{32}\b/i);
+            if (!match) {
+              console.log("Cannot find chatMid in response");
+              return resolve(false);
+            }
+            const chatMid = match[0];
             if (response.toLowerCase().includes("request blocked")) {
               console.log(`Group ${i + 1} Create Failed: request blocked`);
               resolve(false);
@@ -131,7 +135,7 @@ export async function createChatWithProfileCustom({
               const acquireToken =
                 await acquireEncryptedAccessToken(accessToken);
               await uploadImageWithHttps({
-                chatMid: groupId,
+                chatMid,
                 acquireToken,
                 profile,
               });
@@ -144,6 +148,13 @@ export async function createChatWithProfileCustom({
           }
         });
 
+        req.on("error", (e) => {
+          try {
+            client.close();
+          } catch {}
+          reject(e);
+        });
+
         req.write(payload);
         req.end();
       } catch (error) {
@@ -154,15 +165,20 @@ export async function createChatWithProfileCustom({
 
     if (result) {
       successCount++;
-      console.log(`Group ${i + 1} Create Success (${midsInGroup.length} mid)`);
+      console.log(
+        `Group ${i + 1}/${groups.length}, mids=${midsInGroup.length}, admins=${midAdminFiltered.length}`,
+      );
       await new Promise((r) => setTimeout(r, 1000));
     }
   }
 
   if (totalProcessedMids.length > 0) {
-    usedMids.push(...totalProcessedMids);
-    const uniqueUsedMids = [...new Set(usedMids)];
-    fs.writeFileSync(usedPath, uniqueUsedMids.join("\n") + "\n");
+    const onlyNew = totalProcessedMids.filter(
+      (m) => !midAdminFiltered.includes(m),
+    );
+    usedMids.push(...onlyNew);
+    const uniqueUsed = [...new Set(usedMids)];
+    fs.writeFileSync(usedPath, uniqueUsed.join("\n") + "\n");
   }
 
   if (successCount > 0) {
