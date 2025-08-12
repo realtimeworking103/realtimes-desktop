@@ -42,7 +42,7 @@ export const CreateGroupDialog2: React.FC<CreateGroupDialog2Props> = ({
   const [message, setMessage] = useState<MessageType[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<ProfileType>();
   const [selectedNameGroup, setSelectedNameGroup] = useState<string>("");
-  const [selectedMessage, setSelectedMessage] = useState<MessageType>();
+  const [selectedMessage, setSelectedMessage] = useState<string>("");
   const [selectedOffAccount, setSelectedOffAccount] = useState<string>("");
   const [officalAccount, setOfficalAccount] = useState<AccountType[]>([]);
   const [privateAccount, setPrivateAccount] = useState<AccountType[]>([]);
@@ -96,7 +96,9 @@ export const CreateGroupDialog2: React.FC<CreateGroupDialog2Props> = ({
 
   useEffect(() => {
     if (message.length > 0) {
-      setSelectedMessage(message[Math.floor(Math.random() * message.length)]);
+      setSelectedMessage(
+        message[Math.floor(Math.random() * message.length)].nameMessage,
+      );
     }
   }, [message]);
 
@@ -128,7 +130,7 @@ export const CreateGroupDialog2: React.FC<CreateGroupDialog2Props> = ({
   };
 
   const handleSelectMessage = (value: string) => {
-    setSelectedMessage(message.find((item) => item.nameMessage === value));
+    setSelectedMessage(value);
   };
 
   const handleSelectOffAccount = (value: string) => {
@@ -139,7 +141,7 @@ export const CreateGroupDialog2: React.FC<CreateGroupDialog2Props> = ({
     if (
       !selectedNameGroup ||
       !selectedProfile?.path ||
-      !selectedMessage?.message ||
+      !selectedMessage ||
       !selectedOffAccount
     ) {
       toast.error("กรุณาเลือกข้อมูลให้ครบถ้วน");
@@ -148,7 +150,7 @@ export const CreateGroupDialog2: React.FC<CreateGroupDialog2Props> = ({
     onConfirm(
       selectedNameGroup,
       selectedProfile?.path || "",
-      selectedMessage?.message || "",
+      selectedMessage || "",
       selectedOffAccount,
     );
     onCancel();
@@ -223,15 +225,13 @@ export const CreateGroupDialog2: React.FC<CreateGroupDialog2Props> = ({
           </Select>
         </CardContent>
       </Card>
+      {/* ข้อความ */}
       <Card>
         <CardHeader>
           <CardTitle>ข้อความ</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select
-            value={selectedMessage?.message}
-            onValueChange={handleSelectMessage}
-          >
+          <Select value={selectedMessage} onValueChange={handleSelectMessage}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="เลือกข้อความ" />
             </SelectTrigger>

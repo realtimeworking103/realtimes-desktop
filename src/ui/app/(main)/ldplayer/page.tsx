@@ -225,6 +225,7 @@ export default function Page() {
             return;
           }
           try {
+            await new Promise((resolve) => setTimeout(resolve, 50000));
             await window.electron.createChat({
               accessToken: selected.TokenGridLD,
               ldName: selected.LDPlayerGridLD,
@@ -233,6 +234,7 @@ export default function Page() {
               oaId: oaId,
               message: message,
             });
+            await fetchLDPlayers();
             release();
           } catch (error) {
             console.log(error);
@@ -265,7 +267,7 @@ export default function Page() {
     }
   };
 
-  const handleAddMe = async (phone: string, userId: string) => {
+  const handleAddMe = async (userId: string) => {
     const selectedList = ldplayers.filter((p) =>
       selectedRows.has(p.LDPlayerGridLD),
     );
@@ -281,10 +283,9 @@ export default function Page() {
       }
 
       try {
-        await window.electron.addMe({
+        await window.electron.findAndAddFriend({
           accessToken: row.TokenGridLD,
           ldName: row.LDPlayerGridLD,
-          phone: phone,
           userId: userId,
         });
         await fetchLDPlayers();
@@ -692,8 +693,8 @@ export default function Page() {
       <AddMeDialog
         open={isDialogOpenAddMe}
         onCancel={() => setDialogOpenAddMe(false)}
-        onConfirm={(userId, phone) => {
-          handleAddMe(phone, userId);
+        onConfirm={(userId) => {
+          handleAddMe(userId);
           setDialogOpenAddMe(false);
         }}
       />

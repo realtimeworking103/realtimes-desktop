@@ -42,12 +42,10 @@ export async function syncContacts(
   phones: string[],
   accessToken: string,
 ): Promise<number> {
-  // Input validation
   if (!phones || phones.length === 0) {
     return 0;
   }
 
-  // Filter out invalid phone numbers
   const validPhones = phones.filter(
     (phone) =>
       phone && phone.trim() !== "" && /^\d+$/.test(phone.replace(/\s/g, "")),

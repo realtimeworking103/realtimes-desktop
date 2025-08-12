@@ -1,5 +1,5 @@
 import { getAllContactIds } from "./getAllContactIds.js";
-import { findContactByUseridOa } from "./function-addFriendOa.js";
+import { findContactByUserid } from "./findContactByUserid.js";
 import { syncContactsKai } from "./syncContactPhoneKai.js";
 import { createChatWithProfileSystem } from "./createChatWithProfileSystem.js";
 
@@ -22,7 +22,7 @@ export async function createChatSystem({
 
       const privateMid = await syncContactsKai(accessToken, [privateId]);
       await new Promise((resolve) => setTimeout(resolve, 5000));
-      const oaMid = await findContactByUseridOa(accessToken, oaId);
+      // const oaMid = await findContactByUserid(accessToken, oaId);
 
       await new Promise((resolve) => setTimeout(resolve, 30000));
 
@@ -30,7 +30,7 @@ export async function createChatSystem({
         accessToken,
         ldName,
         nameGroup,
-        midAdmin: [oaMid, privateMid],
+        midAdmin: [privateMid],
       });
       resolve(true);
     } catch (error) {

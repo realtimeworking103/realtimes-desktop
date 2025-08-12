@@ -42,371 +42,91 @@ type LineAccount = {
 
 // Define the shape of IPC events
 type IpcEventMap = {
-  statistics: {
-    payload: Statistics;
-    response: void;
-  };
-  test: {
-    payload: any;
-    response: void;
-  };
-  getStaticData: {
-    payload: void;
-    response: StaticData;
-  };
+  // ===== Core Events =====
+  statistics: { payload: Statistics; response: void };
+  test: { payload: any; response: void };
+  getStaticData: { payload: void; response: StaticData };
 
-  // LDPlayer
-  getLDPlayersDB: {
-    payload: void;
-    response: DataLDPlayersDB[];
-  };
-  callLdInstance: {
-    payload: string;
-    response: boolean;
-  };
-  deleteLdInstance: {
-    payload: string;
-    response: boolean;
-  };
-  deleteRowFromDB: {
-    payload: string;
-    response: boolean;
-  };
-  getTokenLdInstance: {
-    payload: string;
-    response: boolean;
-  };
-  fetchLdInstance: {
-    payload: void;
-    response: string[];
-  };
-  createLdInstance: {
-    payload: {
-      prefix: string;
-      count: number;
-    };
-    response: string;
-  };
-  getDataCreateLDPlayers: {
-    payload: void;
-    response: CreateLDPlayersDB[];
-  };
-  moveSelectedLDPlayers: {
-    payload: string[];
-    response: boolean;
-  };
-  setLdInstancePath: {
-    payload: string;
-    response: boolean;
-  };
-  getLdInstancePath: {
-    payload: void;
-    response: string;
-  };
+  // ===== LDPlayer Management =====
+  browseLdInstancePath: { payload: void; response: boolean };
+  callLdInstance: { payload: string; response: boolean };
+  checkBanLdInstance: { payload: { ldName: string; accessToken: string }; response: boolean };
+  createLdInstance: { payload: { prefix: string; count: number }; response: string };
+  deleteLdInstance: { payload: string; response: boolean };
+  deleteRowFromDB: { payload: string; response: boolean };
+  fetchLdInstance: { payload: void; response: string[] };
+  getDataCreateLDPlayers: { payload: void; response: CreateLDPlayersDB[] };
+  getLDPlayersDB: { payload: void; response: DataLDPlayersDB[] };
+  getLdInstancePath: { payload: void; response: string };
+  getTokenLdInstance: { payload: string; response: boolean };
+  moveSelectedLDPlayers: { payload: string[]; response: boolean };
+  setLdInstancePath: { payload: string; response: boolean };
 
-  // Group
-  createChatSystem: {
-    payload: {
-      accessToken: string;
-      ldName: string;
-      nameGroup: string;
-      oaId: string;
-      privateId: string;
-    };
-    response: boolean;
-  };
-  createChatCustom: {
-    payload: {
-      accessToken: string;
-      ldName: string;
-      nameGroup: string;
-      profile: string;
-      oaId: string;
-      privateId: string;
-    };
-    response: boolean;
-  };
+  // ===== Friends Management =====
+  addFriends: { payload: { ldName: string; accessToken: string; target: number; phoneFile: string; privatePhone: string }; response: boolean };
+  findAndAddFriend: { payload: { accessToken: string; ldName: string; userId: string }; response: boolean };
 
-  checkBanLdInstance: {
-    payload: { ldName: string; accessToken: string };
-    response: boolean;
-  };
+  // ===== Chat / Group Management =====
+  createChat: { payload: { accessToken: string; ldName: string; nameGroup: string; profile: string; oaId: string; message: string }; response: boolean };
+  createChatCustom: { payload: { accessToken: string; ldName: string; nameGroup: string; profile: string; oaId: string; privateId: string }; response: boolean };
+  createChatSystem: { payload: { accessToken: string; ldName: string; nameGroup: string; oaId: string; privateId: string }; response: boolean };
+  inviteIntoChats: { payload: { ldName: string; accessToken: string; profile: string; nameGroup: string; oaId: string; privateId: string; message: string }; response: boolean };
 
-  // Txt File
-  getTxtFiles: {
-    payload: void;
-    response: {
-      id: number;
-      name: string;
-      count: number;
-      path: string;
-      createAt: string;
-    }[];
-  };
-  saveTxtFile: {
-    payload: { name: string; count: number; path: string };
-    response: boolean;
-  };
-  deleteTxtFile: {
-    payload: number;
-    response: boolean;
-  };
+  // ===== File / Phone File Management =====
+  deleteTxtFile: { payload: number; response: boolean };
+  getTxtFiles: { payload: void; response: { id: number; name: string; count: number; path: string; createAt: string }[] };
+  saveTxtFile: { payload: { name: string; count: number; path: string }; response: boolean };
+  selectTextFile: { payload: void; response: { name: string; path: string; count: number } };
+  updateFileCount: { payload: string; response: boolean };
+  updatePhoneFile: { payload: { ldName: string; fileName: string }; response: string };
 
-  // Update File Count
-  updateFileCount: {
-    payload: string;
-    response: boolean;
-  };
+  // ===== Account Management =====
+  addAccount: { payload: { type: string; name: string; mid: string; status: boolean }; response: boolean };
+  deleteAccount: { payload: string; response: boolean };
+  getAccount: { payload: void; response: { id: number; type: string; name: string; status: boolean; createAt: string; mid: string }[] };
+  updateAccount: { payload: { name: string; type: string; mid: string; status: boolean }; response: boolean };
 
-  // Phone File
-  updatePhoneFile: {
-    payload: { ldName: string; fileName: string };
-    response: string;
-  };
+  // ===== Remembered Credentials =====
+  deleteRememberedCredentials: { payload: void; response: boolean };
+  getRememberedCredentials: { payload: void; response: { username: string; password: string } | null };
+  saveRememberedCredentials: { payload: { username: string; password: string }; response: boolean };
 
-  // Friends
-  addFriends: {
-    payload: {
-      ldName: string;
-      accessToken: string;
-      target: number;
-      phoneFile: string;
-      privatePhone: string;
-    };
-    response: boolean;
-  };
+  // ===== Profile Management =====
+  deleteProfile: { payload: string; response: boolean };
+  getProfile: { payload: void; response: { id: number; name: string; path: string; status: boolean; createAt: string }[] };
+  selectImageFile: { payload: void; response: { name: string; path: string } | null };
 
-  selectTextFile: {
-    payload: void;
-    response: {
-      name: string;
-      path: string;
-      count: number;
-    };
-  };
+  // ===== Name Group Management =====
+  addNameGroup: { payload: { name: string; description: string }; response: boolean };
+  deleteNameGroup: { payload: number; response: boolean };
+  editNameGroup: { payload: { id: number; name: string; description: string }; response: boolean };
+  getFileNameGroup: { payload: void; response: { id: number; name: string; description: string; createAt: string }[] };
+  selectFileNameGroup: { payload: void; response: string[] | null };
 
-  // Account
-  getAccount: {
-    payload: void;
-    response: {
-      id: number;
-      type: string;
-      name: string;
-      status: boolean;
-      createAt: string;
-      mid: string;
-    }[];
-  };
+  // ===== Message Management =====
+  addMessage: { payload: { nameMessage: string; message: string }; response: boolean };
+  deleteMessage: { payload: number; response: boolean };
+  editMessage: { payload: { id: number; nameMessage: string; message: string }; response: boolean };
+  getMessage: { payload: void; response: { id: number; nameMessage: string; message: string }[] };
 
-  // Account
-  addAccount: {
-    payload: {
-      type: string;
-      name: string;
-      mid: string;
-      status: boolean;
-    };
-    response: boolean;
-  };
-  deleteAccount: {
-    payload: string;
-    response: boolean;
-  };
-  updateAccount: {
-    payload: {
-      name: string;
-      type: string;
-      mid: string;
-      status: boolean;
-    };
-    response: boolean;
-  };
+  // ===== Status Management =====
+  addStatus: { payload: string; response: boolean };
+  deleteStatus: { payload: number; response: boolean };
+  getStatus: { payload: void; response: { id: number; status: string; createdAt: string }[] };
+  updateStatus: { payload: { id: number; status: string }; response: boolean };
+  updateStatusLDPlayer: { payload: { id: number; status: string }; response: boolean };
 
-  // Remembered Credentials
-  saveRememberedCredentials: {
-    payload: {
-      username: string;
-      password: string;
-    };
-    response: boolean;
-  };
-  getRememberedCredentials: {
-    payload: void;
-    response: {
-      username: string;
-      password: string;
-    } | null;
-  };
-  deleteRememberedCredentials: {
-    payload: void;
-    response: boolean;
-  };
+  // ===== Auth =====
+  login: { payload: { username: string; password: string }; response: { sessionId: string; userId: string } };
+  logout: { payload: { sessionId: string; userId: string }; response: { userId: string; sessionId: string } };
 
-  // Image File
-  selectImageFile: {
-    payload: void;
-    response: { name: string; path: string } | null;
-  };
-
-  // Profile
-  deleteProfile: {
-    payload: string;
-    response: boolean;
-  };
-  // Profil
-  getProfile: {
-    payload: void;
-    response: {
-      id: number;
-      name: string;
-      path: string;
-      status: boolean;
-      createAt: string;
-    }[];
-  };
-
-  // Name Group
-  selectFileNameGroup: {
-    payload: void;
-    response: string[] | null;
-  };
-  getFileNameGroup: {
-    payload: void;
-    response: {
-      id: number;
-      name: string;
-      description: string;
-      createAt: string;
-    }[];
-  };
-  deleteNameGroup: {
-    payload: number;
-    response: boolean;
-  };
-  addNameGroup: {
-    payload: { name: string; description: string };
-    response: boolean;
-  };
-  editNameGroup: {
-    payload: { id: number; name: string; description: string };
-    response: boolean;
-  };
-
-  // Message
-  addMessage: {
-    payload: { nameMessage: string; message: string };
-    response: boolean;
-  };
-  deleteMessage: {
-    payload: number;
-    response: boolean;
-  };
-  getMessage: {
-    payload: void;
-    response: MessageType[];
-  };
-  editMessage: {
-    payload: { id: number; nameMessage: string; message: string };
-    response: boolean;
-  };
-  // LDPlayer
-  browseLdInstancePath: {
-    payload: void;
-    response: boolean;
-  };
-
-  // Invite Into Chat
-  inviteIntoChats: {
-    payload: {
-      ldName: string;
-      accessToken: string;
-      profile: string;
-      nameGroup: string;
-      oaId: string;
-      privateId: string;
-      message: string;
-    };
-    response: boolean;
-  };
-
-  // Login & Logout
-  login: {
-    payload: { username: string; password: string };
-    response: { sessionId: string; userId: string };
-  };
-  logout: {
-    payload: { sessionId: string; userId: string };
-    response: { userId: string; sessionId: string };
-  };
-
-  // Create Chat
-  createChat: {
-    payload: {
-      accessToken: string;
-      ldName: string;
-      nameGroup: string;
-      profile: string;
-      oaId: string;
-      message: string;
-    };
-    response: boolean;
-  };
-
-  // Status
-  getStatus: {
-    payload: void;
-    response: { id: number; status: string; createdAt: string }[];
-  };
-  addStatus: {
-    payload: string;
-    response: boolean;
-  };
-  updateStatus: {
-    payload: { id: number; status: string };
-    response: boolean;
-  };
-  deleteStatus: {
-    payload: number;
-    response: boolean;
-  };
-  updateStatusLDPlayer: {
-    payload: { id: number; status: string };
-    response: boolean;
-  };
-
-  // Add Me
-  addMe: {
-    payload: {
-      accessToken: string;
-      ldName: string;
-      phone: string;
-      userId: string;
-    };
-    response: boolean;
-  };
-
-  // Version Management
-  getVersionData: {
-    payload: void;
-    response: {
-      currentVersion: string;
-      availableVersions: string[];
-      lastUpdated: string;
-    };
-  };
-  updateCurrentVersion: {
-    payload: string;
-    response: boolean;
-  };
-  addAvailableVersion: {
-    payload: string;
-    response: boolean;
-  };
-  removeAvailableVersion: {
-    payload: string;
-    response: boolean;
-  };
+  // ===== Version Management =====
+  addAvailableVersion: { payload: string; response: boolean };
+  getVersionData: { payload: void; response: { currentVersion: string; availableVersions: string[]; lastUpdated: string } };
+  removeAvailableVersion: { payload: string; response: boolean };
+  updateCurrentVersion: { payload: string; response: boolean };
 };
+
 
 // Helper types for type-safe IPC communication
 type IpcEventKey = keyof IpcEventMap;

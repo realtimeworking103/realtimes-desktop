@@ -1,70 +1,81 @@
 import http2 from "http2";
-import { lineconfig } from "../config/line-config.js";
+import { getContactsV2 } from "./getContactsV2.js";
 
-export async function addFriendByIdOa(
-  accessToken: string,
-  oaId: string,
-  mid: string,
-) {
-  return new Promise<void>((resolve, reject) => {
-    const header = Buffer.from([
-      0x82, 0x21, 0x01, 0x0e, 0x61, 0x64, 0x64, 0x46, 0x72, 0x69, 0x65, 0x6e,
-      0x64, 0x42, 0x79, 0x4d, 0x69, 0x64, 0x1c, 0x15, 0xc2, 0x3e, 0x18, 0x21,
-    ]);
+export const addFriendByMid = ({
+  accessToken,
+  searchId,
+  mid,
+}: {
+  accessToken: string;
+  searchId: string;
+  mid: string;
+}) => {
+  const header = Buffer.from([
+    0x82, 0x21, 0x01, 0x0e, 0x61, 0x64, 0x64, 0x46, 0x72, 0x69, 0x65, 0x6e,
+    0x64, 0x42, 0x79, 0x4d, 0x69, 0x64, 0x1c, 0x15, 0xf2, 0x2e, 0x18, 0x21,
+  ]);
 
-    const midbuf = Buffer.from(mid, "utf8");
+  const midbuffer = Buffer.from(mid, "utf8");
 
-    const backmid = Buffer.from([
-      0x1c, 0x18, 0x2f, 0x7b, 0x22, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x22,
-      0x3a, 0x22, 0x66, 0x72, 0x69, 0x65, 0x6e, 0x64, 0x41, 0x64, 0x64, 0x3a,
-      0x69, 0x64, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x22, 0x2c, 0x22, 0x73,
-      0x70, 0x65, 0x63, 0x22, 0x3a, 0x22, 0x6e, 0x61, 0x74, 0x69, 0x76, 0x65,
-      0x22, 0x7d, 0x2c, 0x2c, 0x18,
-    ]);
+  const screenbuffer = Buffer.from([
+    0x1c, 0x18, 0x2f, 0x7b, 0x22, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x22,
+    0x3a, 0x22, 0x66, 0x72, 0x69, 0x65, 0x6e, 0x64, 0x41, 0x64, 0x64, 0x3a,
+    0x69, 0x64, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x22, 0x2c, 0x22, 0x73,
+    0x70, 0x65, 0x63, 0x22, 0x3a, 0x22, 0x6e, 0x61, 0x74, 0x69, 0x76, 0x65,
+    0x22, 0x7d, 0x1c, 0x3c, 0x18,
+  ]);
 
-    const byteids = Buffer.from([oaId.length]);
-    const oaIdbuf = Buffer.from(oaId, "utf8");
-    const footer = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00]);
+  const searchIdlength = Buffer.from([searchId.length]);
 
-    const payload = Buffer.concat([
-      header,
-      midbuf,
-      backmid,
-      byteids,
-      oaIdbuf,
-      footer,
-    ]);
+  const searchIdbuffer = Buffer.from(searchId, "utf8");
 
-    const client = http2.connect(lineconfig.URL_LINE);
+  const footer = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00]);
 
-    const req = client.request({
-      ":method": "POST",
-      ":path": "/RE4",
-      "User-Agent": "Line/13.1.0",
-      "X-Line-Access": accessToken,
-      "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
-      "X-Lal": "th_TH",
-      "X-Lpv": "1",
-      "Content-Type": "application/x-thrift",
-      "Accept-Encoding": "gzip, deflate, br",
-    });
+  const payload = Buffer.concat([
+    header,
+    midbuffer,
+    screenbuffer,
+    searchIdlength,
+    searchIdbuffer,
+    footer,
+  ]);
 
-    req.on("data", (chunk) => {
-      console.log(`Response Body AddFriend oaId :`, chunk.toString());
-    });
+  const client = http2.connect("https://legy.line-apps.com");
 
-    req.on("end", () => {
-      client.close();
-      resolve();
-    });
-
-    req.on("error", (err) => {
-      client.close();
-      reject(err);
-    });
-
-    req.write(payload);
-
-    req.end();
+  const req = client.request({
+    ":method": "POST",
+    ":path": "/RE4",
+    "User-Agent": "Line/13.1.0",
+    "X-Line-Access": accessToken,
+    "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
+    "X-Lal": "th_TH",
+    "X-Lpv": "1",
+    "Content-Type": "application/x-thrift",
+    "Accept-Encoding": "gzip, deflate, br",
   });
-}
+
+  req.on("response", (headers) => {
+    console.log("Response Headers:");
+    for (const name in headers) {
+      console.log(`${name}: ${headers[name]}`);
+    }
+  });
+
+  req.on("data", (chunk) => {
+    const utf8 = chunk.toString("utf8");
+    console.log("Response Body:", utf8);
+  });
+
+  req.on("end", () => {
+    console.log("Request finished");
+    client.close();
+    getContactsV2({
+      accessToken,
+      mid,
+    });
+    return true;
+  });
+
+  req.write(payload);
+  req.end();
+};

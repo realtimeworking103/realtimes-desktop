@@ -71,7 +71,7 @@ export async function syncContactsKai(accessToken: string, phones: string[]) {
           return reject(new Error(`เพิ่มเพื่อน ${phones} ไม่สำเร็จ`));
         }
         const mid = midMatch[0];
-        await getContactsV2(accessToken, mid);
+        getContactsV2({ accessToken, mid });
         resolve(mid);
       });
 

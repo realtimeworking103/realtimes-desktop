@@ -1,7 +1,6 @@
 import http2 from "http2";
 import db from "../services/sqliteService.js";
 import { lineconfig } from "../config/line-config.js";
-import { checkAccount } from "../client/checkAccount.js";
 
 export async function checkBanLdInstance({
   ldName,
@@ -46,20 +45,6 @@ export async function checkBanLdInstance({
       });
 
       req.on("end", async () => {
-        client.close();
-
-        const count = await checkAccount(accessToken);
-
-        const stmt = db.prepare(
-          `UPDATE GridLD SET FriendGridLD = ?, GroupGridLD = ? WHERE LDPlayerGridLD = ?`,
-        );
-
-        stmt.run(
-          count.getAllContactIds.toString(),
-          count.getAllChatMids.toString(),
-          ldName,
-        );
-
         const bodyText = body.toLowerCase();
         const isBanned =
           bodyText.includes("forbidden") ||
@@ -68,18 +53,17 @@ export async function checkBanLdInstance({
 
         if (isBanned) {
           const stmt = db.prepare(
-            `UPDATE GridLD SET StatusAccGridLD = ?, StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+            `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
           );
 
-          stmt.run("บัญชีโดนแบน", "ตรวจสอบข้อมูลเสร็จ", ldName);
+          stmt.run("บัญชีโดนแบน", ldName);
         } else {
           const stmt = db.prepare(
-            `UPDATE GridLD SET StatusAccGridLD = ?, StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
+            `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
           );
 
-          stmt.run("บัญชีพร้อมใช้งาน", "ตรวจสอบข้อมูลเสร็จ", ldName);
+          stmt.run("บัญชีพร้อมใช้งาน", ldName);
         }
-
         resolve(true);
       });
 

@@ -1,21 +1,21 @@
-import http2 from "node:http2";
+import http2 from "http2";
 import { lineconfig } from "../config/line-config.js";
 
 export function addFriendById({
   accessToken,
-  userId,
-  midUserId,
+  searchId,
+  mid,
 }: {
   accessToken: string;
-  userId: string;
-  midUserId: string;
+  searchId: string;
+  mid: string;
 }) {
   const header = Buffer.from([
     0x82, 0x21, 0x01, 0x0e, 0x61, 0x64, 0x64, 0x46, 0x72, 0x69, 0x65, 0x6e,
-    0x64, 0x42, 0x79, 0x4d, 0x69, 0x64, 0x1c, 0x15, 0xf2, 0x2e, 0x18, 0x21,
+    0x64, 0x42, 0x79, 0x4d, 0x69, 0x64, 0x1c, 0x15, 0xc2, 0x3e, 0x18, 0x21,
   ]);
 
-  const midbuff = Buffer.from(midUserId, "utf8");
+  const midbuff = Buffer.from(mid, "utf8");
 
   const backmid = Buffer.from([
     0x1c, 0x18, 0x2f, 0x7b, 0x22, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x22,
@@ -25,8 +25,8 @@ export function addFriendById({
     0x22, 0x7d, 0x2c, 0x2c, 0x18,
   ]);
 
-  const byteids = Buffer.from([userId.length]);
-  const userIdbuffer = Buffer.from(userId, "utf8");
+  const byteids = Buffer.from([searchId.length]);
+  const searchIdbuffer = Buffer.from(searchId, "utf8");
   const footer = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00]);
 
   const payload = Buffer.concat([
@@ -34,20 +34,18 @@ export function addFriendById({
     midbuff,
     backmid,
     byteids,
-    userIdbuffer,
+    searchIdbuffer,
     footer,
   ]);
-
-  console.log("payload", payload.toString("utf8"));
 
   const client = http2.connect(lineconfig.URL_LINE);
 
   const req = client.request({
     ":method": "POST",
-    ":path": "/S4",
-    "User-Agent": "Line/13.1.0",
+    ":path": "/RE4",
+    "User-Agent": "Line/15.2.1",
     "X-Line-Access": accessToken,
-    "X-Line-Application": "ANDROID\t13.1.0\tAndroid OS\t9",
+    "X-Line-Application": "ANDROID\t15.2.1\tAndroid OS\t9",
     "X-Lal": "th_TH",
     "X-Lpv": "1",
     "Content-Type": "application/x-thrift",
@@ -60,12 +58,10 @@ export function addFriendById({
 
   req.on("end", () => {
     client.close();
-    return true;
   });
 
-  req.on("error", (err) => {
+  req.on("error", () => {
     client.close();
-    console.error(err);
   });
 
   req.write(payload);

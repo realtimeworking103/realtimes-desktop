@@ -1,8 +1,8 @@
 import db from "../services/sqliteService.js";
 import { createChatWithProfileCustom } from "./createChatWithProfileCustom.js";
 import { syncContactsKai } from "./syncContactPhoneKai.js";
-import { findContactByUseridOa } from "./function-addFriendOa.js";
 import { getAllContactIds } from "./getAllContactIds.js";
+import { findContactByUserid } from "./findContactByUserid.js";
 
 export async function createChatCustom({
   accessToken,
@@ -24,7 +24,7 @@ export async function createChatCustom({
     await new Promise((resolve) => setTimeout(resolve, 10000));
     const privateMid = await syncContactsKai(accessToken, [privateId]);
     await new Promise((resolve) => setTimeout(resolve, 10000));
-    const oaMid = await findContactByUseridOa(accessToken, oaId);
+    const oaMid = findContactByUserid({ accessToken, SearchId: oaId });
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
     await createChatWithProfileCustom({
@@ -32,7 +32,7 @@ export async function createChatCustom({
       ldName,
       nameGroup,
       profile,
-      midAdmin: [oaMid, privateMid],
+      midAdmin: [privateMid],
     });
     return true;
   } catch (error) {

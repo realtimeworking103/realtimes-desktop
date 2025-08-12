@@ -91,7 +91,6 @@ export function useLDPlayerActions(
   };
 
   const handleCheckban = async () => {
-    const semaphore = new Semaphore(1);
     const toCheckban = ldplayers
       .filter((p) => selectedRows.has(p.LDPlayerGridLD))
       .map((p) => ({
@@ -105,21 +104,24 @@ export function useLDPlayerActions(
     }
 
     try {
+      const semaphore = new Semaphore(1);
       await Promise.all(
         toCheckban.map(async (item) => {
           const [_, release] = await semaphore.acquire();
-          if (!item.accessToken || item.accessToken.trim() === "") {
-            toast.error(
-              `LDPlayer ${item.ldName} ไม่มี Token หรือ Token ไม่ถูกต้อง`,
-            );
+          try {
+            if (!item.accessToken || item.accessToken.trim() === "") {
+              toast.error(
+                `LDPlayer ${item.ldName} ไม่มี Token หรือ Token ไม่ถูกต้อง`,
+              );
+              release();
+              return;
+            }
+            await window.electron.checkBanLdInstance(item);
+            await fetchLDPlayers();
             release();
-            return;
+          } catch (err) {
+            console.error("Check Ban Failed:", err);
           }
-          await window.electron.checkBanLdInstance(item);
-          await fetchLDPlayers();
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          toast.success("ตรวจสอบบัญชีสำเร็จ");
-          release();
         }),
       );
     } catch (err) {

@@ -18,18 +18,13 @@ export const AddMeDialog = ({
 }: {
   open: boolean;
   onCancel: () => void;
-  onConfirm: (userId: string, phone: string) => void;
+  onConfirm: (userId: string) => void;
 }) => {
   const [userId, setUserId] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
 
   const handleConfirm = () => {
-    if (userId.length > 0 && phone.length > 0) {
-      onConfirm(userId, phone);
-    } else if (userId.length > 0) {
-      onConfirm(userId, "");
-    } else if (phone.length > 0) {
-      onConfirm("", phone);
+    if (userId.length > 0) {
+      onConfirm(userId);
     } else {
       toast.error("กรุณากรอกไอดีหรือเบอร์โทรศัพท์");
     }
@@ -47,12 +42,7 @@ export const AddMeDialog = ({
           placeholder="ไอดีหรือเบอร์โทรศัพท์"
           value={userId || ""}
           onChange={(e) => {
-            if (e.target.value.length > 0) {
-              setUserId(e.target.value);
-              setPhone("");
-            } else {
-              setPhone(e.target.value);
-            }
+            setUserId(e.target.value);
           }}
         />
         <DialogFooter>

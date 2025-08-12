@@ -2,26 +2,21 @@ import { BrowserWindow } from "electron";
 import { ipcMainHandle } from "../utils/ipc-utils.js";
 import { getStatisData, pollResources } from "./resource-manager.js";
 
+// ===== Account Service =====
 import {
-  getLdInstancePath,
-  browseLdInstancePath,
-} from "./services/ldplayer/getLdInstancePath.js";
+  addAccount,
+  deleteAccount,
+  getAccount,
+  updateAccount,
+  saveRememberedCredentials,
+  getRememberedCredentials,
+  deleteRememberedCredentials,
+} from "./services/accountService.js";
 
-import { createLdInstance } from "./services/ldplayer/createLdInstace.js";
-import { moveLdInstace } from "./services/ldplayer/moveLdInstace.js";
-import { callLdInstance } from "./services/ldplayer/callLdInstance.js";
-import { deleteLdInstance } from "./services/ldplayer/deleteLdInstance.js";
-import { deleteRowFromDB } from "./services/ldplayer/delteRowLdInstace.js";
-import { fetchLdInstance } from "./services/ldplayer/fetchLdInstance.js";
-import { getTokenLdInstance } from "./services/ldplayer/getTokenLdInstance.js";
-import { getTableCreateLdInstance } from "./services/ldplayer/getTableCreateLdInstance.js";
-import { getLdInstance } from "./services/ldplayer/getLdInstance.js";
-import { addFriends } from "./line-api/function-addfriends.js";
-import { checkBanLdInstance } from "./line-api/function-checkban.js";
-import { createChatSystem } from "./line-api/createChatSystem.js";
-import { createChatCustom } from "./line-api/createChatCustom.js";
-import { createChat } from "./client/createChat.js";
+// ===== API =====
+import { login, logout } from "./api/index.js";
 
+// ===== File Service =====
 import {
   deleteTxtFile,
   getTxtFiles,
@@ -30,40 +25,62 @@ import {
   updateFileCount,
 } from "./services/fileService.js";
 
+// ===== Function DB =====
 import { updatePhoneFile } from "./function-db.js";
-import { login, logout } from "./api/index.js";
 
+// ===== LDPlayer Services =====
+import {
+  browseLdInstancePath,
+  getLdInstancePath,
+} from "./services/ldplayer/getLdInstancePath.js";
+import { callLdInstance } from "./services/ldplayer/callLdInstance.js";
+import { createLdInstance } from "./services/ldplayer/createLdInstace.js";
+import { deleteLdInstance } from "./services/ldplayer/deleteLdInstance.js";
+import { deleteRowFromDB } from "./services/ldplayer/delteRowLdInstace.js";
+import { fetchLdInstance } from "./services/ldplayer/fetchLdInstance.js";
+import { getLdInstance } from "./services/ldplayer/getLdInstance.js";
+import { getTableCreateLdInstance } from "./services/ldplayer/getTableCreateLdInstance.js";
+import { getTokenLdInstance } from "./services/ldplayer/getTokenLdInstance.js";
+import { moveLdInstace } from "./services/ldplayer/moveLdInstace.js";
+
+// ===== LINE API =====
+import { addFriends } from "./line-api/function-addfriends.js";
+import { checkBanLdInstance } from "./line-api/function-checkban.js";
+import { createChatSystem } from "./line-api/createChatSystem.js";
+import { createChatCustom } from "./line-api/createChatCustom.js";
+
+// ===== Client =====
+import { createChat } from "./client/createChat.js";
+import { inviteIntoChats } from "./client/inviteIntoChat.js";
+
+// ===== LINE API - Add Me =====
+import { findAndAddFriend } from "./line-api/addMe.js";
+
+// ===== Message Service =====
+import {
+  addMessage,
+  deleteMessage,
+  editMessage,
+  getMessage,
+} from "./services/messageService.js";
+
+// ===== Name Service =====
+import {
+  addNameGroup,
+  deleteNameGroup,
+  editNameGroup,
+  getFileNameGroup,
+  selectFileNameGroup,
+} from "./services/nameService.js";
+
+// ===== Profile Service =====
 import {
   deleteProfile,
   getProfile,
   selectImageFile,
 } from "./services/profileService.js";
 
-import {
-  getAccount,
-  addAccount,
-  deleteAccount,
-  updateAccount,
-  saveRememberedCredentials,
-  getRememberedCredentials,
-  deleteRememberedCredentials,
-} from "./services/accountService.js";
-
-import {
-  selectFileNameGroup,
-  getFileNameGroup,
-  deleteNameGroup,
-  addNameGroup,
-  editNameGroup,
-} from "./services/nameService.js";
-
-import { inviteIntoChats } from "./client/inviteIntoChat.js";
-import {
-  addMessage,
-  deleteMessage,
-  getMessage,
-  editMessage,
-} from "./services/messageService.js";
+// ===== Status Service =====
 import {
   addStatus,
   deleteStatus,
@@ -71,99 +88,94 @@ import {
   updateStatus,
   updateStatusLDPlayer,
 } from "./services/statusService.js";
-import { addMe } from "./line-api/addMe.js";
+
+// ===== Version Service =====
 import {
-  getVersionData,
-  updateCurrentVersion,
   addAvailableVersion,
+  getVersionData,
   removeAvailableVersion,
+  updateCurrentVersion,
 } from "./services/versionService.js";
 
 export default function initMain(mainWindow: BrowserWindow) {
   pollResources(mainWindow);
   ipcMainHandle("getStaticData", getStatisData);
 
-  // Path LDPlayer
-  ipcMainHandle("getLdInstancePath", () => getLdInstancePath());
-  ipcMainHandle("browseLdInstancePath", () => browseLdInstancePath());
-
-  // LDPlayer
-  ipcMainHandle("getDataCreateLDPlayers", getTableCreateLdInstance);
-  ipcMainHandle("createLdInstance", createLdInstance);
-  ipcMainHandle("moveSelectedLDPlayers", moveLdInstace);
-  ipcMainHandle("getLDPlayersDB", getLdInstance);
-  ipcMainHandle("callLdInstance", callLdInstance);
-  ipcMainHandle("deleteLdInstance", deleteLdInstance);
-  ipcMainHandle("deleteRowFromDB", deleteRowFromDB);
-  ipcMainHandle("fetchLdInstance", fetchLdInstance);
-  ipcMainHandle("getTokenLdInstance", getTokenLdInstance);
-
-  // Function Line Api
-  ipcMainHandle("addFriends", addFriends);
-  ipcMainHandle("createChatSystem", createChatSystem);
-  ipcMainHandle("createChatCustom", createChatCustom);
-  ipcMainHandle("checkBanLdInstance", checkBanLdInstance);
-
-  //Txt File
-  ipcMainHandle("getTxtFiles", getTxtFiles);
-  ipcMainHandle("saveTxtFile", saveTxtFile);
-  ipcMainHandle("deleteTxtFile", deleteTxtFile);
-  ipcMainHandle("updatePhoneFile", updatePhoneFile);
-  ipcMainHandle("selectTextFile", selectTextFile);
-  ipcMainHandle("updateFileCount", updateFileCount);
-
-  //Login
+  // ===== Auth =====
   ipcMainHandle("login", login);
   ipcMainHandle("logout", logout);
 
-  //Account
-  ipcMainHandle("getAccount", getAccount);
-  ipcMainHandle("addAccount", addAccount);
-  ipcMainHandle("deleteAccount", deleteAccount);
-  ipcMainHandle("updateAccount", updateAccount);
+  // ===== LDPlayer Path =====
+  ipcMainHandle("browseLdInstancePath", () => browseLdInstancePath());
+  ipcMainHandle("getLdInstancePath", () => getLdInstancePath());
 
-  //Remembered Credentials
-  ipcMainHandle("saveRememberedCredentials", saveRememberedCredentials);
-  ipcMainHandle("getRememberedCredentials", getRememberedCredentials);
-  ipcMainHandle("deleteRememberedCredentials", deleteRememberedCredentials);
+  // ===== LDPlayer Management =====
+  ipcMainHandle("callLdInstance", callLdInstance);
+  ipcMainHandle("checkBanLdInstance", checkBanLdInstance);
+  ipcMainHandle("createLdInstance", createLdInstance);
+  ipcMainHandle("deleteLdInstance", deleteLdInstance);
+  ipcMainHandle("deleteRowFromDB", deleteRowFromDB);
+  ipcMainHandle("fetchLdInstance", fetchLdInstance);
+  ipcMainHandle("getDataCreateLDPlayers", getTableCreateLdInstance);
+  ipcMainHandle("getLDPlayersDB", getLdInstance);
+  ipcMainHandle("getTokenLdInstance", getTokenLdInstance);
+  ipcMainHandle("moveSelectedLDPlayers", moveLdInstace);
 
-  //Profile
-  ipcMainHandle("selectImageFile", selectImageFile);
-  ipcMainHandle("getProfile", getProfile);
-  ipcMainHandle("deleteProfile", deleteProfile);
-
-  //Name Group
-  ipcMainHandle("selectFileNameGroup", selectFileNameGroup);
-  ipcMainHandle("getFileNameGroup", getFileNameGroup);
-  ipcMainHandle("deleteNameGroup", deleteNameGroup);
-  ipcMainHandle("addNameGroup", addNameGroup);
-  ipcMainHandle("editNameGroup", editNameGroup);
-
-  //Invite Into Chat
+  // ===== LINE API =====
+  ipcMainHandle("addFriends", addFriends);
+  ipcMainHandle("createChat", createChat);
+  ipcMainHandle("createChatCustom", createChatCustom);
+  ipcMainHandle("createChatSystem", createChatSystem);
+  ipcMainHandle("findAndAddFriend", findAndAddFriend);
   ipcMainHandle("inviteIntoChats", inviteIntoChats);
 
-  //Message
+  // ===== File Management =====
+  ipcMainHandle("deleteTxtFile", deleteTxtFile);
+  ipcMainHandle("getTxtFiles", getTxtFiles);
+  ipcMainHandle("saveTxtFile", saveTxtFile);
+  ipcMainHandle("selectTextFile", selectTextFile);
+  ipcMainHandle("updateFileCount", updateFileCount);
+  ipcMainHandle("updatePhoneFile", updatePhoneFile);
+
+  // ===== Account Management =====
+  ipcMainHandle("addAccount", addAccount);
+  ipcMainHandle("deleteAccount", deleteAccount);
+  ipcMainHandle("getAccount", getAccount);
+  ipcMainHandle("updateAccount", updateAccount);
+
+  // ===== Profile Management =====
+  ipcMainHandle("deleteProfile", deleteProfile);
+  ipcMainHandle("getProfile", getProfile);
+  ipcMainHandle("selectImageFile", selectImageFile);
+
+  // ===== Name Group Management =====
+  ipcMainHandle("addNameGroup", addNameGroup);
+  ipcMainHandle("deleteNameGroup", deleteNameGroup);
+  ipcMainHandle("editNameGroup", editNameGroup);
+  ipcMainHandle("getFileNameGroup", getFileNameGroup);
+  ipcMainHandle("selectFileNameGroup", selectFileNameGroup);
+
+  // ===== Message Management =====
   ipcMainHandle("addMessage", addMessage);
   ipcMainHandle("deleteMessage", deleteMessage);
-  ipcMainHandle("getMessage", getMessage);
   ipcMainHandle("editMessage", editMessage);
+  ipcMainHandle("getMessage", getMessage);
 
-  //Create Chat
-  ipcMainHandle("createChat", createChat);
-
-  //Status
-  ipcMainHandle("getStatus", getStatus);
+  // ===== Status Management =====
   ipcMainHandle("addStatus", addStatus);
-  ipcMainHandle("updateStatus", updateStatus);
   ipcMainHandle("deleteStatus", deleteStatus);
+  ipcMainHandle("getStatus", getStatus);
+  ipcMainHandle("updateStatus", updateStatus);
   ipcMainHandle("updateStatusLDPlayer", updateStatusLDPlayer);
 
-  //Add Me
-  ipcMainHandle("addMe", addMe);
+  // ===== Remembered Credentials =====
+  ipcMainHandle("deleteRememberedCredentials", deleteRememberedCredentials);
+  ipcMainHandle("getRememberedCredentials", getRememberedCredentials);
+  ipcMainHandle("saveRememberedCredentials", saveRememberedCredentials);
 
-  //Version Management
-  ipcMainHandle("getVersionData", getVersionData);
-  ipcMainHandle("updateCurrentVersion", updateCurrentVersion);
+  // ===== Version Management =====
   ipcMainHandle("addAvailableVersion", addAvailableVersion);
+  ipcMainHandle("getVersionData", getVersionData);
   ipcMainHandle("removeAvailableVersion", removeAvailableVersion);
+  ipcMainHandle("updateCurrentVersion", updateCurrentVersion);
 }

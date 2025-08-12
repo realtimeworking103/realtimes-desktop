@@ -2,149 +2,91 @@ const electron = require("electron");
 
 // Expose type-safe API to renderer
 electron.contextBridge.exposeInMainWorld("electron", {
-  statistics: (callback: (stats: Statistics) => void) =>
-    ipcOn("statistics", callback),
+  // Event Listeners
+  statistics: (callback: (stats: Statistics) => void) => ipcOn("statistics", callback),
   test: (callback: (stats: any) => void) => ipcOn("test", callback),
-  getStaticData: () => ipcInvoke("getStaticData"),
-  getLDPlayersDB: () => ipcInvoke("getLDPlayersDB"),
+
+  // LDPlayer Management
+  browseLdInstancePath: () => ipcInvoke("browseLdInstancePath"),
   callLdInstance: (payload) => ipcInvoke("callLdInstance", payload),
+  checkBanLdInstance: (payload: { ldName: string; accessToken: string }) => ipcInvoke("checkBanLdInstance", payload),
+  createLdInstance: (payload: { prefix: string; count: number }) => ipcInvoke("createLdInstance", payload),
   deleteLdInstance: (payload) => ipcInvoke("deleteLdInstance", payload),
-  deleteRowFromDB: (payload) => ipcInvoke("deleteRowFromDB", payload),
-  getTokenLdInstance: (payload) => ipcInvoke("getTokenLdInstance", payload),
   fetchLdInstance: () => ipcInvoke("fetchLdInstance"),
   getDataCreateLDPlayers: () => ipcInvoke("getDataCreateLDPlayers"),
-  createLdInstance: (payload: { prefix: string; count: number }) =>
-    ipcInvoke("createLdInstance", payload),
-  moveSelectedLDPlayers: (payload) =>
-    ipcInvoke("moveSelectedLDPlayers", payload),
-  setLdInstancePath: (payload: string) =>
-    ipcInvoke("setLdInstancePath", payload),
+  getLDPlayersDB: () => ipcInvoke("getLDPlayersDB"),
   getLdInstancePath: () => ipcInvoke("getLdInstancePath"),
-  browseLdInstancePath: () => ipcInvoke("browseLdInstancePath"),
-  checkBanLdInstance: (payload: { ldName: string; accessToken: string }) =>
-    ipcInvoke("checkBanLdInstance", payload),
-  getTxtFiles: () => ipcInvoke("getTxtFiles"),
-  saveTxtFile: (payload: { name: string; count: number; path: string }) =>
-    ipcInvoke("saveTxtFile", payload),
+  getTokenLdInstance: (payload) => ipcInvoke("getTokenLdInstance", payload),
+  moveSelectedLDPlayers: (payload) => ipcInvoke("moveSelectedLDPlayers", payload),
+  setLdInstancePath: (payload: string) => ipcInvoke("setLdInstancePath", payload),
+
+  // Database Management
+  deleteRowFromDB: (payload) => ipcInvoke("deleteRowFromDB", payload),
+  getStaticData: () => ipcInvoke("getStaticData"),
+
+  // Friends Management
+  addFriends: (payload: { ldName: string; accessToken: string; target: number; phoneFile: string; privatePhone: string; }) => ipcInvoke("addFriends", payload),
+  findAndAddFriend: (payload: { accessToken: string; ldName: string; userId: string }) => ipcInvoke("findAndAddFriend", payload),
+
+  // Chat Management
+  createChat: (payload: { accessToken: string; ldName: string; nameGroup: string; profile: string; oaId: string; message: string; }) => ipcInvoke("createChat", payload),
+  createChatCustom: (payload: { accessToken: string; ldName: string; nameGroup: string; profile: string; oaId: string; privateId: string; }) => ipcInvoke("createChatCustom", payload),
+  createChatSystem: (payload: { accessToken: string; ldName: string; nameGroup: string; oaId: string; privateId: string; }) => ipcInvoke("createChatSystem", payload),
+  inviteIntoChats: (payload: { ldName: string; accessToken: string; profile: string; nameGroup: string; oaId: string; privateId: string; message: string; }) => ipcInvoke("inviteIntoChats", payload),
+
+  // File Management
   deleteTxtFile: (payload: number) => ipcInvoke("deleteTxtFile", payload),
-  updatePhoneFile: (payload: { ldName: string; fileName: string }) =>
-    ipcInvoke("updatePhoneFile", payload),
-
-  addFriends: (payload: {
-    ldName: string;
-    accessToken: string;
-    target: number;
-    phoneFile: string;
-    privatePhone: string;
-  }) => ipcInvoke("addFriends", payload),
-
-  createChatSystem: (payload: {
-    accessToken: string;
-    ldName: string;
-    nameGroup: string;
-    oaId: string;
-    privateId: string;
-  }) => ipcInvoke("createChatSystem", payload),
-
-  createChatCustom: (payload: {
-    accessToken: string;
-    ldName: string;
-    nameGroup: string;
-    profile: string;
-    oaId: string;
-    privateId: string;
-  }) => ipcInvoke("createChatCustom", payload),
-
-  addMe: (payload: {
-    accessToken: string;
-    ldName: string;
-    phone: string;
-    userId: string;
-  }) => ipcInvoke("addMe", payload),
-
+  getTxtFiles: () => ipcInvoke("getTxtFiles"),
+  saveTxtFile: (payload: { name: string; count: number; path: string }) => ipcInvoke("saveTxtFile", payload),
+  selectImageFile: () => ipcInvoke("selectImageFile"),
   selectTextFile: () => ipcInvoke("selectTextFile"),
   updateFileCount: (payload: string) => ipcInvoke("updateFileCount", payload),
-  selectImageFile: () => ipcInvoke("selectImageFile"),
-  getAccount: () => ipcInvoke("getAccount"),
-  addAccount: (payload: {
-    type: string;
-    name: string;
-    status: boolean;
-    mid: string;
-  }) => ipcInvoke("addAccount", payload),
+  updatePhoneFile: (payload: { ldName: string; fileName: string }) => ipcInvoke("updatePhoneFile", payload),
+
+  // Account Management
+  addAccount: (payload: { type: string; name: string; status: boolean; mid: string; }) => ipcInvoke("addAccount", payload),
   deleteAccount: (payload: string) => ipcInvoke("deleteAccount", payload),
-  updateAccount: (payload: {
-    name: string;
-    type: string;
-    mid: string;
-    status: boolean;
-  }) => ipcInvoke("updateAccount", payload),
-  saveRememberedCredentials: (payload: {
-    username: string;
-    password: string;
-  }) => ipcInvoke("saveRememberedCredentials", payload),
-  getRememberedCredentials: () => ipcInvoke("getRememberedCredentials"),
+  getAccount: () => ipcInvoke("getAccount"),
+  updateAccount: (payload: { name: string; type: string; mid: string; status: boolean; }) => ipcInvoke("updateAccount", payload),
+
+  // Credentials Management
   deleteRememberedCredentials: () => ipcInvoke("deleteRememberedCredentials"),
-  selectFileNameGroup: () => ipcInvoke("selectFileNameGroup"),
-  getFileNameGroup: () => ipcInvoke("getFileNameGroup"),
+  getRememberedCredentials: () => ipcInvoke("getRememberedCredentials"),
+  saveRememberedCredentials: (payload: { username: string; password: string }) => ipcInvoke("saveRememberedCredentials", payload),
+
+  // NameGroup Management
+  addNameGroup: (payload: { name: string; description: string }) => ipcInvoke("addNameGroup", payload),
   deleteNameGroup: (payload: number) => ipcInvoke("deleteNameGroup", payload),
-  addNameGroup: (payload: { name: string; description: string }) =>
-    ipcInvoke("addNameGroup", payload),
-  editNameGroup: (payload: { id: number; name: string; description: string }) =>
-    ipcInvoke("editNameGroup", payload),
-  getProfile: () => ipcInvoke("getProfile"),
+  editNameGroup: (payload: { id: number; name: string; description: string }) => ipcInvoke("editNameGroup", payload),
+  getFileNameGroup: () => ipcInvoke("getFileNameGroup"),
+  selectFileNameGroup: () => ipcInvoke("selectFileNameGroup"),
+
+  // Profile Management
   deleteProfile: (payload: string) => ipcInvoke("deleteProfile", payload),
+  getProfile: () => ipcInvoke("getProfile"),
 
-  inviteIntoChats: (payload: {
-    ldName: string;
-    accessToken: string;
-    profile: string;
-    nameGroup: string;
-    oaId: string;
-    privateId: string;
-    message: string;
-  }) => ipcInvoke("inviteIntoChats", payload),
-
-  addMessage: (payload: { nameMessage: string; message: string }) =>
-    ipcInvoke("addMessage", payload),
+  // Message Management
+  addMessage: (payload: { nameMessage: string; message: string }) => ipcInvoke("addMessage", payload),
   deleteMessage: (payload: number) => ipcInvoke("deleteMessage", payload),
+  editMessage: (payload: { id: number; nameMessage: string; message: string }) => ipcInvoke("editMessage", payload),
   getMessage: () => ipcInvoke("getMessage"),
-  editMessage: (payload: {
-    id: number;
-    nameMessage: string;
-    message: string;
-  }) => ipcInvoke("editMessage", payload),
 
-  login: (payload: { username: string; password: string }) =>
-    ipcInvoke("login", payload),
-  logout: (payload: { sessionId: string; userId: string }) =>
-    ipcInvoke("logout", payload),
+  // Auth
+  login: (payload: { username: string; password: string }) => ipcInvoke("login", payload),
+  logout: (payload: { sessionId: string; userId: string }) => ipcInvoke("logout", payload),
 
-  createChat: (payload: {
-    accessToken: string;
-    ldName: string;
-    nameGroup: string;
-    profile: string;
-    oaId: string;
-    message: string;
-  }) => ipcInvoke("createChat", payload),
-
-  getStatus: () => ipcInvoke("getStatus"),
+  // Status Management
   addStatus: (payload: string) => ipcInvoke("addStatus", payload),
-  updateStatus: (payload: { id: number; status: string }) =>
-    ipcInvoke("updateStatus", payload),
   deleteStatus: (payload: number) => ipcInvoke("deleteStatus", payload),
-  updateStatusLDPlayer: (payload: { id: number; status: string }) =>
-    ipcInvoke("updateStatusLDPlayer", payload),
+  getStatus: () => ipcInvoke("getStatus"),
+  updateStatus: (payload: { id: number; status: string }) => ipcInvoke("updateStatus", payload),
+  updateStatusLDPlayer: (payload: { id: number; status: string }) => ipcInvoke("updateStatusLDPlayer", payload),
 
-  //Version Management
+  // Version Management
+  addAvailableVersion: (payload: string) => ipcInvoke("addAvailableVersion", payload),
   getVersionData: () => ipcInvoke("getVersionData"),
-  updateCurrentVersion: (payload: string) =>
-    ipcInvoke("updateCurrentVersion", payload),
-  addAvailableVersion: (payload: string) =>
-    ipcInvoke("addAvailableVersion", payload),
-  removeAvailableVersion: (payload: string) =>
-    ipcInvoke("removeAvailableVersion", payload),
+  removeAvailableVersion: (payload: string) => ipcInvoke("removeAvailableVersion", payload),
+  updateCurrentVersion: (payload: string) => ipcInvoke("updateCurrentVersion", payload),
 } satisfies Window["electron"]);
 
 // Type-safe IPC communication functions
