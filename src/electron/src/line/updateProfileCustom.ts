@@ -18,7 +18,7 @@ function makeObsParams(buffer: Buffer): string {
   return Buffer.from(json).toString("base64");
 }
 
-export async function uploadImageWithHttps({
+export async function updateProfileCustom({
   chatMid,
   acquireToken,
   profile,
@@ -57,11 +57,11 @@ export async function uploadImageWithHttps({
       console.log("BODY:", chunk.toString());
     });
     res.on("end", () => {
-      console.log("Upload complete.");
+      console.log("UpdateProfileCustom complete.");
     });
   });
 
-  req.on("error", async (err) => {
+  req.on("error", (err) => {
     console.error("Request error:", err);
   });
 

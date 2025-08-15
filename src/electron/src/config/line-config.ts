@@ -1,7 +1,6 @@
 export const lineconfig = {
-  URL_LINE: "https://legy.line-apps.com",
-  URL_LINE_BACKUP: "https://legy-backup.line-apps.com",
-  LINE_VERSION: [
+  LINE_HOST_DOMAIN: "https://legy.line-apps.com",
+  APP_VERSION_LIST: [
     "15.0.0",
     "14.21.1",
     "14.20.1",

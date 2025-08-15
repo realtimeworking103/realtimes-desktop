@@ -84,7 +84,7 @@ export default function Page() {
 
   return (
     <div className="min-h-svh p-6 select-none">
-      <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
+      <div className="sticky top-0 z-20 mb-4 border-b backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <Settings className="h-8 w-8" />
@@ -121,7 +121,7 @@ export default function Page() {
             <CardTitle>รายการสถานะ</CardTitle>
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
+                variant="default"
                 size="lg"
                 className="bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-600"
                 onClick={() => setOpenDialog(true)}
@@ -130,9 +130,9 @@ export default function Page() {
                 เพิ่มสถานะ
               </Button>
               <Button
-                variant="outline"
+                variant="destructive"
                 size="lg"
-                className="bg-red-500 text-white transition-colors duration-200 hover:bg-red-600"
+                className="bg-red-500 transition-colors duration-200 hover:bg-red-600"
                 onClick={() => {
                   setConfirmDeleteIds(Array.from(selectedRows));
                   setOpenConfirmDeleteDialog(true);
@@ -145,11 +145,11 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="h-[400px] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100">
-              <div className="overflow-hidden rounded-lg border border-gray-200">
+              <div className="overflow-hidden rounded-lg">
                 <Table className="[&_*]:text-center [&_*]:align-middle">
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                    <TableRow className="dark:bg-gray-900">
+                      <TableHead className="text-center font-semibold text-white">
                         <Checkbox
                           checked={selectedRows.size === status.length}
                           onCheckedChange={(checked) => {
@@ -163,16 +163,16 @@ export default function Page() {
                           }}
                         />
                       </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         ลำดับ
                       </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         รายการสถานะ
                       </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         วันที่สร้าง
                       </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         การจัดการ
                       </TableHead>
                     </TableRow>
@@ -199,7 +199,7 @@ export default function Page() {
                         <TableCell>
                           <div className="flex items-center justify-center gap-2">
                             <Button
-                              variant="outline"
+                              variant="default"
                               size="icon"
                               className="bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-600"
                               onClick={() => {
@@ -211,9 +211,9 @@ export default function Page() {
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
-                              variant="outline"
+                              variant="destructive"
                               size="icon"
-                              className="bg-red-500 text-white transition-colors duration-200 hover:bg-red-600"
+                              className="bg-red-500 transition-colors duration-200 hover:bg-red-600"
                               onClick={() => {
                                 setConfirmDeleteIds((prev) => [
                                   ...prev,
@@ -252,7 +252,7 @@ export default function Page() {
             </div>
           </DialogDescription>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDialog(false)}>
+            <Button variant="default" onClick={() => setOpenDialog(false)}>
               ยกเลิก
             </Button>
             <Button
@@ -282,7 +282,7 @@ export default function Page() {
             </div>
           </DialogDescription>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDialogEdit(false)}>
+            <Button variant="default" onClick={() => setOpenDialogEdit(false)}>
               ยกเลิก
             </Button>
             <Button
@@ -312,7 +312,7 @@ export default function Page() {
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="default"
               onClick={() => {
                 setOpenConfirmDeleteDialog(false);
                 setSelectedRows(new Set());

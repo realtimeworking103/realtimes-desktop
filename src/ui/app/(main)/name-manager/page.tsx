@@ -109,11 +109,11 @@ export default function Page() {
   return (
     <div className="min-h-svh p-6 select-none">
       {/* Header */}
-      <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
+      <div className="sticky top-0 z-20 mb-4 border-b backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <List className="h-8 w-8" />
-            <h1 className="text-2xl font-bold text-gray-800">จัดการชื่อ</h1>
+            <h1 className="text-2xl font-bold text-white">จัดการชื่อ</h1>
           </div>
         </div>
       </div>
@@ -144,27 +144,27 @@ export default function Page() {
             <CardTitle>รายการชื่อกลุ่ม</CardTitle>
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
+                variant="default"
                 size="lg"
-                className="bg-green-500 text-white transition-colors duration-200 hover:bg-green-600"
+                className="bg-green-500 transition-colors duration-200 hover:bg-green-600"
                 onClick={handleSelectFile}
               >
                 <Upload className="h-4 w-4" />
                 นำเข้าชื่อกลุ่ม
               </Button>
               <Button
-                variant="outline"
+                variant="default"
                 size="lg"
-                className="bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-600"
+                className="bg-blue-500 transition-colors duration-200 hover:bg-blue-600"
                 onClick={() => setOpenDialog(true)}
               >
                 <Plus className="h-4 w-4" />
                 เพิ่มชื่อกลุ่ม
               </Button>
               <Button
-                variant="outline"
+                variant="default"
                 size="lg"
-                className="bg-red-500 text-white transition-colors duration-200 hover:bg-red-600"
+                className="bg-red-500 transition-colors duration-200 hover:bg-red-600"
                 onClick={() => {
                   setConfirmDeleteIds(Array.from(selectedRows));
                   setOpenConfirmDeleteDialog(true);
@@ -177,11 +177,11 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="h-[400px] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100">
-              <div className="overflow-hidden rounded-lg border border-gray-200">
+              <div className="overflow-hidden rounded-lg">
                 <Table className="[&_*]:text-center [&_*]:align-middle">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                  <TableHeader className="dark:bg-gray-900">
+                    <TableRow className="dark:bg-gray-900">
+                      <TableHead className="text-center font-semibold text-white">
                         <Checkbox
                           checked={
                             nameGroup.length > 0 &&
@@ -198,26 +198,26 @@ export default function Page() {
                           }}
                         />
                       </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         ลำดับ
                       </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         ชื่อกลุ่ม
                       </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         รายละเอียด
                       </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         วันที่สร้าง
                       </TableHead>
-                      <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         จัดการ
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {nameGroup.map((item, index) => (
-                      <TableRow key={index} className="hover:bg-blue-50/50">
+                      <TableRow key={index}>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={selectedRows.has(item.id)}
@@ -238,7 +238,7 @@ export default function Page() {
                         <TableCell>
                           <div className="flex items-center justify-center gap-2">
                             <Button
-                              variant="outline"
+                              variant="default"
                               size="sm"
                               className="bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-600"
                               onClick={() => {
@@ -251,9 +251,9 @@ export default function Page() {
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
-                              variant="outline"
+                              variant="destructive"
                               size="sm"
-                              className="bg-red-500 text-white transition-colors duration-200 hover:bg-red-600"
+                              className="bg-red-500 transition-colors duration-200 hover:bg-red-600"
                               onClick={() => {
                                 setConfirmDeleteIds([item.id]);
                                 setOpenConfirmDeleteDialog(true);
@@ -316,7 +316,7 @@ export default function Page() {
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="default"
               onClick={() => setOpenConfirmDeleteDialog(false)}
             >
               ยกเลิก
@@ -354,7 +354,7 @@ export default function Page() {
             </div>
           </DialogDescription>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenEditDialog(false)}>
+            <Button variant="default" onClick={() => setOpenEditDialog(false)}>
               ยกเลิก
             </Button>
             <Button

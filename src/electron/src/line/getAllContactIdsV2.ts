@@ -1,17 +1,15 @@
 import http2 from "http2";
-import { lineconfig } from "../config/line-config.js";
 
-export function acquireEncryptedAccessToken(
+export async function getAllContactIdsV2(
   accessToken: string,
-): Promise<string> {
+): Promise<string[]> {
   return new Promise((resolve, reject) => {
     const payload = Buffer.from([
-      0x82, 0x21, 0x01, 0x1b, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x45,
-      0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x65, 0x64, 0x41, 0x63, 0x63, 0x65,
-      0x73, 0x73, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x25, 0x04, 0x00,
+      0x82, 0x21, 0x01, 0x10, 0x67, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x43, 0x6f,
+      0x6e, 0x74, 0x61, 0x63, 0x74, 0x49, 0x64, 0x73, 0x15, 0x02, 0x00,
     ]);
 
-    const client = http2.connect(lineconfig.URL_LINE);
+    const client = http2.connect("https://legy.line-apps.com");
 
     const req = client.request({
       ":method": "POST",
@@ -25,17 +23,19 @@ export function acquireEncryptedAccessToken(
       "Accept-Encoding": "gzip, deflate, br",
     });
 
-    const chunks: Buffer[] = [];
-
-    req.on("data", (chunk: Buffer) => chunks.push(chunk));
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk.toString();
+    });
 
     req.on("end", () => {
       client.close();
-      const acquireToken = chunks.toString().slice(42, chunks.length - 2);
-      resolve(acquireToken);
+      const allMids = body.match(/u[a-f0-9]{32}/gi) || [];
+      console.log("allMids", allMids);
+      resolve(allMids);
     });
 
-    req.on("error", (err: Error) => {
+    req.on("error", (err) => {
       client.close();
       reject(err);
     });

@@ -1,12 +1,12 @@
 import http2 from "http2";
 
-export const getContactsV2 = ({
+export function getContactsV2({
   accessToken,
   mid,
 }: {
   accessToken: string;
   mid: string;
-}) => {
+}) {
   const header = Buffer.from([
     0x82, 0x21, 0x01, 0x0d, 0x67, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x74, 0x61,
     0x63, 0x74, 0x73, 0x56, 0x32, 0x1c, 0x19, 0x18, 0x21,
@@ -46,10 +46,14 @@ export const getContactsV2 = ({
   });
 
   req.on("end", () => {
-    client.close();
     console.log("Request finished");
+    client.close();
+  });
+
+  req.on("error", (err) => {
+    console.error("Request error:", err);
   });
 
   req.write(payload);
   req.end();
-};
+}

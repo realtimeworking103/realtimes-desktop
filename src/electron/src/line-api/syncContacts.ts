@@ -56,7 +56,7 @@ export async function syncContacts(
   }
 
   return new Promise((resolve, reject) => {
-    const client = http2.connect(lineconfig.URL_LINE);
+    const client = http2.connect(lineconfig.LINE_HOST_DOMAIN);
 
     const countBuf = Buffer.from([validPhones.length]);
     const contactBuf = createContactBuffers(validPhones);
@@ -75,7 +75,10 @@ export async function syncContacts(
     });
 
     const chunks: Buffer[] = [];
-    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("data", (chunk) => {
+      chunks.push(chunk);
+      console.log(chunk.toString("utf8"));
+    });
 
     req.on("end", () => {
       client.close();

@@ -1,7 +1,7 @@
 {
   "name": "realtimes-desktop",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Realtimes Desktop Application",
   "author": "Realtimes Team",
   "type": "module",

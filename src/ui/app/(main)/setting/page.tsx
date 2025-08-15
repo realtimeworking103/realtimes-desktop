@@ -29,7 +29,7 @@ export default function Page() {
       const data = await window.electron.getVersionData();
       setVersionData(data);
     } catch (error) {
-      console.error('Error loading version data:', error);
+      console.error("Error loading version data:", error);
     }
   };
 
@@ -49,7 +49,7 @@ export default function Page() {
 
   return (
     <div className="min-h-svh p-6 select-none">
-      <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
+      <div className="sticky top-0 z-20 mb-4 border-b backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <Settings className="h-8 w-8" />
@@ -73,7 +73,13 @@ export default function Page() {
               onChange={(e) => setLdplayerPath(e.target.value)}
               disabled={true}
             />
-            <Button onClick={handleBrowse}>เลือกไฟล์</Button>
+            <Button
+              variant="default"
+              onClick={handleBrowse}
+              className="bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-600"
+            >
+              เลือกไฟล์
+            </Button>
           </div>
         </CardContent>
         <CardFooter></CardFooter>
@@ -86,12 +92,12 @@ export default function Page() {
         </CardHeader>
         <CardContent>
           {versionData ? (
-            <VersionManager 
-              versionData={versionData} 
-              onVersionDataChange={setVersionData} 
+            <VersionManager
+              versionData={versionData}
+              onVersionDataChange={setVersionData}
             />
           ) : (
-            <div className="text-center py-4">Loading version data...</div>
+            <div className="py-4 text-center">Loading version data...</div>
           )}
         </CardContent>
         <CardFooter></CardFooter>

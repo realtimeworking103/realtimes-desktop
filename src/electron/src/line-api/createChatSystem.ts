@@ -1,5 +1,5 @@
-import { getAllContactIds } from "./getAllContactIds.js";
-import { findContactByUserid } from "./findContactByUserid.js";
+import { getAllContactIds } from "../line/getAllContactIds.js";
+import { findContactByUserid } from "../line/findContactByUserid.js";
 import { syncContactsKai } from "./syncContactPhoneKai.js";
 import { createChatWithProfileSystem } from "./createChatWithProfileSystem.js";
 

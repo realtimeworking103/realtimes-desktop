@@ -32,7 +32,7 @@ export async function addFriendByMidPhone({
 
       const footer = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00]);
 
-      const client = http2.connect(lineconfig.URL_LINE);
+      const client = http2.connect(lineconfig.LINE_HOST_DOMAIN);
 
       const payload = Buffer.concat([
         header,

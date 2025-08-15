@@ -88,7 +88,7 @@ export default function Page() {
 
   return (
     <div className="min-h-svh p-6 select-none">
-      <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
+      <div className="sticky top-0 z-20 mb-4 border-b backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <Users className="h-8 w-8" />
@@ -150,29 +150,29 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="h-[400px] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100">
-              <div className="overflow-hidden rounded-lg border border-gray-200">
+              <div className="overflow-hidden rounded-lg">
                 <Table className="[&_*]:text-center [&_*]:align-middle">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="bg-gray-50 font-semibold text-gray-700">
+                  <TableHeader className="dark:bg-gray-900">
+                    <TableRow className="dark:bg-gray-900">
+                      <TableHead className="text-center font-semibold text-white">
                         ลำดับ
                       </TableHead>
-                      <TableHead className="bg-gray-50 font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         วันที่สร้าง
                       </TableHead>
-                      <TableHead className="bg-gray-50 font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         ประเภท
                       </TableHead>
-                      <TableHead className="bg-gray-50 font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         ไอดี
                       </TableHead>
-                      <TableHead className="bg-gray-50 font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         MID
                       </TableHead>
-                      <TableHead className="bg-gray-50 font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         สถานะ
                       </TableHead>
-                      <TableHead className="bg-gray-50 font-semibold text-gray-700">
+                      <TableHead className="text-center font-semibold text-white">
                         การดำเนินการ
                       </TableHead>
                     </TableRow>

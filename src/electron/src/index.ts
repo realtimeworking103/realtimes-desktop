@@ -18,11 +18,10 @@ import { login, logout } from "./api/index.js";
 
 // ===== File Service =====
 import {
-  deleteTxtFile,
+  selectTextFile,
   getTxtFiles,
   saveTxtFile,
-  selectTextFile,
-  updateFileCount,
+  deleteTxtFile,
 } from "./services/fileService.js";
 
 // ===== Function DB =====
@@ -52,6 +51,7 @@ import { createChatCustom } from "./line-api/createChatCustom.js";
 // ===== Client =====
 import { createChat } from "./client/createChat.js";
 import { inviteIntoChats } from "./client/inviteIntoChat.js";
+import { mainCreateChat } from "./client/mainCreateChat.js";
 
 // ===== LINE API - Add Me =====
 import { findAndAddFriend } from "./line-api/addMe.js";
@@ -124,17 +124,17 @@ export default function initMain(mainWindow: BrowserWindow) {
   // ===== LINE API =====
   ipcMainHandle("addFriends", addFriends);
   ipcMainHandle("createChat", createChat);
+  ipcMainHandle("mainCreateChat", mainCreateChat);
   ipcMainHandle("createChatCustom", createChatCustom);
   ipcMainHandle("createChatSystem", createChatSystem);
   ipcMainHandle("findAndAddFriend", findAndAddFriend);
   ipcMainHandle("inviteIntoChats", inviteIntoChats);
 
   // ===== File Management =====
-  ipcMainHandle("deleteTxtFile", deleteTxtFile);
   ipcMainHandle("getTxtFiles", getTxtFiles);
-  ipcMainHandle("saveTxtFile", saveTxtFile);
   ipcMainHandle("selectTextFile", selectTextFile);
-  ipcMainHandle("updateFileCount", updateFileCount);
+  ipcMainHandle("saveTxtFile", saveTxtFile);
+  ipcMainHandle("deleteTxtFile", deleteTxtFile);
   ipcMainHandle("updatePhoneFile", updatePhoneFile);
 
   // ===== Account Management =====

@@ -287,9 +287,9 @@ export default function Page() {
               <div>
                 <div className="min-w-[1000px]">
                   <Table className="[&_*]:text-center [&_*]:align-middle">
-                    <TableHeader className="sticky top-0 z-10 bg-gray-50">
-                      <TableRow className="hover:bg-gray-50">
-                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                    <TableHeader className="sticky top-0 z-10 dark:bg-gray-900">
+                      <TableRow className="hover:bg-gray-50 dark:bg-gray-900">
+                        <TableHead className="text-center font-semibold text-white">
                           <Checkbox
                             checked={
                               ldData.length > 0 &&
@@ -308,19 +308,19 @@ export default function Page() {
                             }}
                           />
                         </TableHead>
-                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                        <TableHead className="text-center font-semibold text-white">
                           ลำดับ
                         </TableHead>
-                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                        <TableHead className="text-center font-semibold text-white">
                           LDPlayer
                         </TableHead>
-                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                        <TableHead className="text-center font-semibold text-white">
                           เวลาที่สร้าง
                         </TableHead>
-                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                        <TableHead className="text-center font-semibold text-white">
                           สถานะ
                         </TableHead>
-                        <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                        <TableHead className="text-center font-semibold text-white">
                           การดำเนินการ
                         </TableHead>
                       </TableRow>

@@ -28,7 +28,7 @@ interface CreateGroupDialog2Props {
     nameGroup: string,
     profile: string,
     message: string,
-    oaId: string,
+    searchId: string,
   ) => void;
   onCancel: () => void;
 }
@@ -246,7 +246,7 @@ export const CreateGroupDialog2: React.FC<CreateGroupDialog2Props> = ({
         </CardContent>
       </Card>
       <DialogFooter>
-        <Button className="w-full" onClick={handleConfirm}>
+        <Button className="w-full text-white" onClick={handleConfirm}>
           สร้างกลุ่ม
         </Button>
       </DialogFooter>

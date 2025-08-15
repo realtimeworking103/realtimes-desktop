@@ -1,8 +1,9 @@
 import { loginWithAuthToken } from "@evex/linejs";
 import { FileStorage } from "@evex/linejs/storage";
 import db from "../services/sqliteService.js";
-import { addFriendByMid } from "./addFriendByMid.js";
-import { getContactsV2 } from "./getContactsV2.js";
+import { addFriendByMid } from "../line/addFriendByMid.js";
+import { getContactsV2 } from "../line/getContactsV2.js";
+import { updateAccount } from "../services/accountService.js";
 
 export const findAndAddFriend = async function ({
   accessToken,
@@ -41,6 +42,13 @@ export const findAndAddFriend = async function ({
     db.prepare(
       `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
     ).run(`เพิ่มเพื่อน ${midSearchId.displayName} สำเร็จ`, ldName);
+
+    updateAccount({
+      name: userId,
+      type: "ไลน์บอท",
+      mid: midSearchId.mid,
+      status: true,
+    });
 
     return true;
   } catch (error) {

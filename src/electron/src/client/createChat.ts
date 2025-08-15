@@ -1,62 +1,104 @@
 import db from "../services/sqliteService.js";
+import { updateProfileCustom } from "../line/updateProfileCustom.js";
+import { addFriendByMid } from "../line/addFriendByMid.js";
+import { getContactsV2 } from "../line/getContactsV2.js";
 import { loginWithAuthToken } from "@evex/linejs";
 import { FileStorage } from "@evex/linejs/storage";
-import { uploadImageWithHttps } from "../line-api/updateProfileGroup2.js";
-import { addFriendByMid } from "../line-api/addFriendByMid.js";
-import { getContactsV2 } from "../line-api/getContactsV2.js";
+import UpdateStatus from "../services/updateStatus.js";
 
 export const createChat = async ({
   ldName,
   accessToken,
   nameGroup,
   profile,
-  oaId,
+  searchId,
   message,
 }: {
   ldName: string;
   accessToken: string;
   nameGroup: string;
   profile: string;
-  oaId: string;
+  searchId: string;
   message: string;
 }): Promise<boolean> => {
+  let client;
   try {
-    const client = await loginWithAuthToken(accessToken, {
+    client = await loginWithAuthToken(accessToken, {
       device: "IOS",
+      version: "13.3.1",
       storage: new FileStorage("./storage.json"),
     });
+  } catch (error: any) {
+    console.error("Login Failed:", error);
+    UpdateStatus.updateStatusLogin(ldName, `Login Failed`);
+    return false;
+  }
 
-    const midSearchId = await client.base.talk.findContactByUserid({
-      searchId: oaId,
+  let midSearchId: string;
+  try {
+    const contact = await client.base.talk.findContactByUserid({
+      searchId: searchId,
     });
+    midSearchId = contact.mid;
+  } catch (error) {
+    console.error("FindContact Failed:", error);
+    UpdateStatus.updateStatusFindContactByUserid(ldName, `บัญชีติดบัค`);
+    return false;
+  }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  try {
     addFriendByMid({
       accessToken,
-      searchId: oaId,
-      mid: midSearchId.mid,
+      searchId: searchId,
+      mid: midSearchId,
     });
-
     getContactsV2({
       accessToken,
-      mid: midSearchId.mid,
+      mid: midSearchId,
     });
+  } catch (error) {
+    console.error("AddFriendByMid Failed:", error);
+    UpdateStatus.updateStatusGetAllContactIds(ldName, `เพิ่มเพื่อนไม่สำเร็จ`);
+    return false;
+  }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const getAllContactIds = await client.base.talk.getAllContactIds();
+  let getAllContact: string[];
+  try {
+    getAllContact = await client.base.talk.getAllContactIds();
+    if (!getAllContact.includes(midSearchId)) {
+      UpdateStatus.updateStatusGetAllContactIds(ldName, `บัญชีติดบัค`);
+      return false;
+    }
+  } catch (error: any) {
+    console.error("getAllContactIds Failed:", error);
+    return false;
+  }
 
-    const responseChat = await client.base.talk.createChat({
+  let responseChat;
+  try {
+    responseChat = await client.base.talk.createChat({
       request: {
         reqSeq: 0,
         type: 1,
         name: nameGroup,
-        targetUserMids: getAllContactIds,
+        targetUserMids: getAllContact,
         picturePath: "",
       },
     });
+  } catch (error) {
+    console.error("CreateChat Failed:", error);
+    UpdateStatus.updateStatusResponseChat(
+      ldName,
+      `สร้างกลุ่มไม่สำเร็จ request block`,
+    );
+    return false;
+  }
 
+  try {
     await client.base.talk.sendMessage({
       to: responseChat.chat.chatMid,
       text: message,
@@ -65,17 +107,14 @@ export const createChat = async ({
     let token = await client.base.talk.acquireEncryptedAccessToken({
       featureType: 2,
     });
-    const pattern3 = /TTJ[A-Za-z0-9+/=]+/;
-    const match = token.toString().match(pattern3);
-    if (match) {
-      const result = match[0];
-      token = result;
-    }
 
-    await uploadImageWithHttps({
+    const match = token.toString().match(/TTJ[A-Za-z0-9+/=]+/);
+    if (match) token = match[0];
+
+    await updateProfileCustom({
       acquireToken: token,
       chatMid: responseChat.chat.chatMid,
-      profile: profile,
+      profile,
     });
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -87,16 +126,19 @@ export const createChat = async ({
     const currentCount = parseInt(row?.GroupGridLD || "0", 10);
     const newCount = currentCount + 1;
 
-    db.prepare(
-      `UPDATE GridLD SET  StatusGridLD = ?, GroupGridLD = ? WHERE LDPlayerGridLD = ?`,
-    ).run(`สร้างกลุ่มสำเร็จ 1/1 กลุ่ม`, newCount.toString(), ldName);
+    UpdateStatus.updateStatusCreateChat(
+      ldName,
+      `สร้างกลุ่มสำเร็จ ${newCount}/${newCount}`,
+      newCount,
+    );
 
     return true;
   } catch (error) {
-    console.error("Create Chat Failed:", error);
-    db.prepare(
-      `UPDATE GridLD SET StatusGridLD = ? WHERE LDPlayerGridLD = ?`,
-    ).run(`สร้างกลุ่มไม่สำเร็จ`, ldName);
+    console.error("SendMessage/UploadImage Failed:", error);
+    UpdateStatus.updateStatusSendMessage(
+      ldName,
+      `ส่งข้อความหรืออัปโหลดรูปไม่สำเร็จ`,
+    );
     return false;
   }
 };

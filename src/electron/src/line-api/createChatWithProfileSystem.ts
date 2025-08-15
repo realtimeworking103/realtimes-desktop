@@ -1,11 +1,11 @@
 import http2 from "http2";
 import fs from "fs";
 import path from "path";
-import { encodeGroupName, encodeMid, getMidCountBytes } from "./function.js";
+import { encodeGroupName, encodeMid } from "./function.js";
 import db from "../services/sqliteService.js";
 import { lineconfig } from "../config/line-config.js";
-import { acquireEncryptedAccessToken } from "./acquireEncryptedAccessToken.js";
-import { uploadImageToGroup } from "./updateProfileGroup1.js";
+import { acquireEncryptedAccessToken } from "../line/acquireEncryptedAccessToken.js";
+import { updateProfileDefault } from "../line/updateProfileDefault.js";
 
 export async function createChatWithProfileSystem({
   accessToken,
@@ -75,8 +75,8 @@ export async function createChatWithProfileSystem({
   for (let i = 0; i < groups.length; i++) {
     const midsInGroup = [...adminMids, ...groups[i]];
     const groupNameBuf = encodeGroupName(nameGroup);
-    const countBuf = getMidCountBytes(midsInGroup.length);
-    const midsBuf = Buffer.concat(midsInGroup.map(encodeMid));
+    const countBuf = encodeMid(midsInGroup.length.toString());
+    const midsBuf = encodeMid(midsInGroup.join(","));
     const payload = Buffer.concat([
       Buffer.from([
         0x82, 0x21, 0x01, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x68,
@@ -90,7 +90,7 @@ export async function createChatWithProfileSystem({
 
     const result = await new Promise<boolean>((resolve, reject) => {
       try {
-        const client = http2.connect(lineconfig.URL_LINE);
+        const client = http2.connect(lineconfig.LINE_HOST_DOMAIN);
 
         const req = client.request({
           ":method": "POST",
@@ -120,7 +120,7 @@ export async function createChatWithProfileSystem({
             } else {
               const acquireToken =
                 await acquireEncryptedAccessToken(accessToken);
-              await uploadImageToGroup(groupId, acquireToken);
+              updateProfileDefault(groupId, acquireToken);
               // เพิ่มเฉพาะ mid ที่ใช้จริงในการสร้างกลุ่มสำเร็จ
               totalProcessedMids.push(...groups[i]);
               resolve(true);

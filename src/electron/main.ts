@@ -9,8 +9,11 @@ const createWindow = () => {
   const preloadPath = getPreloadPath();
 
   const mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
+    show: false,
+    minWidth: 1600,
+    minHeight: 900,
+    x: 100,
+    y: 100,
     webPreferences: {
       preload: preloadPath,
       webSecurity: false,
@@ -22,6 +25,16 @@ const createWindow = () => {
   } else {
     mainWindow.loadFile(getUIPath());
   }
+
+  mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow.webContents.executeJavaScript(`
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    `);
+  });
+
+  mainWindow.maximize();
+  mainWindow.show();
 
   return mainWindow;
 };

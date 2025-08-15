@@ -33,3 +33,7 @@ export function getMidCountBytes(count: number): Buffer {
     return Buffer.from([tag, secondByte, thirdByte]);
   }
 }
+
+export function randomFromArray(arr: string[]) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}

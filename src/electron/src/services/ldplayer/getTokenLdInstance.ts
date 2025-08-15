@@ -6,7 +6,7 @@ import { decryptAndSaveProfile } from "../decryptorService.js";
 import {
   updateSettingsAttributes1,
   updateSettingsAttributes2,
-} from "../../line-api/updateSettingsAttributes.js";
+} from "../../line/updateSettingsAttributes.js";
 
 export async function getTokenLdInstance(ldName: string): Promise<boolean> {
   const ldconsolePath = getLdInstancePath();

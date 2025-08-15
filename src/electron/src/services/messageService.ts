@@ -17,6 +17,7 @@ export async function getMessage() {
     id: number;
     nameMessage: string;
     message: string;
+    createAt: string;
   }[];
 }
 

@@ -1,8 +1,10 @@
 import db from "../services/sqliteService.js";
 import { createChatWithProfileCustom } from "./createChatWithProfileCustom.js";
 import { syncContactsKai } from "./syncContactPhoneKai.js";
-import { getAllContactIds } from "./getAllContactIds.js";
-import { findContactByUserid } from "./findContactByUserid.js";
+import { getAllContactIds } from "../line/getAllContactIds.js";
+import { findContactByUserid } from "../line/findContactByUserid.js";
+import { loginWithAuthToken } from "@evex/linejs";
+import { FileStorage } from "@evex/linejs/storage";
 
 export async function createChatCustom({
   accessToken,
@@ -19,20 +21,50 @@ export async function createChatCustom({
   privateId: string;
   profile: string;
 }) {
+  let client;
+
+  try {
+    client = await loginWithAuthToken(accessToken, {
+      device: "IOS",
+      storage: new FileStorage("./storage.json"),
+    });
+  } catch (error) {
+    console.error("Login Failed:", error);
+    db.prepare(
+      `UPDATE GridLD SET StatusGridLD = ?, DateTimeGridLD = datetime('now', 'localtime') WHERE LDPlayerGridLD = ?`,
+    ).run(`บัญชีติดบัค`, ldName);
+    return false;
+  }
+
+  let privateMid;
+  try {
+    privateMid = await client.base.talk.findContactByUserid({
+      searchId: privateId,
+    });
+  } catch (error) {
+    console.error("FindContact Failed:", error);
+    return false;
+  }
+
+  let oaMid;
+  try {
+    oaMid = await client.base.talk.findContactByUserid({
+      searchId: oaId,
+    });
+  } catch (error) {
+    console.error("FindContact Failed:", error);
+    return false;
+  }
+
   try {
     await getAllContactIds(accessToken);
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    const privateMid = await syncContactsKai(accessToken, [privateId]);
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    const oaMid = findContactByUserid({ accessToken, SearchId: oaId });
-    await new Promise((resolve) => setTimeout(resolve, 10000));
 
     await createChatWithProfileCustom({
       accessToken,
       ldName,
       nameGroup,
       profile,
-      midAdmin: [privateMid],
+      midAdmin: [privateMid.mid, oaMid.mid],
     });
     return true;
   } catch (error) {

@@ -67,11 +67,11 @@ export default function Page() {
   return (
     <div className="min-h-svh p-6 select-none">
       {/* Header */}
-      <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
+      <div className="sticky top-0 z-20 mb-4 border-b backdrop-blur dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <Image className="h-8 w-8" />
-            <h1 className="text-2xl font-bold text-gray-800">จัดการโปรไฟล์</h1>
+            <h1 className="text-2xl font-bold text-white">จัดการโปรไฟล์</h1>
           </div>
         </div>
       </div>
@@ -100,7 +100,7 @@ export default function Page() {
         <CardHeader className="flex items-center justify-between">
           <CardTitle>รายการโปรไฟล์</CardTitle>
           <Button
-            variant="outline"
+            variant="default"
             onClick={selectImageFile}
             size="lg"
             className="bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-600"
@@ -111,26 +111,26 @@ export default function Page() {
         </CardHeader>
         <CardContent>
           <div className="h-[400px] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100">
-            <div className="overflow-hidden rounded-lg border border-gray-200">
+            <div className="overflow-hidden rounded-lg">
               <Table className="[&_*]:text-center [&_*]:align-middle">
-                <TableHeader className="sticky top-0 z-10 bg-gray-50">
-                  <TableRow className="hover:bg-gray-50">
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                <TableHeader className="sticky top-0 z-10 dark:bg-gray-900">
+                  <TableRow className="dark:bg-gray-900">
+                    <TableHead className="text-center font-semibold text-white">
                       ลำดับ
                     </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                    <TableHead className="text-center font-semibold text-white">
                       วันที่สร้าง
                     </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                    <TableHead className="text-center font-semibold text-white">
                       ชื่อ
                     </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                    <TableHead className="text-center font-semibold text-white">
                       รูปโปรไฟล์
                     </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                    <TableHead className="text-center font-semibold text-white">
                       ที่อยู่
                     </TableHead>
-                    <TableHead className="bg-gray-50 text-center font-semibold text-gray-700">
+                    <TableHead className="text-center font-semibold text-white">
                       การดำเนินการ
                     </TableHead>
                   </TableRow>
@@ -190,7 +190,7 @@ export default function Page() {
           </DialogHeader>
           <DialogDescription>คุณต้องการลบโปรไฟล์นี้หรือไม่?</DialogDescription>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="default" onClick={() => setOpen(false)}>
               ยกเลิก
             </Button>
             <Button

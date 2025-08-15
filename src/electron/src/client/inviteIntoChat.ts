@@ -1,7 +1,7 @@
+import { updateProfileCustom } from "../line/updateProfileCustom.js";
+import db from "../services/sqliteService.js";
 import { loginWithAuthToken } from "@evex/linejs";
 import { FileStorage } from "@evex/linejs/storage";
-import { uploadImageWithHttps } from "../line-api/updateProfileGroup2.js";
-import db from "../services/sqliteService.js";
 
 export async function inviteIntoChats({
   ldName,
@@ -19,7 +19,7 @@ export async function inviteIntoChats({
   try {
     const client = await loginWithAuthToken(accessToken, {
       device: "IOS",
-      version: "13.1.1",
+      version: "13.3.1",
       storage: new FileStorage("./storage.json"),
     });
 
@@ -46,7 +46,7 @@ export async function inviteIntoChats({
       token = result;
     }
 
-    await uploadImageWithHttps({
+    await updateProfileCustom({
       chatMid: responseChat.chat.chatMid,
       acquireToken: token,
       profile,

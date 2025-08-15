@@ -1,6 +1,6 @@
 import http2 from "http2";
 import { lineconfig } from "../config/line-config.js";
-import { getContactsV2 } from "./getContactsV2.js";
+import { getContactsV2 } from "../line/getContactsV2.js";
 
 function createContactBuffer(index: number, phone: string): Buffer {
   const indexSizeByte = Math.floor(Math.log10(Math.abs(index))) + 1;
@@ -35,7 +35,7 @@ function createContactBuffers(phones: string[]): Buffer {
 export async function syncContactsKai(accessToken: string, phones: string[]) {
   return new Promise<string>((resolve, reject) => {
     try {
-      const client = http2.connect(lineconfig.URL_LINE);
+      const client = http2.connect(lineconfig.LINE_HOST_DOMAIN);
 
       const header = Buffer.from([
         0x82, 0x21, 0x01, 0x0c, 0x73, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x74,

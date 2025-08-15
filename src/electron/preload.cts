@@ -29,7 +29,8 @@ electron.contextBridge.exposeInMainWorld("electron", {
   findAndAddFriend: (payload: { accessToken: string; ldName: string; userId: string }) => ipcInvoke("findAndAddFriend", payload),
 
   // Chat Management
-  createChat: (payload: { accessToken: string; ldName: string; nameGroup: string; profile: string; oaId: string; message: string; }) => ipcInvoke("createChat", payload),
+  createChat: (payload: { accessToken: string; ldName: string; nameGroup: string; profile: string; searchId: string; message: string; }) => ipcInvoke("createChat", payload),
+  mainCreateChat: (payload: { ldName: string; accessToken: string; nameGroup: string; searchId: string; profile: string; }) => ipcInvoke("mainCreateChat", payload),
   createChatCustom: (payload: { accessToken: string; ldName: string; nameGroup: string; profile: string; oaId: string; privateId: string; }) => ipcInvoke("createChatCustom", payload),
   createChatSystem: (payload: { accessToken: string; ldName: string; nameGroup: string; oaId: string; privateId: string; }) => ipcInvoke("createChatSystem", payload),
   inviteIntoChats: (payload: { ldName: string; accessToken: string; profile: string; nameGroup: string; oaId: string; privateId: string; message: string; }) => ipcInvoke("inviteIntoChats", payload),
@@ -40,7 +41,6 @@ electron.contextBridge.exposeInMainWorld("electron", {
   saveTxtFile: (payload: { name: string; count: number; path: string }) => ipcInvoke("saveTxtFile", payload),
   selectImageFile: () => ipcInvoke("selectImageFile"),
   selectTextFile: () => ipcInvoke("selectTextFile"),
-  updateFileCount: (payload: string) => ipcInvoke("updateFileCount", payload),
   updatePhoneFile: (payload: { ldName: string; fileName: string }) => ipcInvoke("updatePhoneFile", payload),
 
   // Account Management

@@ -22,7 +22,7 @@ export async function checkBanLdInstance({
         0x11, 0x00, 0x00, 0x22, 0x00, 0x00,
       ]);
 
-      const client = http2.connect(lineconfig.URL_LINE);
+      const client = http2.connect(lineconfig.LINE_HOST_DOMAIN);
 
       const req = client.request({
         ":method": "POST",

@@ -53,20 +53,22 @@ export default function Page() {
   const [ldplayers, setLDPlayers] = useState<LDPlayerType[]>([]);
   const [status, setStatus] = useState<StatusType[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+
+  const [isDialogOpenAddFriend, setDialogOpenAddFriend] = useState(false);
+  const [isDialogOpenAddMe, setDialogOpenAddMe] = useState(false);
+  const [isDialogOpenTabCreateGroup, setDialogOpenTabCreateGroup] =
+    useState(false);
+  const [tabDialog, setTabDialog] = useState<"create" | "create2">("create");
+
   const [isSelecting, setIsSelecting] = useState(false);
   const [startIndex, setStartIndex] = useState<number | null>(null);
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
 
   const [files, setFiles] = useState<{ name: string; count: number }[]>([]);
-  const [friendCount, setFriendCount] = useState("47");
-  const [search, setSearch] = useState("");
-  const [isDialogOpenAddFriend, setDialogOpenAddFriend] = useState(false);
-  const [isDialogOpenAddMe, setDialogOpenAddMe] = useState(false);
-  const [privatePhone, setPrivatePhone] = useState("");
 
-  const [isDialogOpenTabCreateGroup, setDialogOpenTabCreateGroup] =
-    useState(false);
-  const [tabDialog, setTabDialog] = useState<"create" | "create2">("create");
+  const [friendCount, setFriendCount] = useState("49");
+  const [search, setSearch] = useState("");
+  const [privatePhone, setPrivatePhone] = useState("");
 
   const fetchLDPlayers = async () => {
     const result = await window.electron.getLDPlayersDB();
@@ -147,7 +149,10 @@ export default function Page() {
         });
 
         await window.electron.getTxtFiles();
-        await window.electron.updateFileCount(row.phoneFile);
+        await window.electron.updatePhoneFile({
+          ldName: row.ldName,
+          fileName: row.phoneFile,
+        });
         await fetchLDPlayers();
       } catch (err) {
         toast.error(`เพิ่มเพื่อนให้ ${row.ldName} ล้มเหลว`);
@@ -158,8 +163,7 @@ export default function Page() {
   const handleCreateGroup = async (
     nameGroup: string,
     profile: string,
-    officalAccount: string,
-    privateAccount: string,
+    oaId: string,
   ) => {
     const selectedList = ldplayers.filter((p) =>
       selectedRows.has(p.LDPlayerGridLD),
@@ -180,13 +184,12 @@ export default function Page() {
             return;
           }
           try {
-            await window.electron.createChatCustom({
-              accessToken: selected.TokenGridLD,
+            await window.electron.mainCreateChat({
               ldName: selected.LDPlayerGridLD,
-              profile: profile,
+              accessToken: selected.TokenGridLD,
               nameGroup: nameGroup,
-              oaId: officalAccount,
-              privateId: privateAccount,
+              searchId: oaId,
+              profile: profile,
             });
             await fetchLDPlayers();
             release();
@@ -231,7 +234,7 @@ export default function Page() {
               ldName: selected.LDPlayerGridLD,
               profile: profile,
               nameGroup: nameGroup,
-              oaId: oaId,
+              searchId: oaId,
               message: message,
             });
             await fetchLDPlayers();
@@ -326,7 +329,7 @@ export default function Page() {
 
   return (
     <div className="min-h-svh p-6 select-none">
-      <div className="sticky top-0 z-20 mb-4 border-b border-gray-200 bg-white/80 backdrop-blur select-none dark:border-gray-700 dark:bg-gray-900/80">
+      <div className="sticky top-0 z-20 mb-4 border-b backdrop-blur select-none dark:border-gray-700 dark:bg-gray-900/80">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <Monitor className="h-8 w-8" />
@@ -349,7 +352,7 @@ export default function Page() {
             <Button
               onClick={handlefetchLdInstance}
               variant="default"
-              className="bg-gray-500 hover:bg-gray-600"
+              className="bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-600"
               size="lg"
             >
               <RotateCcw className="mr-2 h-4 w-4" />
@@ -361,297 +364,266 @@ export default function Page() {
 
       <Card>
         <CardContent>
-          <div className="h-[550px]">
-            <div className="h-[550px] overflow-y-auto">
-              <div>
-                <div className="min-w-[1000px]">
-                  <div
-                    onMouseLeave={() => setIsSelecting(false)}
-                    className="select-none"
-                  >
-                    <Table className="[&_*]:text-center [&_*]:align-middle">
-                      <TableHeader className="sticky top-0 z-10 bg-gray-50">
-                        <TableRow className="hover:bg-gray-50">
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            ลำดับ
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            LDPLAYER
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            สถานะบัญชีไลน์
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            ทำงานครั้งล่าสุด
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            สถานะการทำงาน
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            จำนวนเพื่อน
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            จำนวนกลุ่ม
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            ชื่อไลน์
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            เบอร์ไลน์
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            Token
-                          </TableHead>
-                          <TableHead className="bg-gray-50 font-semibold text-gray-700">
-                            วันที่สมัครไลน์
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {ldplayers.map((item, index) => (
-                          <ContextMenu key={item.LDPlayerGridLD}>
-                            <ContextMenuTrigger asChild>
-                              <TableRow
-                                key={item.LDPlayerGridLD}
-                                onMouseDown={(e) => {
-                                  if (e.button !== 0) return;
+          <div className="h-[700px] overflow-y-auto">
+            <div>
+              <div className="min-w-[1000px]">
+                <div
+                  onMouseLeave={() => setIsSelecting(false)}
+                  className="select-none"
+                >
+                  <Table className="[&_*]:text-center [&_*]:align-middle">
+                    <TableHeader className="sticky top-0 z-10 dark:bg-gray-900">
+                      <TableRow className="hover:bg-gray-50 dark:hover:bg-gray-900">
+                        <TableHead>ลำดับ</TableHead>
+                        <TableHead>LDPLAYER</TableHead>
+                        <TableHead>สถานะบัญชีไลน์</TableHead>
+                        <TableHead>ทำงานครั้งล่าสุด</TableHead>
+                        <TableHead>สถานะการทำงาน</TableHead>
+                        <TableHead>จำนวนเพื่อน</TableHead>
+                        <TableHead>จำนวนกลุ่ม</TableHead>
+                        <TableHead>ชื่อไลน์</TableHead>
+                        <TableHead>เบอร์ไลน์</TableHead>
+                        <TableHead>Token</TableHead>
+                        <TableHead>วันที่สมัครไลน์</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {ldplayers.map((item, index) => (
+                        <ContextMenu key={item.LDPlayerGridLD}>
+                          <ContextMenuTrigger asChild>
+                            <TableRow
+                              key={item.LDPlayerGridLD}
+                              onMouseDown={(e) => {
+                                if (e.button !== 0) return;
 
-                                  setIsSelecting(true);
-                                  setStartIndex(index);
+                                setIsSelecting(true);
+                                setStartIndex(index);
 
-                                  if (e.shiftKey && lastClickedIndex !== null) {
-                                    const min = Math.min(
-                                      lastClickedIndex,
-                                      index,
-                                    );
-                                    const max = Math.max(
-                                      lastClickedIndex,
-                                      index,
-                                    );
-                                    const newSet = new Set(selectedRows);
-                                    for (let i = min; i <= max; i++) {
-                                      newSet.add(ldplayers[i].LDPlayerGridLD);
-                                    }
-                                    setSelectedRows(newSet);
-                                  } else if (e.ctrlKey) {
-                                    setSelectedRows((prev) => {
-                                      const newSet = new Set(prev);
-                                      if (newSet.has(item.LDPlayerGridLD)) {
-                                        newSet.delete(item.LDPlayerGridLD);
-                                      } else {
-                                        newSet.add(item.LDPlayerGridLD);
-                                      }
-                                      return newSet;
-                                    });
-                                    setLastClickedIndex(index);
-                                  } else {
-                                    setSelectedRows(
-                                      new Set([item.LDPlayerGridLD]),
-                                    );
-                                    setLastClickedIndex(index);
-                                  }
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (!isSelecting || startIndex === null)
-                                    return;
-
-                                  const min = Math.min(startIndex, index);
-                                  const max = Math.max(startIndex, index);
-
+                                if (e.shiftKey && lastClickedIndex !== null) {
+                                  const min = Math.min(lastClickedIndex, index);
+                                  const max = Math.max(lastClickedIndex, index);
                                   const newSet = new Set(selectedRows);
-
-                                  if (!e.ctrlKey) {
-                                    newSet.clear();
-                                  }
-
                                   for (let i = min; i <= max; i++) {
                                     newSet.add(ldplayers[i].LDPlayerGridLD);
                                   }
-
                                   setSelectedRows(newSet);
-                                }}
-                                onMouseUp={() => {
-                                  setIsSelecting(false);
-                                  setStartIndex(null);
-                                }}
-                                className={`select-none ${
-                                  selectedRows.has(item.LDPlayerGridLD)
-                                    ? "bg-blue-100 dark:bg-blue-900"
-                                    : ""
-                                }`}
-                              >
-                                <TableCell>
-                                  <Badge
-                                    variant="secondary"
-                                    className="bg-blue-100 text-blue-800"
-                                  >
-                                    {item.NoDataGridLD}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>{item.LDPlayerGridLD}</TableCell>
-                                <TableCell>{item.StatusAccGridLD}</TableCell>
-                                <TableCell>{item.DateTimeGridLD}</TableCell>
-                                <TableCell>{item.StatusGridLD}</TableCell>
-                                <TableCell>{item.FriendGridLD}</TableCell>
-                                <TableCell>{item.GroupGridLD}</TableCell>
-                                <TableCell>{item.NameLineGridLD}</TableCell>
-                                <TableCell>{item.PhoneGridLD}</TableCell>
-                                <TableCell>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span>
-                                        {item.TokenGridLD
-                                          ? `${item.TokenGridLD.slice(0, 33)}`
-                                          : ""}
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="max-w-full break-all whitespace-pre-wrap">
-                                        {item.TokenGridLD}
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TableCell>
-                                <TableCell>{item.CreateAt}</TableCell>
-                              </TableRow>
-                            </ContextMenuTrigger>
-                            <ContextMenuContent>
-                              <ContextMenuSub>
-                                <ContextMenuSubTrigger>
-                                  ฟังชั่น
-                                </ContextMenuSubTrigger>
-                                <ContextMenuSubContent>
-                                  <ContextMenuItem
-                                    inset
-                                    onClick={() =>
-                                      openConfirmDialog(
-                                        "คุณแน่ใจหรือไม่ที่จะตรวจสอบบัญชีไลน์นี้?",
-                                        handleCheckban,
-                                      )
+                                } else if (e.ctrlKey) {
+                                  setSelectedRows((prev) => {
+                                    const newSet = new Set(prev);
+                                    if (newSet.has(item.LDPlayerGridLD)) {
+                                      newSet.delete(item.LDPlayerGridLD);
+                                    } else {
+                                      newSet.add(item.LDPlayerGridLD);
                                     }
-                                  >
-                                    ตรวจสอบบัญชีไลน์
-                                  </ContextMenuItem>
-                                  <ContextMenuItem inset>
-                                    ส่งข้อความ
-                                  </ContextMenuItem>
-                                  <ContextMenuItem
-                                    inset
-                                    onClick={() => setDialogOpenAddFriend(true)}
-                                  >
-                                    เพิ่มเพื่อน
-                                  </ContextMenuItem>
-                                  <ContextMenuItem
-                                    inset
-                                    onClick={() => setDialogOpenAddMe(true)}
-                                  >
-                                    เพิ่มเพื่อนหาตัวเอง
-                                  </ContextMenuItem>
-                                  <ContextMenuItem
-                                    inset
-                                    onClick={() => {
-                                      setDialogOpenTabCreateGroup(true);
-                                    }}
-                                  >
-                                    สร้างกลุ่ม
-                                  </ContextMenuItem>
-                                </ContextMenuSubContent>
-                              </ContextMenuSub>
-                              <ContextMenuSub>
-                                <ContextMenuSubTrigger>
-                                  LDPlayer
-                                </ContextMenuSubTrigger>
-                                <ContextMenuSubContent>
-                                  <ContextMenuItem
-                                    inset
-                                    onClick={() =>
-                                      openConfirmDialog(
-                                        "คุณแน่ใจหรือไม่ที่จะเก็บ Token?",
-                                        handleGetTokenAuto,
-                                      )
-                                    }
-                                  >
-                                    เก็บ Token
-                                  </ContextMenuItem>
-                                  <ContextMenuItem
-                                    inset
-                                    onClick={() =>
-                                      openConfirmDialog(
-                                        "คุณแน่ใจหรือไม่ที่จะเปิด LDPlayer นี้?",
-                                        handleOpenLDPlayer,
-                                      )
-                                    }
-                                  >
-                                    เปิด LDPlayer
-                                  </ContextMenuItem>
-                                  <ContextMenuItem
-                                    inset
-                                    onClick={() =>
-                                      openConfirmDialog(
-                                        "คุณแน่ใจหรือไม่ที่จะลบ LDPlayer นี้?",
-                                        handleDeleteLDPlayer,
-                                      )
-                                    }
-                                  >
-                                    ลบ LDPlayer
-                                  </ContextMenuItem>
-                                </ContextMenuSubContent>
-                              </ContextMenuSub>
-                              <ContextMenuSub>
-                                <ContextMenuSubTrigger>
-                                  เปลี่ยนสถานะ
-                                </ContextMenuSubTrigger>
-                                <ContextMenuSubContent>
-                                  {status.map((item) => (
-                                    <ContextMenuItem
-                                      key={item.id}
-                                      inset
-                                      onClick={() =>
-                                        handleChangeStatus(item.status)
-                                      }
-                                    >
-                                      {item.status}
-                                    </ContextMenuItem>
-                                  ))}
-                                </ContextMenuSubContent>
-                              </ContextMenuSub>
-                              <ContextMenuSub>
-                                <ContextMenuSubTrigger>
-                                  เปลี่ยนไฟล์รายชื่อ
-                                </ContextMenuSubTrigger>
-                                <ContextMenuSubContent>
-                                  {files.map((file) => (
-                                    <ContextMenuItem
-                                      key={file.name}
-                                      inset
-                                      onSelect={() =>
-                                        handleSelectFile(
-                                          Array.from(selectedRows),
-                                          file.name,
-                                        )
-                                      }
-                                    >
-                                      {file.name} ({file.count})
-                                    </ContextMenuItem>
-                                  ))}
-                                </ContextMenuSubContent>
-                              </ContextMenuSub>
-                              <ContextMenuItem
-                                onClick={() =>
-                                  openConfirmDialog(
-                                    "คุณแน่ใจหรือไม่ที่จะลบแถวนี้?",
-                                    handleDeleteRow,
-                                  )
+                                    return newSet;
+                                  });
+                                  setLastClickedIndex(index);
+                                } else {
+                                  setSelectedRows(
+                                    new Set([item.LDPlayerGridLD]),
+                                  );
+                                  setLastClickedIndex(index);
                                 }
-                              >
-                                ลบแถว
-                              </ContextMenuItem>
-                            </ContextMenuContent>
-                          </ContextMenu>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isSelecting || startIndex === null) return;
+
+                                const min = Math.min(startIndex, index);
+                                const max = Math.max(startIndex, index);
+
+                                const newSet = new Set(selectedRows);
+
+                                if (!e.ctrlKey) {
+                                  newSet.clear();
+                                }
+
+                                for (let i = min; i <= max; i++) {
+                                  newSet.add(ldplayers[i].LDPlayerGridLD);
+                                }
+
+                                setSelectedRows(newSet);
+                              }}
+                              onMouseUp={() => {
+                                setIsSelecting(false);
+                                setStartIndex(null);
+                              }}
+                              className={`select-none ${
+                                selectedRows.has(item.LDPlayerGridLD)
+                                  ? "bg-blue-100 dark:bg-blue-900"
+                                  : ""
+                              }`}
+                            >
+                              <TableCell>
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-blue-100 text-blue-800"
+                                >
+                                  {item.NoDataGridLD}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{item.LDPlayerGridLD}</TableCell>
+                              <TableCell>{item.StatusAccGridLD}</TableCell>
+                              <TableCell>{item.DateTimeGridLD}</TableCell>
+                              <TableCell>{item.StatusGridLD}</TableCell>
+                              <TableCell>{item.FriendGridLD}</TableCell>
+                              <TableCell>{item.GroupGridLD}</TableCell>
+                              <TableCell>{item.NameLineGridLD}</TableCell>
+                              <TableCell>{item.PhoneGridLD}</TableCell>
+                              <TableCell>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span>
+                                      {item.TokenGridLD
+                                        ? `${item.TokenGridLD.slice(0, 33)}`
+                                        : ""}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="max-w-full break-all whitespace-pre-wrap">
+                                      {item.TokenGridLD}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TableCell>
+                              <TableCell>{item.CreateAt}</TableCell>
+                            </TableRow>
+                          </ContextMenuTrigger>
+                          <ContextMenuContent>
+                            <ContextMenuSub>
+                              <ContextMenuSubTrigger>
+                                ฟังชั่น
+                              </ContextMenuSubTrigger>
+                              <ContextMenuSubContent>
+                                <ContextMenuItem
+                                  inset
+                                  onClick={() =>
+                                    openConfirmDialog(
+                                      "คุณแน่ใจหรือไม่ที่จะตรวจสอบบัญชีไลน์นี้?",
+                                      handleCheckban,
+                                    )
+                                  }
+                                >
+                                  ตรวจสอบบัญชีไลน์
+                                </ContextMenuItem>
+                                <ContextMenuItem inset>
+                                  ส่งข้อความ
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                  inset
+                                  onClick={() => setDialogOpenAddFriend(true)}
+                                >
+                                  เพิ่มเพื่อน
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                  inset
+                                  onClick={() => setDialogOpenAddMe(true)}
+                                >
+                                  เพิ่มเพื่อนหาตัวเอง
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                  inset
+                                  onClick={() => {
+                                    setDialogOpenTabCreateGroup(true);
+                                  }}
+                                >
+                                  สร้างกลุ่ม
+                                </ContextMenuItem>
+                              </ContextMenuSubContent>
+                            </ContextMenuSub>
+                            <ContextMenuSub>
+                              <ContextMenuSubTrigger>
+                                LDPlayer
+                              </ContextMenuSubTrigger>
+                              <ContextMenuSubContent>
+                                <ContextMenuItem
+                                  inset
+                                  onClick={() =>
+                                    openConfirmDialog(
+                                      "คุณแน่ใจหรือไม่ที่จะเก็บ Token?",
+                                      handleGetTokenAuto,
+                                    )
+                                  }
+                                >
+                                  เก็บ Token
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                  inset
+                                  onClick={() =>
+                                    openConfirmDialog(
+                                      "คุณแน่ใจหรือไม่ที่จะเปิด LDPlayer นี้?",
+                                      handleOpenLDPlayer,
+                                    )
+                                  }
+                                >
+                                  เปิด LDPlayer
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                  inset
+                                  onClick={() =>
+                                    openConfirmDialog(
+                                      "คุณแน่ใจหรือไม่ที่จะลบ LDPlayer นี้?",
+                                      handleDeleteLDPlayer,
+                                    )
+                                  }
+                                >
+                                  ลบ LDPlayer
+                                </ContextMenuItem>
+                              </ContextMenuSubContent>
+                            </ContextMenuSub>
+                            <ContextMenuSub>
+                              <ContextMenuSubTrigger>
+                                เปลี่ยนสถานะ
+                              </ContextMenuSubTrigger>
+                              <ContextMenuSubContent>
+                                {status.map((item) => (
+                                  <ContextMenuItem
+                                    key={item.id}
+                                    inset
+                                    onClick={() =>
+                                      handleChangeStatus(item.status)
+                                    }
+                                  >
+                                    {item.status}
+                                  </ContextMenuItem>
+                                ))}
+                              </ContextMenuSubContent>
+                            </ContextMenuSub>
+                            <ContextMenuSub>
+                              <ContextMenuSubTrigger>
+                                เปลี่ยนไฟล์รายชื่อ
+                              </ContextMenuSubTrigger>
+                              <ContextMenuSubContent>
+                                {files.map((file) => (
+                                  <ContextMenuItem
+                                    key={file.name}
+                                    inset
+                                    onSelect={() =>
+                                      handleSelectFile(
+                                        Array.from(selectedRows),
+                                        file.name,
+                                      )
+                                    }
+                                  >
+                                    {file.name} ({file.count})
+                                  </ContextMenuItem>
+                                ))}
+                              </ContextMenuSubContent>
+                            </ContextMenuSub>
+                            <ContextMenuItem
+                              onClick={() =>
+                                openConfirmDialog(
+                                  "คุณแน่ใจหรือไม่ที่จะลบแถวนี้?",
+                                  handleDeleteRow,
+                                )
+                              }
+                            >
+                              ลบแถว
+                            </ContextMenuItem>
+                          </ContextMenuContent>
+                        </ContextMenu>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
             </div>

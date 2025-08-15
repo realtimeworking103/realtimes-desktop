@@ -20,7 +20,7 @@ export async function getAllContactIds(accessToken: string): Promise<string[]> {
 
   return new Promise<string[]>((resolve, reject) => {
     try {
-      const client = http2.connect(lineconfig.URL_LINE);
+      const client = http2.connect(lineconfig.LINE_HOST_DOMAIN);
 
       const req = client.request({
         ":method": "POST",
